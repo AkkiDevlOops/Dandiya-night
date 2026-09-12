@@ -4,7 +4,9 @@ import ImageSlider from "@/components/intro";
 export default function Home() {
   return (
    <>
-   <ImageSlider/>
+   <div>
+    
+   </div>
    </>
   );
 }
