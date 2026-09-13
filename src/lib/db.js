@@ -1,45 +1,40 @@
 // lib/mongodb.js
 import mongoose from 'mongoose';
+import { configDotenv } from 'dotenv';
+import dotenv from 'dotenv';
+import path from 'path';
 
-const MONGODB_URI = process.env.NEXT_PUBLIC_MONGO_URL;
+// Force dotenv to load from your exact project root
+dotenv.config({ path: 'C:/Users/Admin/OneDrive/Desktop/Dandiya-night/.env' });
 
+const MONGO_URI  = process.env.NEXT_PUBLIC_MONGO_URL;
 
-
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections from growing exponentially
- * during API Route usage.
- */
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
 
 async function connectDB() {
-  if (cached.conn) {
-    return cached.conn;
-  }
-
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
-      console.log('=> MongoDB Connected successfully');
-      return mongooseInstance;
-    });
-  }
-
   try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
+    const state = mongoose.connection.readyState;
+    if(state == 1){
+      console.log("already connected");
+      return mongoose.connection;
+    }
+    await mongoose.connect(MONGO_URI);
+    console.log()
+    console.log('Successfully connected to MongoDB.');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1); // Stop the application if the database connection fails
   }
-
-  return cached.conn;
 }
+
+const Shutdown = async (msg, callback) => {
+  try {
+    await mongoose.connection.close();
+    console.log(`🔌 MongoDB connection closed through ${msg}`);
+    callback();
+  } catch (err) {
+    console.error('Error during MongoDB disconnection:', err);
+    process.exit(1);
+  }
+};
 
 export default connectDB;

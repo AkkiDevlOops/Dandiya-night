@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Googlelogin from "@/components/googlelogin"
 import {
   ArrowRight,
   Eye,
@@ -275,6 +276,9 @@ export default function LoginForm() {
           </button>
 
         </form>
+         <div className="w-full pt-3 flex justify-center">
+                     <Googlelogin/>
+                            </div>
 
 
         {/* VERIFIED MESSAGE */}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import Googlelogin from '@/components/googlelogin'
 import Link from "next/link";
 import {
   ArrowRight,
@@ -13,155 +14,29 @@ import {
   UserRound,
 } from "lucide-react";
 
-const colleges = [
-  "Lakshmi Narain College of Technology",
-  "Oriental College of Technology",
-  "Technocrats Institute of Technology",
-  "Other",
-];
 
 export default function RegisterForm() {
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    college: "",
-    password: "",
-    confirmPassword: "",
-  });
+ const formData = useRef({
+    enrollmentNo:"",
+    password:"",
+ })
 
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
-
-  const [agree, setAgree] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-
-  const handleChange = (e) => {
-
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setError("");
-  };
-
-
-  const validateForm = () => {
-
-    if (!formData.name.trim()) {
-      return "Please enter your full name.";
-    }
-
-    if (!formData.email.trim()) {
-      return "Please enter your college email.";
-    }
-
-    if (!formData.email.includes("@")) {
-      return "Please enter a valid email.";
-    }
-
-    if (!formData.college) {
-      return "Please select your college.";
-    }
-
-    if (!formData.password) {
-      return "Please create a password.";
-    }
-
-    if (formData.password.length < 6) {
-      return "Password must be at least 6 characters.";
-    }
-
-    if (
-      formData.password !==
-      formData.confirmPassword
-    ) {
-      return "Passwords do not match.";
-    }
-
-    if (!agree) {
-      return "Please agree to the community guidelines.";
-    }
-
-    return null;
-  };
-
-
-  const handleSubmit = async (e) => {
-
-    e.preventDefault();
-
-    setError("");
-
-    const validationError =
-      validateForm();
-
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    try {
-
-      setLoading(true);
-
-      /*
-        Backend will be connected later.
-
-        const response = await fetch(
-          "/api/auth/register",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify(formData),
-          }
-        );
-      */
-
-      // Temporary simulation
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1200)
-      );
-
-      console.log(
-        "Register Data:",
-        formData
-      );
-
-      alert(
-        "Registration UI is working!"
-      );
-
-    } catch (error) {
-
-      setError(
-        error.message ||
-          "Something went wrong."
-      );
-
-    } finally {
-
-      setLoading(false);
-
-    }
-  };
-
+ const handlesubmit = async(e)=>{
+    e.preventDefault()
+    const response = await fetch("/api/auth/signup",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify(
+            formData
+        )
+    });
+    const data = await response.json()
+    console.log(data)
+    alert("is your name "+ data.name);
+ }
 
   return (
     <div className="w-full max-w-md">
@@ -198,29 +73,22 @@ export default function RegisterForm() {
       <div className="rounded-[2rem] border border-[#741337]/10 bg-white p-6 shadow-xl shadow-[#741337]/5 sm:p-8">
 
         <form
-          onSubmit={handleSubmit}
+     onSubmit={handlesubmit}
           className="space-y-4"
         >
 
           {/* ERROR */}
-          {error && (
-            <div
-              role="alert"
-              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
-            >
-              {error}
-            </div>
-          )}
+       
 
 
           {/* EMAIL */}
           <div>
 
             <label
-              htmlFor="register-email"
+             
               className="mb-2 block text-sm font-medium text-[#24151a]"
             >
-              College Email
+              Enrollment Number
             </label>
 
             <div className="relative">
@@ -233,12 +101,13 @@ export default function RegisterForm() {
               <input
                 id="register-email"
                 name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
+                
+                onChange={(e)=>{
+                    formData.current.enrollmentNo =e.target.value;
+                }}
                 placeholder="you@college.ac.in"
                 autoComplete="email"
-                className="h-12 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+                className="h-12 w-full rounded-xl text-black border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
               />
 
             </div>
@@ -273,32 +142,22 @@ export default function RegisterForm() {
               <input
                 id="register-password"
                 name="password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
-                value={formData.password}
-                onChange={handleChange}
+               onChange={(e)=>{
+                    formData.current.password = e.target.value;
+                }}
+               
                 placeholder="Create a password"
                 autoComplete="new-password"
-                className="h-12 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-12 text-sm outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+                className="h-12 w-full text-black rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-12 text-sm outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
               />
 
               <button
                 type="button"
-                onClick={() =>
-                  setShowPassword(
-                    (prev) => !prev
-                  )
-                }
+               
+               
                 className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[#24151a]/40 hover:bg-[#fff0df]"
               >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                
               </button>
 
             </div>
@@ -315,21 +174,7 @@ export default function RegisterForm() {
 
 
             
-              <button
-                type="button"
-                onClick={() =>
-                  setShowConfirmPassword(
-                    (prev) => !prev
-                  )
-                }
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[#24151a]/40 hover:bg-[#fff0df]"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
-              </button>
+         
 
             </div>
 
@@ -341,10 +186,7 @@ export default function RegisterForm() {
 
             <input
               type="checkbox"
-              checked={agree}
-              onChange={(e) =>
-                setAgree(e.target.checked)
-              }
+             
               className="mt-0.5 h-4 w-4 shrink-0 accent-[#741337]"
             />
 
@@ -360,17 +202,11 @@ export default function RegisterForm() {
           {/* BUTTON */}
           <button
             type="submit"
-            disabled={loading}
+            
             className="group mt-2 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#741337] font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
 
-            {loading ? (
-              <>
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-
-                Creating account...
-              </>
-            ) : (
+           
               <>
                 Create Account
 
@@ -379,21 +215,15 @@ export default function RegisterForm() {
                   className="transition group-hover:translate-x-1"
                 />
               </>
-            )}
+            
 
           </button>
 
-            <div className="w-full flex justify-center">
-            <a
-            type="submit"
-            disabled={loading}
-            className="group mt-2 w-1/2 flex-col flex h-13  items-center justify-center gap-2 rounded-xl bg-[#2381ec] font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-          Google Login
-          </a>
-</div>
+            
         </form>
-
+             <div className="w-full pt-3 flex justify-center">
+             <Googlelogin/>
+                    </div>
 
         {/* VERIFIED MESSAGE */}
         <div className="mt-5 flex items-start gap-3 rounded-xl bg-[#fffaf2] p-4">
