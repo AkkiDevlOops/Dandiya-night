@@ -22,6 +22,9 @@ export default function RegisterForm() {
     password:"",
  })
 
+ const[name,setname] = useState('');
+ const[namediv,setnamedivopen] = useState(false);
+
  const handlesubmit = async(e)=>{
     e.preventDefault()
     const response = await fetch("/api/auth/signup",{
@@ -35,7 +38,9 @@ export default function RegisterForm() {
     });
     const data = await response.json()
     console.log(data)
-    alert("is your name "+ data.name);
+    setname(data.name);
+    setnamedivopen(true);
+    
  }
 
   return (
@@ -72,15 +77,40 @@ export default function RegisterForm() {
       {/* FORM CARD */}
       <div className="rounded-[2rem] border border-[#741337]/10 bg-white p-6 shadow-xl shadow-[#741337]/5 sm:p-8">
 
+    
         <form
      onSubmit={handlesubmit}
           className="space-y-4"
         >
 
           {/* ERROR */}
-       
+       {namediv?(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div className="bg-white border border-[#eae5de] shadow-2xl rounded-3xl w-full max-w-md p-6 flex flex-col items-center justify-center text-center transform transition-all animate-in fade-in zoom-in duration-200">
+    <div className="w-12 h-12 rounded-full bg-[#4a1525]/10 flex items-center justify-center mb-4 text-[#4a1525]">
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+    </div>
+    
+    <p className="text-gray-600 text-base font-medium mb-1">
+      Got your name
+    </p>
+    
+    <p className="text-2xl font-bold text-[#4a1525] tracking-tight mb-6">
+      {name}
+    </p>
 
-
+    <div className="flex justify-center gap-3 w-full">
+      
+      <a href='/'><button  onClick={()=>setnamedivopen(false)} className="flex-1 py-3 px-4 rounded-xl bg-[#4a1525] text-white font-semibold hover:bg-[#3a101d] transition-colors shadow-md">
+        Yes, that's me
+      </button></a>
+    </div>
+    <p className="mt-2">If no, try signing in with google</p>
+  </div>
+</div>
+        ):""}
           {/* EMAIL */}
           <div>
 
