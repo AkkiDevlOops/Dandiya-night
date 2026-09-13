@@ -33,6 +33,38 @@ const UserSchema = new mongoose.Schema({
     }
 })
 
+const UserProfile =  new mongoose.Schema({
+     enrollmentNo:{
+        type:String,
+        required: true,
+        unique:true,
+    },
+    Intrest:[],
+    garbaVibe:{
+        type:String,
+    },
+    gender:{
+        type:String
+    },
+    Age:{
+        type: String
+    },
+    likes:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'Like'
+    }],
+    matchedUsers :[],
+    imageURL:[],
+    timestamps: true,
+});
+
+const likes = new mongoose.Schema({
+    enrollmentNo:{
+        type:String
+    },
+    user:[]
+})
+
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
