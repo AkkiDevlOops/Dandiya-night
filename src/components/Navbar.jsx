@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Home, PlaySquare, Send, Search, CircleUserRound } from "lucide-react";
+import { Home, PlaySquare,Heart, Send, Search, CircleUserRound } from "lucide-react";
 
 const NAV_ITEMS = [
-  { id: "home", icon: Home },
-  { id: "reels", icon: PlaySquare },
-  { id: "explore", icon: Send },
-  { id: "search", icon: Search },
-  { id: "profile", icon: CircleUserRound },
+  { id: "home", icon: Home , link:"/testroute"},
+  { id: "reels", icon: PlaySquare,link:"" },
+  { id: "explore", icon: Send,link:"" },
+  { id: "Like", icon: Heart,link:"/likes" },    
+  { id: "profile", icon: CircleUserRound,link:"/LoginRegister" },
 ];
 
 export default function FloatingNavbar() {
@@ -19,9 +19,10 @@ export default function FloatingNavbar() {
       <nav
         className="flex gap-2 justify-between  md:w-sm items-center rounded-full border border-white/10 bg-gradient-to-b from-neutral-800 to-neutral-950 px-3 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
       >
-        {NAV_ITEMS.map(({ id, icon: Icon }) => {
+        {NAV_ITEMS.map(({ id, icon: Icon, link:link }) => {
           const isActive = active === id;
           return (
+            <a  href={link} key={id}>
             <button
               key={id}
               type="button"
@@ -40,6 +41,7 @@ export default function FloatingNavbar() {
                 fill={isActive && id === "reels" ? "currentColor" : "none"}
               />
             </button>
+            </a>
           );
         })}
       </nav>

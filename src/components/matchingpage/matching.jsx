@@ -1,14 +1,15 @@
 import React from "react";
 import Image from "next/image";
+import Navbar from '@/components/Navbar'
 
 export default function RaasMitraProfile() {
   return (
     <div className=" flex justify-center">
       {/* Mobile Frame Container */}
-      <div className="w-full max-w-[412px] scroll-auto   sm:rounded-[40px] mt-3 mb-2 bg-[#fdfbf7] flex flex-col overflow-hidden shadow-2xl relative">
+      <div className="w-full max-w-[412px] mb-4 scroll-auto   sm:rounded-[40px] mt-3 bg-[#fdfbf7] flex flex-col overflow-hidden shadow-2xl relative">
         
         {/* Long Scrollable Div */}
-        <div className="flex-1 md:mb-25 mb-40 overflow-y-auto p-5 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
+        <div className="flex-1 overflow-y-auto p-5 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
           
           {/* App Heading & More Options */}
           <div className="flex justify-between items-center mb-6">
@@ -43,9 +44,8 @@ export default function RaasMitraProfile() {
                 aria-label="Like profile" 
                 className="absolute bottom-4 right-4 w-[52px] h-[52px] bg-white rounded-full flex justify-center items-center shadow-lg transition-transform hover:scale-105 active:scale-95"
               >
-                <svg className="w-6 h-6 text-[#4a1525] fill-[#4a1525]/10" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
+                <img src="/dandiya.png"/>
+                
               </button>
             </div>
 
@@ -92,7 +92,13 @@ export default function RaasMitraProfile() {
           </div>
 
         </div>
+
+        <div className=" mb-3 mt-0">
+            <Navbar/>
+        </div>
+
       </div>
+      
     </div>
   );
 }

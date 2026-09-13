@@ -17,7 +17,7 @@ export default function LoginPage() {
         <div className="relative  bg-[#4a0b22] lg:block">
 
           <img
-            src="/images/hero-garba.jpg"
+            src="/left-page.jpeg"
             alt="Students enjoying Garba"
             className="absolute inset-0 h-full w-full object-cover opacity-70"
           />
