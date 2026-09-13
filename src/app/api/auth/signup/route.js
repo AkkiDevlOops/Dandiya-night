@@ -82,15 +82,15 @@ export async function POST(request) {
     );
 
     // 8. Securely set the JWT inside an HttpOnly Cookie
-    response.cookies.set({
-      name: 'auth_token',
-      value: token,
-      httpOnly: true,                         // Prevents front-end JavaScript scripts from stealing token data
-      secure: process.env.NODE_ENV === 'production', // Requires HTTPS encryption in production environments
-      sameSite: 'strict',                     // Cross-Site Request Forgery (CSRF) mitigation protection
-      maxAge: 60 * 60 * 24 * 7,               // 7 days defined in seconds
-      path: '/',                              // Cookie accessible across entire domain routing paths
-    });
+    // response.cookies.set({
+    //   name: 'auth_token',
+    //   value: token,
+    //   httpOnly: true,                         // Prevents front-end JavaScript scripts from stealing token data
+    //   secure: process.env.NODE_ENV === 'production', // Requires HTTPS encryption in production environments
+    //   sameSite: 'strict',                     // Cross-Site Request Forgery (CSRF) mitigation protection
+    //   maxAge: 60 * 60 * 24 * 7,               // 7 days defined in seconds
+    //   path: '/',                              // Cookie accessible across entire domain routing paths
+    // });
 
     return response;
 
