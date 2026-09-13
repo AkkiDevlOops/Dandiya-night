@@ -103,7 +103,7 @@ export default function RegisterForm() {
 
     <div className="flex justify-center gap-3 w-full">
       
-      <a href='/'><button  onClick={()=>setnamedivopen(false)} className="flex-1 py-3 px-4 rounded-xl bg-[#4a1525] text-white font-semibold hover:bg-[#3a101d] transition-colors shadow-md">
+      <a href='/completeProfile'><button  onClick={()=>setnamedivopen(false)} className="flex-1 py-3 px-4 rounded-xl bg-[#4a1525] text-white font-semibold hover:bg-[#3a101d] transition-colors shadow-md">
         Yes, that's me
       </button></a>
     </div>
