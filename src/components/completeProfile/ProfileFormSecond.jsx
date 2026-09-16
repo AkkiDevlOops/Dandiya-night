@@ -30,6 +30,8 @@ export default function ProfileFormSecond({
   onBack,
   onSave,
 }) {
+
+    const [imageUrl, setImageUrl] = useState('');
   const fileInputRef = useRef(null);
 
   const [images, setImages] = useState([]);
@@ -194,6 +196,37 @@ export default function ProfileFormSecond({
   }
 };
 
+  const handleimageSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setImageUrl('');
+
+    // Extract the file from the form data
+    const data = new FormData(e.currentTarget);
+    
+    try {
+      const res = await fetch('/api/uploadimage', {
+        method: 'POST',
+        body: data, // Handles content-type boundaries automatically
+      });
+
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        setImageUrl(result.imageUrl);
+      } else {
+        setError(result.error || "Something went wrong during the upload.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to connect to the upload server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   return (
     <div className="w-full max-w-[700px]">
@@ -258,13 +291,13 @@ export default function ProfileFormSecond({
         )}
 
 
-        <form
-          onSubmit={handleSubmit}
+        <form 
+          onSubmit={handleimageSubmit}
           className="space-y-4"
         >
 
           {/* ================= PHOTOS ================= */}
-
+          
           <div>
 
             <div className="mb-2 flex items-center justify-between">

@@ -6,8 +6,9 @@ import Background from "@/components/matchingpage/backgroundblur"
 import '@/app/globals.css';
 
 
-
 function page() {
+
+ 
   
   return (
     <div className='max-h-screen overscroll-none'>

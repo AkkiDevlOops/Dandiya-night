@@ -1,7 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/gettoken";
+import Background from '@/components/matchingpage/backgroundblur'
 
 import ProfileFormFirst from "@/components/completeProfile/ProfileFormFirst";
 import ProfileFormSecond from "@/components/completeProfile/ProfileFormSecond";
@@ -59,26 +61,26 @@ export default function CompleteProfilePage() {
     // fetch("/api/profile", {...})
   };
 
-  return (
-    <main className="h-dvh overflow-hidden bg-[#fffaf2]">
-      <div className="flex h-full items-center justify-center px-4 py-3 sm:px-6">
+ 
 
-        {step === 1 && (
+  useEffect(()=>{
+    
+  })
+
+  return (
+    <div><Background/>
+    <main className="h-dvh inset-0 z-50 overflow-hidden bg-[#fffaf2]">
+      <div className="flex h-full items-center justify-center px-4 py-3 sm:px-6">
+      
           <ProfileFormFirst
             student={student}
             onNext={handleNext}
           />
-        )}
+      
 
-        {step === 2 && (
-          <ProfileFormSecond
-            profileData={profileData}
-            onBack={handleBack}
-            onSave={handleSave}
-          />
-        )}
+       
 
       </div>
-    </main>
+    </main></div>
   );
 }

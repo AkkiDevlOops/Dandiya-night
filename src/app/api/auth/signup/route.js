@@ -95,7 +95,9 @@ export async function POST(request) {
 
     const userSessionData = {
       id: existingUser._id,
+      auth: true,
       enrollmentNo : existingUser.enrollmentNo,
+      name:existingUser.name,
       token:token
     }
 
@@ -110,6 +112,8 @@ export async function POST(request) {
       maxAge: 60 * 60 * 24 * 11,               // 7 days defined in seconds
       path: '/',                              // Cookie accessible across entire domain routing paths
     });
+
+    localStorage.setItem("token", JSON.stringify(userSettings));
 }
     // 7. Initialize the JSON response payload
   

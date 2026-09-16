@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -8,6 +8,15 @@ import {
   UserRound,
   VenusAndMars,
 } from "lucide-react";
+
+import Navbar from "@/components/Navbar"
+
+import { useRouter } from "next/navigation";
+
+import { useAuthGuard } from "@/lib/authorisedroute";
+
+import { useAuth } from "@/lib/gettoken";
+import Background from "@/components/matchingpage/backgroundblur"
 
 const branches = [
   "Computer Science",
@@ -40,10 +49,21 @@ const genders = [
   "Prefer not to say",
 ];
 
+
+
 export default function ProfileFormFirst({
   student,
   onNext,
 }) {
+
+  useAuthGuard()
+
+  const {user} = useAuth()
+
+  const [name,setname] = useState('');
+  
+
+
   const [formData, setFormData] = useState({
     username: "",
     branch: "",
@@ -109,28 +129,31 @@ export default function ProfileFormFirst({
     onNext(formData);
   };
 
+  const router = useRouter();
+  
+   useEffect(()=>{
+    
+    const data = JSON.parse(user);
+    const auth = data.auth;
+    if(data.auth == false){
+      router.push('/LoginRegister')
+    }
+      console.log(auth)
+      setname(data.name)
+      
+   })
+
+
   return (
-    <div className="w-full max-w-[700px]">
+    <div className="w-full inset-0 z-50 max-w-[700px]">
 
       {/* HEADER */}
+    
 
       <div className="mb-4 text-center">
 
-        <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-[#fff0df] text-xl">
-          🪔
-        </div>
-
-        <h1 className="font-serif text-[30px] font-bold leading-tight text-[#741337]">
-          Complete Your Profile
-          <span className="ml-2 text-[#ed7137]">
-            ✧
-          </span>
-        </h1>
-
-        <p className="mt-1 text-xs text-[#24151a]/50">
-          Just a few details before you enter the Garba circle.
-        </p>
-
+       
+       
       </div>
 
 
@@ -151,7 +174,7 @@ export default function ProfileFormFirst({
             <div className="flex items-center gap-1.5">
 
               <h2 className="text-sm font-semibold text-[#741337]">
-                {student?.name || "Student"}
+                {name || "Student"}
               </h2>
 
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-100">
@@ -472,6 +495,8 @@ export default function ProfileFormFirst({
         </p>
 
       </div>
+
+      
 
     </div>
   );

@@ -1,8 +1,21 @@
-import React from "react";
+"use client";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import Navbar from '@/components/Navbar'
+import { useAuth } from "@/lib/gettoken";
 
 export default function RaasMitraProfile() {
+
+    const {user} = useAuth();
+  
+   useEffect(()=>{
+    
+      console.log(user)
+      
+   });
+  
+
+
   return (
     <div className=" flex justify-center">
       {/* Mobile Frame Container */}

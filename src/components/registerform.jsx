@@ -13,9 +13,12 @@ import {
   Sparkles,
   UserRound,
 } from "lucide-react";
+import { useRouter } from 'next/navigation';
 
 
 export default function RegisterForm() {
+
+  const router = useRouter(); 
 
  const formData = useRef({
     enrollmentNo:"",
@@ -108,7 +111,7 @@ const[error,seterror] = useState('');
 
     <div className="flex justify-center gap-3 w-full">
       
-      <a href='/completeProfile'><button  onClick={()=>setnamedivopen(false)} className="flex-1 py-3 px-4 rounded-xl bg-[#4a1525] text-white font-semibold hover:bg-[#3a101d] transition-colors shadow-md">
+      <a><button  onClick={()=>{setnamedivopen(false) }} className="flex-1 py-3 px-4 rounded-xl bg-[#4a1525] text-white font-semibold hover:bg-[#3a101d] transition-colors shadow-md">
         Yes, that's me
       </button></a>
     </div>
