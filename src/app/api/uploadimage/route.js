@@ -1,12 +1,16 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { NextResponse } from 'next/server';
+import User from '@/models/user'
+import Profile from '@/models/profile';
+
+import connectDB from '@/lib/db';
 
 
 
 
 export async function POST(request) {
   try {
-
+    connectDB();
     cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -16,6 +20,11 @@ export async function POST(request) {
     // 2. Parse the incoming multi-part form data
     const formData = await request.formData();
     const file = formData.get('image'); // Looks for the input named 'image'
+    const id = formData.get('userId');
+    const stringid = id.toString();
+    console.log(stringid);
+
+    
 
     if (!file) {
       return NextResponse.json({ error: 'No image file provided' }, { status: 400 });
@@ -39,6 +48,20 @@ export async function POST(request) {
       ).end(buffer);
     });
 
+    // const user = await  User.findOne()
+
+     const updatedUser = await Profile.findOneAndUpdate(
+      { id: stringid }, // 👈 Just write the key-value pair directly!
+      { $push: { images: uploadResult.secure_url } },
+      { returnDocument: 'after',
+        runValidators: true
+       }
+     
+    );
+
+    console.log(updatedUser);
+
+   
     // 5. Return the permanent, queryable secure URL back to the frontend
     return NextResponse.json({ 
       success: true, 

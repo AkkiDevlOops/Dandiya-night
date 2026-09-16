@@ -1,4 +1,5 @@
-import React from 'react'
+"use client";
+import React, { useEffect, useState } from 'react'
 
 import Matching from "@/components/matchingpage/matching"
 
@@ -8,7 +9,6 @@ import '@/app/globals.css';
 
 function page() {
 
- 
   
   return (
     <div className='max-h-screen overscroll-none'>

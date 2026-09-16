@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 
 const UserProfile = new mongoose.Schema({
-
+  id:{
+    type : String
+  },
 
   username: {
     type: String,
@@ -33,30 +35,7 @@ const UserProfile = new mongoose.Schema({
     required: true,
   },
 
-  // Optional fields for later
-//   age: {
-//     type: Number,
-//   },
-
-//   interests: {
-//     type: [String],
-//     default: [],
-//   },
-
-//   garbaVibe: {
-//     type: String,
-//   },
-
-//   imageURL: {
-//     type: [String],
-//     default: [],
-//   },
-
-//   matchedUsers: {
-//     type: [mongoose.Schema.Types.ObjectId],
-//     ref: "User",
-//     default: [],
-//   },
+  images:[{type: String}],
 
   createdAt: {
     type: Date,

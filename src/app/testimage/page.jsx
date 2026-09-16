@@ -1,12 +1,22 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Background from '@/components/matchingpage/backgroundblur';
+import { useRouter } from "next/navigation";
+
+import { useAuthGuard } from "@/lib/authorisedroute";
+
+import { useAuth } from "@/lib/gettoken";
 
 export default function CloudinaryUploadForm() {
+
+  useAuthGuard();
+  const {user} = useAuth();
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [userId, setuserId] = useState('')
+
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -15,12 +25,12 @@ export default function CloudinaryUploadForm() {
     setImageUrl('');
 
     const data = new FormData(e.currentTarget);
-    
+     data.append('userId', userId);
     try {
       // Endpoint automatically updated to match your custom configuration path
       const res = await fetch('/api/uploadimage', {
         method: 'POST',
-        body: data,
+        body: data,userId
       });
 
       const result = await res.json();
@@ -37,15 +47,29 @@ export default function CloudinaryUploadForm() {
       setLoading(false);
     }
   };
+  const router = useRouter();
+    
+     useEffect(()=>{
+      
+      const data = JSON.parse(user);
+      const auth = data;
+      if(data.auth == false){
+        router.push('/LoginRegister')
+      }
+        setuserId(data.id);
+        console.log(auth)
+        
+        
+     },[])
 
   return (
     <>
     <div className=''>
     <Background/>
-    <div className="flex fixed inset-0 z-50 min-h-screen items-center justify-center  px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex fixed inset-0 z-50 min-h-screen items-center justify-center  px-4 py-12 sm:px-6 lg:px-8 flex-1 overflow-y-auto p-5 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
     
       {/* Container card uses clean off-white block style */}
-      <div className="w-full max-w-md space-y-8 rounded-2xl bg-[#fdfbf7] p-8 shadow-2xl border border-white/20">
+      <div className="w-full max-w-md min-h-screen space-y-8 rounded-2xl bg-[#fdfbf7] p-8 shadow-2xl border border-white/20">
         
         {/* Header Block */}
         <div className="text-center">
