@@ -46,6 +46,18 @@ export async function POST(request) {
         console.log(existingUser);
     }
 
+    const dbpassword = existingUser.password;
+
+     if(existingUser.password){
+      const compare = await bcrypt.compare(password,dbpassword);
+      if(!compare){
+        return NextResponse.json(
+        { error: 'Password not correct' },
+        { status: 400 }
+      );
+      }
+     }
+
     if(!existingUser.password){
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -59,7 +71,9 @@ export async function POST(request) {
   }
 );
 
-          console.log(updatedUser)
+  
+
+    console.log(updatedUser)
     }
 
      const response = NextResponse.json(

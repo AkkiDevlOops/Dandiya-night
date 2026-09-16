@@ -24,6 +24,7 @@ export default function RegisterForm() {
 
  const[name,setname] = useState('');
  const[namediv,setnamedivopen] = useState(false);
+const[error,seterror] = useState('');
 
  const handlesubmit = async(e)=>{
     e.preventDefault()
@@ -38,6 +39,10 @@ export default function RegisterForm() {
     });
     const data = await response.json()
     console.log(data)
+    if(data.error){
+      seterror(data.error);
+      return;
+    }
     setname(data.user.name);
     setnamedivopen(true);
     
@@ -113,7 +118,10 @@ export default function RegisterForm() {
         ):""}
           {/* EMAIL */}
           <div>
-
+            <div className="w-full flex items-center justify-center">
+          <p className="text-red-600 mb-3 ">{error}</p>
+          
+          </div>
             <label
              
               className="mb-2 block text-sm font-medium text-[#24151a]"
@@ -216,7 +224,7 @@ export default function RegisterForm() {
 
             <input
               type="checkbox"
-             
+              required
               className="mt-0.5 h-4 w-4 shrink-0 accent-[#741337]"
             />
 
