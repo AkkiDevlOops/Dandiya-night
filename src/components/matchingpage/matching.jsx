@@ -38,10 +38,10 @@ export default function RaasMitraProfile() {
   <div className="w-full max-w-[412px] mb-4 scroll-auto sm:rounded-[40px] mt-3 bg-[#fdfbf7] flex flex-col overflow-hidden shadow-2xl relative">
     
     {/* Long Scrollable Div */}
-    <div className="h-140 overflow-y-auto space-y-3 pr-4 pl-6 scroll-smooth  [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
+    <div className="h-[85vh] overflow-y-auto space-y-3 pr-4 pl-6 scroll-smooth  [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
       
       {/* App Heading & More Options */}
-      <div >
+      <div className="flex justify-between">
         <h1 className="text-2xl font-extrabold text-[#4a1525] tracking-tight">
           Raas Mitra
         </h1>
@@ -52,7 +52,7 @@ export default function RaasMitraProfile() {
 
       {/* 🚀 STACK CONTAINER START */}
       {/* Set a fixed height so absolute positioned cards have a bounding box layout */}
-      <div className="relative h-[600px] w-full mb-5">
+      <div className="relative mt-50 h-[600px] w-full mb-5">
         {profiles.map((profile, idx) => {
           // Limit stack to only show the top 3 profiles to prevent UI cluster mess
           if (idx > 2) return null;
@@ -79,9 +79,10 @@ export default function RaasMitraProfile() {
             >
               
               {/* Person's Name */}
-              <div className="px-5 pt-3 pb-3 text-[22px] font-bold text-gray-900">
-                {profile.username || 'Aanya'}, {profile.age || 24}
+              <div className="px-5  bg-amber-200 pt-3  text-[22px] font-bold text-gray-900">
+                {profile.name || 'Aanya'}, {profile.age || 24}
               </div>
+         
 
               {/* Image Div with Floating Round Button */}
               <div className="relative w-full h-[400px] bg-gray-200">
@@ -91,6 +92,19 @@ export default function RaasMitraProfile() {
                   alt={`Profile picture of ${profile.username || 'Aanya'}`}
                   className="w-full h-full object-cover"
                 />
+                 <div className="w-full inset-0 fixed z-100">
+                 
+                {idx === 0 && (
+                  <div>
+                  <button 
+                    aria-label="Like profile" 
+                    className="absolute right-0 top-1/4 w-13 h-13 rounded-full flex justify-center  items-center shadow-lg transition-transform hover:scale-105 active:scale-95 z-40"
+                  >
+                    <img className="rounded-full" src="/whitearrow.png" alt="like action" />
+                  </button>
+                  </div>
+                )}
+                </div>
 
                 {/* Only render interactive controls like click triggers on the active topmost card (idx === 0) */}
                 {idx === 0 && (

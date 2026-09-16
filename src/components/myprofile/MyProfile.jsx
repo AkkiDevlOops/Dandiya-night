@@ -33,13 +33,13 @@ export default function MyProfile() {
         {/* ================= HEADER ================= */}
 
         <div className="flex shrink-0 items-center justify-between">
-
+          <a href="/testroute">
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full text-[#741337] hover:bg-[#fff0df]"
           >
             <ArrowLeft size={20} />
-          </button>
+          </button></a>
 
           <h1 className="font-serif text-xl font-bold text-[#24151a]">
             My Profile

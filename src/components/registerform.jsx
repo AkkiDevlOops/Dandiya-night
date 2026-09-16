@@ -42,6 +42,11 @@ const[error,seterror] = useState('');
     });
     const data = await response.json()
     console.log(data)
+    if(response.ok){
+      console.log(data.token)
+      const token = localStorage.setItem('token',data.token);
+      console.log(token);
+    }
     if(data.error){
       seterror(data.error);
       return;
@@ -111,7 +116,9 @@ const[error,seterror] = useState('');
 
     <div className="flex justify-center gap-3 w-full">
       
-      <a><button  onClick={()=>{setnamedivopen(false) }} className="flex-1 py-3 px-4 rounded-xl bg-[#4a1525] text-white font-semibold hover:bg-[#3a101d] transition-colors shadow-md">
+      <a href='/completeProfile'><button  onClick={()=>{setnamedivopen(false), setTimeout(() => {
+        router.push('/completeProfile')
+      }, 2000); }} className="flex-1 py-3 px-4 rounded-xl bg-[#4a1525] text-white font-semibold hover:bg-[#3a101d] transition-colors shadow-md">
         Yes, that's me
       </button></a>
     </div>

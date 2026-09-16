@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { id: "reels", icon: PlaySquare,link:"" },
   { id: "explore", icon: Send,link:"" },
   { id: "Like", icon: Heart,link:"/likes" },    
-  { id: "profile", icon: CircleUserRound,link:"/LoginRegister" },
+  { id: "profile", icon: CircleUserRound,link:"/myprofile" },
 ];
 
 export default function FloatingNavbar() {

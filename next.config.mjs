@@ -1,10 +1,12 @@
+
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     domains: ['images.unsplash.com'],
   },
-  /* config options here */
   reactCompiler: true,
+  allowedDevOrigins: ['192.168.1.2'], // Combined right into the main config object
 };
 
 export default nextConfig;

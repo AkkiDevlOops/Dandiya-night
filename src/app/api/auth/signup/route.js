@@ -42,8 +42,10 @@ export async function POST(request) {
 
     // // 3. Verify if the user already exists in the database
     const existingUser = await User.findOne({ enrollmentNo: enrollmentNo });
-    if (existingUser) {
-        console.log(existingUser);
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: 'Cant find your enrollment in data, try signing with google or contact team' },
+        { status: 400 })
     }
 
     const dbpassword = existingUser.password;
@@ -76,14 +78,7 @@ export async function POST(request) {
     console.log(updatedUser)
     }
 
-     const response = NextResponse.json(
-      { 
-        message: 'Account created and logged in successfully!', 
-        user: { name: existingUser.name } 
-      },
-      { status: 201 }
-    );
-
+   
     
    if(existingUser){
     // 6. Generate the JWT Token for immediate login session
@@ -101,6 +96,15 @@ export async function POST(request) {
       token:token
     }
 
+      const response = NextResponse.json(
+      { 
+        message: 'Account created and logged in successfully!', 
+        user: { name: existingUser.name } ,
+        token:{token}
+      },
+      { status: 201 }
+    );
+
 
     // 8. Securely set the JWT inside an HttpOnly Cookie  
       response.cookies.set({
@@ -113,14 +117,16 @@ export async function POST(request) {
       path: '/',                              // Cookie accessible across entire domain routing paths
     });
 
-    localStorage.setItem("token", JSON.stringify(userSettings));
+    return response;
+    
 }
     // 7. Initialize the JSON response payload
   
+   return NextResponse.json(
+        { error: 'Cant find your enrollment in data, try signing with google or contact team' },
+        { status: 400 })
 
-  
-
-    return response;
+    
 
   } catch (error) {
     console.error('Signup Error:', error);

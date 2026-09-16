@@ -37,6 +37,9 @@ export default function CloudinaryUploadForm() {
 
       if (res.ok && result.success) {
         setImageUrl(result.imageUrl);
+        setTimeout(() => {
+          router.push('/testroute');
+        }, 2000);
       } else {
         setError(result.error || "Something went wrong during the upload.");
       }
@@ -124,8 +127,10 @@ export default function CloudinaryUploadForm() {
           </div>
 
           {/* Action Trigger Submission Control Button tailored in solid deep maroon */}
+          <a href='/testroute'>
           <button
             type="submit"
+            
             disabled={loading}
             className="group relative flex w-full justify-center rounded-xl bg-[#4c0519] py-3.5 px-4 text-sm font-semibold text-[#fdfbf7] hover:bg-[#630620] focus:outline-none focus:ring-2 focus:ring-[#4c0519] focus:ring-offset-2 disabled:bg-[#4c0519]/50 transition-all duration-300 shadow-lg shadow-rose-950/20 hover:shadow-xl hover:shadow-rose-950/30"
           >
@@ -141,6 +146,7 @@ export default function CloudinaryUploadForm() {
               'Send to Cloud Storage'
             )}
           </button>
+          </a>
         </form>
 
         {/* Success Preview Module Block */}
