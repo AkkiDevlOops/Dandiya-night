@@ -6,17 +6,24 @@ import User from '@/models/user';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+
+
 export async function POST(request) {
+
+
+
   try {
     await connectDB();
-    const { enrollmentNo, password } = await request.json();
+    const data = await request.json();
+    const { enrollmentNo, password } = data.current;
+    console.log(data);
 
-    if (!email || !password) {
+    if (!enrollmentNo || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
     // 1. Find user and verify password
-    const user = await User.findOne({ enrollmentNo: email.toLowerCase() });
+    const user = await User.findOne({ enrollmentNo: enrollmentNo });
     if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
@@ -28,21 +35,28 @@ export async function POST(request) {
 
     // 2. Generate the JWT Token payload
     const token = jwt.sign(
-      { userId: user._id, email: user.email }, // Data encoded inside the token
+      { userId: user._id ,
+      name : user.name} ,// Data encoded inside the token
       process.env.JWT_SECRET,                  // Secret key
       { expiresIn: '7d' }                      // Token lifespan (e.g., 7 days)
     );
 
     // 3. Create the response object
     const response = NextResponse.json(
-      { message: 'Login successful', user: { id: user._id, email: user.email } },
-      { status: 200 }
+      { message: 'Login successful', user: { id: user._id, name: user.name } },
+      { status: 200 },
+      {token:token}
     );
 
     // 4. Securely set the JWT inside an HttpOnly Cookie
     response.cookies.set({
       name: 'auth_token',
-      value: token,
+      value:
+      {
+        token:token,
+        userID:user._id,
+        name: user.name
+      },
       httpOnly: true,                         // Prevents frontend JavaScript from stealing the token
       secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
       sameSite: 'strict',                     // Protection against CSRF attacks

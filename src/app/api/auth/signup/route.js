@@ -44,36 +44,25 @@ export async function POST(request) {
     const existingUser = await User.findOne({ enrollmentNo: enrollmentNo });
     if (existingUser) {
         console.log(existingUser);
-      return NextResponse.json(
-        {name : existingUser.name},
-        { error: 'An account with this email already exists' },
-        { status: 400 }
-      );
     }
 
-    // 4. Hash the password securely using bcryptjs
+    if(!existingUser.password){
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 5. Create and save the new user to MongoDB
-
     const updatedUser = await User.findByIdAndUpdate(
-         { enrollmentNo: enrollmentNo },      // Find criteria
-         { password: hashedPassword}, // The fields to change
-         { new: true }
-          );
+  existingUser._id, 
+  { password: hashedPassword }, // 👈 Added a comma here
+  { 
+    new: true,           
+    runValidators: true  
+  }
+);
 
           console.log(updatedUser)
-   
-    // 6. Generate the JWT Token for immediate login session
-    const token = jwt.sign(
-      { userId: newUser._id, email: newUser.email }, // Data payload encoded inside token
-      process.env.JWT_SECRET,                        // Secret encryption key from .env.local
-      { expiresIn: '7d' }                            // Session duration (7 days)
-    );
+    }
 
-    // 7. Initialize the JSON response payload
-    const response = NextResponse.json(
+     const response = NextResponse.json(
       { 
         message: 'Account created and logged in successfully!', 
         user: { name: existingUser.name } 
@@ -81,16 +70,37 @@ export async function POST(request) {
       { status: 201 }
     );
 
-    // 8. Securely set the JWT inside an HttpOnly Cookie
-    // response.cookies.set({
-    //   name: 'auth_token',
-    //   value: token,
-    //   httpOnly: true,                         // Prevents front-end JavaScript scripts from stealing token data
-    //   secure: process.env.NODE_ENV === 'production', // Requires HTTPS encryption in production environments
-    //   sameSite: 'strict',                     // Cross-Site Request Forgery (CSRF) mitigation protection
-    //   maxAge: 60 * 60 * 24 * 7,               // 7 days defined in seconds
-    //   path: '/',                              // Cookie accessible across entire domain routing paths
-    // });
+    
+   if(existingUser){
+    // 6. Generate the JWT Token for immediate login session
+    const token = jwt.sign(
+      { userId:existingUser._id, enroll: existingUser.enrollmentNo }, // Data payload encoded inside token
+      process.env.JWT_SECRET,                        // Secret encryption key from .env.local
+      { expiresIn: '11d' }                            // Session duration (7 days)
+    );
+
+    const userSessionData = {
+      id: existingUser._id,
+      enrollmentNo : existingUser.enrollmentNo,
+      token:token
+    }
+
+
+    // 8. Securely set the JWT inside an HttpOnly Cookie  
+      response.cookies.set({
+      name: 'auth_token',
+      value: JSON.stringify(userSessionData),
+      httpOnly: true,                         // Prevents front-end JavaScript scripts from stealing token data
+      secure: process.env.NODE_ENV === 'production', // Requires HTTPS encryption in production environments
+      sameSite: 'strict',                     // Cross-Site Request Forgery (CSRF) mitigation protection
+      maxAge: 60 * 60 * 24 * 11,               // 7 days defined in seconds
+      path: '/',                              // Cookie accessible across entire domain routing paths
+    });
+}
+    // 7. Initialize the JSON response payload
+  
+
+  
 
     return response;
 

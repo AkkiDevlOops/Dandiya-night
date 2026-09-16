@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import Googlelogin from "@/components/googlelogin"
 import {
@@ -14,83 +14,31 @@ import {
 } from "lucide-react";
 
 export default function LoginForm() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+    
+    const formData = useRef({
+        enrollmentNo:"",
+        password:"",
+     })
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setError("");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    setError("");
-
-    // Basic validation
-    if (!formData.email.trim()) {
-      setError("Please enter your college email.");
-      return;
-    }
-
-    if (!formData.password) {
-      setError("Please enter your password.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      /*
-        Backend API will be connected here later.
-
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message);
-        }
-
-        window.location.href = "/discover";
-      */
-
-      // Temporary simulation
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1200)
-      );
-
-      console.log("Login Data:", formData);
-
-      alert("Login UI is working!");
-
-    } catch (error) {
-      setError(
-        error.message ||
-          "Something went wrong. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+     const [showPassword, setShowPassword] = useState('')
+    
+  const handlesubmit = async(e)=>{
+    e.preventDefault()
+    const response = await fetch("/api/auth/login",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify(
+            formData
+        )
+    });
+    const data = await response.json()
+    
+    console.log(data);
+    
+   alert(data)
+   }
 
   return (
     <div className="w-full max-w-md">
@@ -126,19 +74,12 @@ export default function LoginForm() {
       <div className="rounded-[2rem] border border-[#741337]/10 bg-white p-6 shadow-xl shadow-[#741337]/5 sm:p-8">
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handlesubmit}
           className="space-y-5"
         >
 
           {/* ERROR */}
-          {error && (
-            <div
-              role="alert"
-              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
-            >
-              {error}
-            </div>
-          )}
+         
 
 
           {/* EMAIL */}
@@ -161,9 +102,10 @@ export default function LoginForm() {
               <input
                 id="login-email"
                 name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
+                
+               onChange={(e)=>{
+                    formData.current.enrollmentNo =e.target.value;
+                }}
                 placeholder="you@college.ac.in"
                 autoComplete="email"
                 className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
@@ -210,8 +152,10 @@ export default function LoginForm() {
                     ? "text"
                     : "password"
                 }
-                value={formData.password}
-                onChange={handleChange}
+                
+              onChange={(e)=>{
+                    formData.current.password =e.target.value;
+                }}
                 placeholder="Enter your password"
                 autoComplete="current-password"
                 className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-12 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
@@ -252,17 +196,13 @@ export default function LoginForm() {
           {/* LOGIN BUTTON */}
           <button
             type="submit"
-            disabled={loading}
+            
             className="group flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#741337] font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
 
-            {loading ? (
-              <>
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-
-                Logging in...
-              </>
-            ) : (
+           
+             
+          
               <>
                 Login to RaasMitra
 
@@ -271,7 +211,7 @@ export default function LoginForm() {
                   className="transition group-hover:translate-x-1"
                 />
               </>
-            )}
+        
 
           </button>
 

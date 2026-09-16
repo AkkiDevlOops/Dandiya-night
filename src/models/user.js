@@ -55,7 +55,9 @@ const UserProfile =  new mongoose.Schema({
     }],
     matchedUsers :[],
     imageURL:[],
-    timestamps: true,
+     createdAt:{
+        type: Date, default: Date.now, 
+    }
 });
 
 const likes = new mongoose.Schema({
