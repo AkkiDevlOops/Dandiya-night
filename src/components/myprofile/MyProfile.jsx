@@ -10,17 +10,40 @@ import {
 } from "lucide-react";
 
 import Background from "@/components/matchingpage/backgroundblur";
+import { useEffect, useRef, useState } from "react";
 
 export default function MyProfile() {
-  const user = {
-    name: "Aarav Patel",
-    year: "2nd Year",
-    branch: "Computer Engineering",
-    intro: "Garba is better with good company!",
-    connections: 12,
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
-  };
+     const [error,setError] = useState('');
+    const [user, setuser] = useState();
+    const [image,setimage] = useState('');
+    const [name,setname] = useState('');
+     const [branch,setbranch] = useState('');
+      const [year,setyear] = useState('');
+ 
+  
+ 
+  useEffect(()=>{
+   const getprofile = async()=>{
+     try{
+    const response = await fetch("api/myprofile");
+   const data = await response.json();
+   const users = data.users;
+   console.log(users);
+   if(response.ok){
+    setname(users.username)
+    setimage(users.images[0])
+    setbranch(users.branch)
+    setyear(users.semester)
+    
+   }
+ }    catch (err) {
+         console.error(err);
+         setError("Could not connect to the profile directory server.");
+       } }
+       getprofile();
+     
+    },[]);
+   
 
   return (
     <main className="h-dvh overflow-hidden bg-[#fffaf2]">
@@ -61,8 +84,8 @@ export default function MyProfile() {
             <div className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-[#fff0df]" />
 
             <img
-              src={user.image}
-              alt={user.name}
+              src={image? image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS73OboNq8YpolvhWur1kpvkaggtHmHEzhY7RPohICuOA&s=10"}
+              alt={name}
               className="relative h-full w-full rounded-full border-[3px] border-white object-cover shadow"
             />
 
@@ -71,19 +94,20 @@ export default function MyProfile() {
 
           {/* NAME */}
 
-          <h2 className="font-serif text-[23px] font-bold leading-tight text-[#741337]">
-            {user.name}
+          <h2 className={name?"font-serif text-[23px] font-bold leading-tight text-[#741337]":"font-serif text-[23px] font-bold leading-tight text-[#741337] text-green-400"}>
+            {name?name:"Loading..."}
+            
           </h2>
 
 
           {/* DETAILS */}
 
           <p className="mt-0.5 text-xs text-[#24151a]/55">
-            {user.year}
+         {year}
             <span className="mx-1.5 text-[#ed7137]">
               •
             </span>
-            {user.branch}
+            {branch}
           </p>
 
 
@@ -92,7 +116,7 @@ export default function MyProfile() {
           <div className="mx-auto mt-2.5 max-w-[330px] rounded-xl bg-[#fffaf2] px-3 py-2">
 
             <p className="text-xs italic text-[#24151a]/65">
-              "{user.intro}"
+              intro
             </p>
 
           </div>
@@ -119,7 +143,7 @@ export default function MyProfile() {
           <div className="flex h-9 min-w-[45px] items-center justify-center rounded-xl bg-[#fff0df]">
 
             <span className="text-base font-bold text-[#741337]">
-              {user.connections}
+              connections
             </span>
 
           </div>
@@ -175,7 +199,7 @@ export default function MyProfile() {
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fff0df]">
               <Settings
                 size={15}
-                className="text-[#741337]"
+                className="text-[#911542]"
               />
             </div>
 

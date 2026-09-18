@@ -3,16 +3,32 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Navbar from '@/components/Navbar'
 import { useAuth } from "@/lib/gettoken";
+import { FiMoreHorizontal,FaXmark, FiCornerUpRight, FiX, FiHeart, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 export default function RaasMitraProfile() {
 
     const {user} = useAuth();
-    
+    const [error,setError] = useState('');
    const [profiles, setProfiles] = useState([]);
+  
 
- 
+ let i = 0;
+ const minSwipeDistance = 80;
+
+ const sendLike = async(profileId)=>{
+  const someoneGotLiked = profileId;
+  const response = await fetch('/api/sendlikes',{
+    method:"POST",
+    body: JSON.stringify({
+      someoneGotLiked,
+    })
+  })
+  const data = await response.json();
+  alert(data.message)
+ }
 
  useEffect(()=>{
+
   const getprofile = async()=>{
     try{
    const response = await fetch("api/getprofiles");
@@ -30,127 +46,105 @@ export default function RaasMitraProfile() {
       // console.log(user)      
    },[]);
   
+ const skipProfile = (profileId) => {
+  setProfiles((currentProfiles) =>
+    currentProfiles.filter((profile) => profile._id !== profileId)
+  );
+};
+
+
+
+
+
+
 
 
   return (
     <div className="flex justify-center">
   {/* Mobile Frame Container */}
-  <div className="w-full max-w-[412px] mb-4 scroll-auto sm:rounded-[40px] mt-3 bg-[#fdfbf7] flex flex-col overflow-hidden shadow-2xl relative">
+  <div className="w-full max-w-md mb-4 scroll-auto sm:rounded-xl mt-3 bg-[#fdfbf7] flex flex-col overflow-hidden shadow-2xl relative">
     
     {/* Long Scrollable Div */}
-    <div className="h-[85vh] overflow-y-auto space-y-3 pr-4 pl-6 scroll-smooth  [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
+    <div className="min-h-screen   overflow-y-auto space-y-3 pr-4 pl-6 scroll-smooth  [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
       
       {/* App Heading & More Options */}
-      <div className="flex justify-between">
+       <div className="flex mt-7 justify-between">
         <h1 className="text-2xl font-extrabold text-[#4a1525] tracking-tight">
           Raas Mitra
         </h1>
         <button className="text-[#4a1525] text-xl font-bold tracking-widest p-1">
           •••
         </button>
-      </div>
+      </div> 
 
-      {/* 🚀 STACK CONTAINER START */}
-      {/* Set a fixed height so absolute positioned cards have a bounding box layout */}
-      <div className="relative mt-50 h-[600px] w-full mb-5">
-        {profiles.map((profile, idx) => {
-          // Limit stack to only show the top 3 profiles to prevent UI cluster mess
-          if (idx > 2) return null;
+          <div className="relative">
+  {profiles.map((profile, idx) => (
+    
+    <div
+      className={`absolute h-250 py-7 bg-white inset-0 p-4 border rounded-2xl text-black`}
+       style={{ zIndex: idx + 1 , touchAction: "pan-y" }}
 
-          // 📐 Math offsets for the 3D layered stack effect:
-          // Top card (idx 0): translate-x-0, translate-y-0
-          // Second card (idx 1): moved right by 12px, moved up/offset slightly by -12px
-          // Third card (idx 2): moved right by 24px, moved up/offset slightly by -24px
-          const offsetRight = idx * 12;
-          const offsetTop = idx * 12;
+        key={profile._id}
+    >
+      <div>
+      <div className="flex justify-between items-center px-6 py-5 z-10 bg-gradient-to-b from-white via-white to-transparent absolute top-0 w-full">
+        <h1 className="text-4xl font-black text-gray-900">{profile.username}</h1>
+        </div>
+        
+      <div >
+        
+
+        <div className="relative w-full h-110 group">
+          <img
+            src={profile.images[0]?profile.images[0]:"/image"}
+            alt={`${profile.username}`}
+            className="object-cover h-[60vh] mt-5"
+          />
+
+          <button onClick={()=>skipProfile(profile._id)} className="absolute bottom-8 left-2 z-10 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform">
+            <FiX  size={32} className="text-red-400" />
+          </button>
           
-          // Reverse Z-Index sequence so the first array item (idx: 0) always sits on the absolute top layer
-          const layerDepth = 30 - idx;
+          {/* Floating "Like" Button */}
+          <button onClick={()=>sendLike(profile._id)} className="absolute bottom-8 right-2 z-10 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform">
+            <FiHeart size={32} className="text-red-400" />
+          </button>
+          
+          {/* Carousel Left/Right Buttons (visible on hover for desktop, always for touch) */}
+          <button  onClick={() => skipProfile(profile._id)} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-black/30 text-white/70 hover:bg-black/50 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity sm:opacity-100">
+             <FiChevronLeft size={32} />
+          </button>
+          <button  onClick={() => skipProfile(profile._id)}  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-black/30 text-white/70 hover:bg-black/50 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity sm:opacity-100">
+             <FiChevronRight size={32} />
+          </button>
+        </div>
 
-          return (
-            <div
-              key={profile._id || idx}
-              style={{
-                transform: `translate(${offsetRight}px, -${offsetTop}px)`,
-                zIndex: layerDepth,
-              }}
-              // Width calculations take away the right translate padding space to avoid frame overflow bounds
-              className="absolute left-0 bottom-0 w-[calc(100%-24px)] bg-white rounded-[24px] overflow-hidden shadow-md border border-[#eae5de] transition-all duration-300"
-            >
-              
-              {/* Person's Name */}
-              <div className="px-5  bg-amber-200 pt-3  text-[22px] font-bold text-gray-900">
-                {profile.name || 'Aanya'}, {profile.age || 24}
-              </div>
-         
-
-              {/* Image Div with Floating Round Button */}
-              <div className="relative w-full h-[400px] bg-gray-200">
-               
-                <img
-                  src={profile.images?.[0] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
-                  alt={`Profile picture of ${profile.username || 'Aanya'}`}
-                  className="w-full h-full object-cover"
-                />
-                 <div className="w-full inset-0 fixed z-100">
-                 
-                {idx === 0 && (
-                  <div>
-                  <button 
-                    aria-label="Like profile" 
-                    className="absolute right-0 top-1/4 w-13 h-13 rounded-full flex justify-center  items-center shadow-lg transition-transform hover:scale-105 active:scale-95 z-40"
-                  >
-                    <img className="rounded-full" src="/whitearrow.png" alt="like action" />
-                  </button>
-                  </div>
-                )}
-                </div>
-
-                {/* Only render interactive controls like click triggers on the active topmost card (idx === 0) */}
-                {idx === 0 && (
-                  <button 
-                    aria-label="Like profile" 
-                    className="absolute bottom-4 right-4 w-[52px] h-[52px] bg-white rounded-full flex justify-center items-center shadow-lg transition-transform hover:scale-105 active:scale-95 z-40"
-                  >
-                    <img src="/dandiya.png" alt="like action" />
-                  </button>
-                )}
-              </div>
-
-              {/* Light HR Line */}
-              <hr className="border-t border-[#eae5de] my-0" />
-
-              {/* Bio / Prompt Section Inside Card */}
-              <div className="p-5">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  My simple pleasure
+         {/* <div className="absolute -top-10 left-8 right-8 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+                <p className="text-lg font-semibold text-gray-800 mb-2 tracking-tight">
+                    {profile.prompt}
                 </p>
-                <p className="text-lg font-bold text-gray-900 leading-snug tracking-tight truncate">
-                  {profile.bio || "Chai on a rainy balcony with old Bollywood records."}
-                </p>
-              </div>
-
-              {/* Secondary Bio Prompt Section */}
-      <div className="bg-white rounded-[24px] p-6 mb-5 shadow-sm border border-[#eae5de]">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          I'm weirdly attracted to
-        </p>
-        <p className="text-2xl font-bold text-gray-900 leading-snug tracking-tight">
-          People who can passionately talk about history or ancient architecture for hours.
-        </p>
+                <h2 className="text-4xl font-extrabold text-gray-900 leading-tight tracking-tighter">
+                    {profile.answer}
+                </h2>
+           </div> */}
+        
+     
       </div>
-
-            </div>
-          );
-        })}
+      <div  >
+      <h1 className="font-bold ml-5">About</h1>
       </div>
-      {/* 🚀 STACK CONTAINER END */}
+      </div>
+    </div>
+    
+  ))}
+</div>
+     
 
       
       
 
       {/* Interests Section */}
-      <div className="bg-white rounded-[24px] p-6 mb-5 shadow-sm border border-[#eae5de]">
+      {/* <div className="bg-white rounded-[24px] p-6 mb-5 shadow-sm border border-[#eae5de]">
         <h2 className="text-base font-bold text-gray-900 mb-4">
           Interests
         </h2>
@@ -164,7 +158,7 @@ export default function RaasMitraProfile() {
             </span>
           ))}
         </div>
-      </div>
+      </div> */}
 
     </div>
 

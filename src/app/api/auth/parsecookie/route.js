@@ -6,8 +6,10 @@ export async function GET() {
   try {
     const cookieStore = await cookies();
     // 1. Grab the token from your secure cookie
-    const token = cookieStore.get("auth_token");
-    // console.log(token.value);
+    // const token = cookieStore.get("auth_token");
+     const token = cookieStore.getAll();
+    
+    console.log(token.value);
     // const data = token.json();
     // const value = data.value;
 
@@ -24,7 +26,7 @@ export async function GET() {
 
     // 3. Return the user data to the frontend
     // return NextResponse.json({ authenticated: true, user: token.value });
-     return NextResponse.json(token?.value );
+     return NextResponse.json(token);
 
   } catch (error) {
     return NextResponse.json(

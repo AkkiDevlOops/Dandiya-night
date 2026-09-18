@@ -59,7 +59,7 @@ export default function ProfileFormFirst({
   useAuthGuard()
 
   const [UserId,setuserId] = useState('')
-  const {user} = useAuth()
+  // const {user} = useAuth()
 
   const [name,setname] = useState('');
   const [enrollment,setenrollment] = useState('')
@@ -171,13 +171,13 @@ export default function ProfileFormFirst({
        
         useEffect(()=>{
          
-         const data = JSON.parse(user);
-         const auth = data;
-         if(data.auth == false){
-           router.push('/LoginRegister')
-         }
-           setuserId(data.id);
-           console.log(auth)
+        //  const data = JSON.parse(user);
+        //  const auth = data;
+        //  if(data.auth == false){
+        //    router.push('/LoginRegister')
+        //  }
+        //    setuserId(data.id);
+        //    console.log(auth)
         },[])
 
 
