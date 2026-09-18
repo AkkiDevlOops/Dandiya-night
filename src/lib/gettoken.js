@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
       if (res.ok && data.authenticated) {
         setUser(data.user); // Store user data globally
       } else {
-        setUser(data);
+        setUser("Token couldnt be found");
       }
     } catch (error) {
       console.error("Auth check failed:", error);

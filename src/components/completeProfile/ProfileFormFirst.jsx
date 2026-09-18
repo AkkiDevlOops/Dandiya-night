@@ -58,9 +58,21 @@ export default function ProfileFormFirst({
 }) {
   useAuthGuard();
 
+
   const [UserId, setuserId] = useState("");
   const [name, setname] = useState("");
   const [enrollment, setenrollment] = useState("");
+
+  useAuthGuard()
+
+  const [UserId,setuserId] = useState('')
+  // const {user} = useAuth()
+
+  const [name,setname] = useState('');
+  const [enrollment,setenrollment] = useState('')
+  const [login,setloginopen] = useState(false);
+  const [loading,setloading] = useState(false);
+
 
   const [formData, setFormData] = useState({
     user: UserId,

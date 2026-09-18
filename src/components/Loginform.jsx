@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Googlelogin from "@/components/googlelogin"
 import {
@@ -13,16 +13,30 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+
+import { useAuth } from "@/lib/gettoken";
+// import { useAuthGuard } from "@/lib/authorisedroute";
+
 export default function LoginForm() {
+
+  // const [error,setError] = useState()
+
+  // useAuthGuard();
+  const {user} = useAuth();
+
+  const router = useRouter();
     
     const formData = useRef({
         enrollmentNo:"",
         password:"",
      })
 
-     const [showPassword, setShowPassword] = useState('')
+     const [showPassword, setShowPassword] = useState('');
+     const [error,setError] = useState('');
     
   const handlesubmit = async(e)=>{
+    try {
     e.preventDefault()
     const response = await fetch("/api/auth/login",{
         method:"POST",
@@ -34,11 +48,34 @@ export default function LoginForm() {
         )
     });
     const data = await response.json()
+     if (!response.ok) {
+      // Set the error message coming from your backend ('Email and password are required')
+      setError(data.error || "Something went wrong");
+      return;
+    }
+    if(response.ok){
     
     console.log(data);
+    if( data.message == 'Login successful'){
+      router.push('/testroute')
+      console.log()
+  }
+  if(data.error){
+    setError(data.error);
+  }
+}
+     } catch (error) {
+      console.log(error);
+    }
     
-   alert(data)
+   
    }
+
+   useEffect(()=>{
+    //  const data = JSON.parse(user);
+    //  const auth = data;
+    //  console.log(auth);
+   },[]);
 
   return (
     <div className="w-full max-w-md">
@@ -84,7 +121,10 @@ export default function LoginForm() {
 
           {/* EMAIL */}
           <div>
-
+           <div className="w-full flex items-center justify-center">
+          <p className="text-red-600 mb-3 ">{error}</p>
+          
+          </div>
             <label
               htmlFor="login-email"
               className="mb-2 block text-sm font-medium text-[#24151a]"
