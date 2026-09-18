@@ -70,3 +70,70 @@ export const config = {
     '/completeProfile'             // Watches /login
   ],
 };
+
+
+middleware.js
+
+
+// middleware.js
+
+// import { NextResponse } from "next/server";
+
+// export function middleware(request) {
+//   const { pathname } = request.nextUrl;
+
+//   console.log(
+//     "🚀 MIDDLEWARE RUNNING:",
+//     pathname
+//   );
+
+//   // Get auth cookie
+//   const tokenCookie = request.cookies.get("auth_token");
+//   const tokenValue = tokenCookie?.value;
+
+//   // Protected routes
+//   const protectedRoutes = [
+//     "/completeProfile",
+//     "/profile",
+//     "/dashboard",
+//     "/settings",
+//     "/admin",
+//   ];
+
+//   // Check whether current route is protected
+//   const isProtectedRoute = protectedRoutes.some((route) =>
+//     pathname.startsWith(route)
+//   );
+
+//   // 🔒 Block user if protected route + no token
+//   if (isProtectedRoute && !tokenValue) {
+//     console.log(
+//       `[Middleware] Blocked unauthorized access to: ${pathname}`
+//     );
+
+//     return NextResponse.redirect(
+//       new URL("/LoginRegister", request.url)
+//     );
+//   }
+
+//   // 🔀 If logged in and trying to access login/register
+//   if (pathname === "/LoginRegister" && tokenValue) {
+//     return NextResponse.redirect(
+//       new URL("/discover", request.url)
+//     );
+//   }
+
+//   // Allow request
+//   return NextResponse.next();
+// }
+
+// export const config = {
+//   matcher: [
+//     "/completeProfile/:path*",
+//     "/profile/:path*",
+//     "/dashboard/:path*",
+//     "/settings/:path*",
+//     "/admin/:path*",
+//     "/LoginRegister",
+//   ],
+// };

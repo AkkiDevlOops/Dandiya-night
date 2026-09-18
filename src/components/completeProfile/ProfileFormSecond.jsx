@@ -1,15 +1,14 @@
+
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Camera,
   Check,
   Heart,
-  ImagePlus,
+  Ruler,
   Sparkles,
-  X,
 } from "lucide-react";
 
 const interests = [
@@ -30,228 +29,107 @@ export default function ProfileFormSecond({
   onBack,
   onSave,
 }) {
+  const [selectedInterests, setSelectedInterests] = useState(
+    profileData?.interests || []
+  );
 
-    const [imageUrl, setImageUrl] = useState('');
-  const fileInputRef = useRef(null);
+  const [height, setHeight] = useState(
+    profileData?.height || ""
+  );
 
-  const [images, setImages] = useState([]);
+  const [prompt1, setPrompt1] = useState(
+    profileData?.prompt1 || ""
+  );
 
-  const [selectedInterests, setSelectedInterests] =
-    useState([]);
-
-  const [about, setAbout] = useState("");
+  const [prompt2, setPrompt2] = useState(
+    profileData?.prompt2 || ""
+  );
 
   const [error, setError] = useState("");
-
-  const [loading, setLoading] = useState(false);
-
-  const [saved, setSaved] = useState(false);
-
-  // ================= IMAGE UPLOAD =================
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-
-    setError("");
-
-    if (images.length + files.length > 2) {
-      setError("You can upload a maximum of 2 photos.");
-      return;
-    }
-
-    const validFiles = files.filter((file) => {
-
-      if (!file.type.startsWith("image/")) {
-        setError("Please select only image files.");
-        return false;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        setError("Each image must be smaller than 5MB.");
-        return false;
-      }
-
-      return true;
-    });
-
-    validFiles.forEach((file) => {
-
-      const reader = new FileReader();
-
-      reader.onload = () => {
-
-        setImages((prev) => {
-
-          if (prev.length >= 2) {
-            return prev;
-          }
-
-          return [
-            ...prev,
-            {
-              file: file,
-              preview: reader.result,
-            },
-          ];
-        });
-
-      };
-
-      reader.readAsDataURL(file);
-
-    });
-
-    e.target.value = "";
-  };
-
-
-  // ================= REMOVE IMAGE =================
-
-  const removeImage = (index) => {
-
-    setImages((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
-
-    setError("");
-  };
-
 
   // ================= INTEREST =================
 
   const toggleInterest = (interest) => {
-
     setError("");
 
     setSelectedInterests((prev) => {
-
       if (prev.includes(interest)) {
-
-        return prev.filter(
-          (item) => item !== interest
-        );
-
+        return prev.filter((item) => item !== interest);
       }
 
       if (prev.length >= 5) {
-
         setError("Choose up to 5 interests.");
-
         return prev;
       }
 
       return [...prev, interest];
-
     });
   };
 
+  // ================= NEXT =================
 
-  // ================= SUBMIT =================
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+    setError("");
 
-  setError("");
+    if (selectedInterests.length === 0) {
+      setError("Please choose at least one interest.");
+      return;
+    }
 
-  if (images.length === 0) {
-    setError("Please add at least one photo.");
-    return;
-  }
+    if (!height) {
+      setError("Please enter your height.");
+      return;
+    }
 
-  if (selectedInterests.length === 0) {
-    setError("Please choose at least one interest.");
-    return;
-  }
+    if (Number(height) < 100 || Number(height) > 250) {
+      setError("Please enter a valid height.");
+      return;
+    }
 
-  if (!about.trim()) {
-    setError("Tell us a little about your Garba vibe.");
-    return;
-  }
+    if (!prompt1.trim()) {
+      setError("Please answer the first prompt.");
+      return;
+    }
 
-  if (about.trim().length < 10) {
-    setError("Write at least a few words about yourself.");
-    return;
-  }
-
-  try {
-    setLoading(true);
+    if (!prompt2.trim()) {
+      setError("Please answer the second prompt.");
+      return;
+    }
 
     const secondFormData = {
       interests: selectedInterests,
-      about: about.trim(),
-      images: images,
+      height: Number(height),
+      prompt1: prompt1.trim(),
+      prompt2: prompt2.trim(),
     };
 
+    console.log("STEP 2 DATA:", secondFormData);
+
+    // Send data back to CompleteProfile page
     onSave(secondFormData);
-
-    // Show popup
-    setSaved(true);
-
-  } catch (err) {
-    setError(
-      err.message || "Unable to save your profile."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const handleimageSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setImageUrl('');
-
-    // Extract the file from the form data
-    const data = new FormData(e.currentTarget);
-    
-    try {
-      const res = await fetch('/api/uploadimage', {
-        method: 'POST',
-        body: data, // Handles content-type boundaries automatically
-      });
-
-      const result = await res.json();
-
-      if (res.ok && result.success) {
-        setImageUrl(result.imageUrl);
-      } else {
-        setError(result.error || "Something went wrong during the upload.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to connect to the upload server.");
-    } finally {
-      setLoading(false);
-    }
   };
 
-
-
   return (
-    <div className="w-full max-w-[700px]">
+    <div className="w-full max-w-[650px]">
 
       {/* ================= HEADER ================= */}
 
       <div className="mb-4 text-center">
-
         <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-[#fff0df] text-xl">
           ✨
         </div>
 
         <h1 className="font-serif text-[30px] font-bold leading-tight text-[#741337]">
           Show Your Vibe
-          <span className="ml-2 text-[#ed7137]">
-            ✧
-          </span>
+          <span className="ml-2 text-[#ed7137]">✧</span>
         </h1>
 
         <p className="mt-1 text-xs text-[#24151a]/50">
-          Add photos and tell us what makes your Garba night fun.
+          A few more things so people can know you better.
         </p>
-
       </div>
-
 
       {/* ================= CARD ================= */}
 
@@ -268,19 +146,16 @@ export default function ProfileFormSecond({
           </div>
 
           <div>
-
             <p className="text-sm font-semibold text-[#741337]">
               {profileData?.name || "Your Profile"}
             </p>
 
             <p className="text-[10px] text-[#24151a]/40">
-              Almost there — show your Garba vibe
+              Almost there — complete your profile
             </p>
-
           </div>
 
         </div>
-
 
         {/* ================= ERROR ================= */}
 
@@ -290,139 +165,14 @@ export default function ProfileFormSecond({
           </div>
         )}
 
-
-        <form 
-          onSubmit={handleimageSubmit}
+        <form
+          onSubmit={handleSubmit}
           className="space-y-4"
         >
-
-          {/* ================= PHOTOS ================= */}
-          
-          <div>
-
-            <div className="mb-2 flex items-center justify-between">
-
-              <div>
-
-                <label className="block text-xs font-medium text-[#24151a]">
-                  Your Photos
-                </label>
-
-                <p className="mt-0.5 text-[10px] text-[#24151a]/40">
-                  Add up to 2 photos
-                </p>
-
-              </div>
-
-              <span className="text-[10px] font-medium text-[#741337]">
-                {images.length}/2
-              </span>
-
-            </div>
-
-
-            <div className="grid grid-cols-2 gap-3">
-
-              {/* UPLOAD */}
-
-              {images.length === 0 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    fileInputRef.current?.click()
-                  }
-                  className="flex h-28 flex-col items-center justify-center rounded-xl border border-dashed border-[#741337]/20 bg-[#fffaf2] text-[#741337] transition hover:border-[#ed7137] hover:bg-[#fff0df]"
-                >
-
-                  <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white">
-                    <ImagePlus size={17} />
-                  </div>
-
-                  <span className="text-xs font-medium">
-                    Add Photo
-                  </span>
-
-                  <span className="mt-1 text-[9px] text-[#24151a]/40">
-                    JPG, PNG • Max 5MB
-                  </span>
-
-                </button>
-              )}
-
-
-              {/* IMAGE PREVIEWS */}
-
-              {images.map((image, index) => (
-                <div
-                  key={index}
-                  className="relative h-28 overflow-hidden rounded-xl bg-[#fffaf2]"
-                >
-
-                  <img
-                    src={image.preview}
-                    alt={`Profile photo ${index + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeImage(index)
-                    }
-                    className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white"
-                  >
-                    <X size={14} />
-                  </button>
-
-                  {index === 0 && (
-                    <span className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[9px] font-medium text-[#741337]">
-                      Main photo
-                    </span>
-                  )}
-
-                </div>
-              ))}
-
-
-              {/* SECOND EMPTY SLOT */}
-
-              {images.length === 1 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    fileInputRef.current?.click()
-                  }
-                  className="flex h-28 flex-col items-center justify-center rounded-xl border border-dashed border-[#741337]/20 bg-[#fffaf2] text-[#741337] transition hover:border-[#ed7137] hover:bg-[#fff0df]"
-                >
-
-                  <Camera size={18} />
-
-                  <span className="mt-2 text-xs font-medium">
-                    Add another
-                  </span>
-
-                </button>
-              )}
-
-            </div>
-
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              multiple
-              onChange={handleImageChange}
-              className="hidden"
-            />
-
-          </div>
-
 
           {/* ================= INTERESTS ================= */}
 
           <div>
-
             <div className="mb-2 flex items-center gap-2">
 
               <Heart
@@ -431,7 +181,6 @@ export default function ProfileFormSecond({
               />
 
               <div>
-
                 <label className="block text-xs font-medium text-[#24151a]">
                   Your Interests
                 </label>
@@ -439,20 +188,16 @@ export default function ProfileFormSecond({
                 <p className="text-[10px] text-[#24151a]/40">
                   Pick up to 5
                 </p>
-
               </div>
 
             </div>
-
 
             <div className="flex flex-wrap gap-1.5">
 
               {interests.map((interest) => {
 
                 const selected =
-                  selectedInterests.includes(
-                    interest
-                  );
+                  selectedInterests.includes(interest);
 
                 return (
                   <button
@@ -467,7 +212,6 @@ export default function ProfileFormSecond({
                         : "border-[#741337]/10 bg-[#fffaf2] text-[#741337] hover:border-[#ed7137]"
                     }`}
                   >
-
                     {selected && (
                       <Check
                         size={10}
@@ -476,18 +220,65 @@ export default function ProfileFormSecond({
                     )}
 
                     {interest}
-
                   </button>
                 );
 
               })}
 
             </div>
+          </div>
+
+          {/* ================= HEIGHT ================= */}
+
+          <div>
+
+            <div className="mb-2 flex items-center gap-2">
+
+              <Ruler
+                size={15}
+                className="text-[#ed7137]"
+              />
+
+              <div>
+                <label
+                  htmlFor="height"
+                  className="block text-xs font-medium text-[#24151a]"
+                >
+                  Your Height
+                </label>
+
+                <p className="text-[10px] text-[#24151a]/40">
+                  Enter your height in centimeters
+                </p>
+              </div>
+
+            </div>
+
+            <div className="relative">
+
+              <input
+                id="height"
+                type="number"
+                min="100"
+                max="250"
+                value={height}
+                onChange={(e) => {
+                  setHeight(e.target.value);
+                  setError("");
+                }}
+                placeholder="e.g. 175"
+                className="w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-2.5 pr-16 text-xs text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-2 focus:ring-[#ed7137]/10"
+              />
+
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[#24151a]/40">
+                cm
+              </span>
+
+            </div>
 
           </div>
 
-
-          {/* ================= ABOUT ================= */}
+          {/* ================= PROMPT 1 ================= */}
 
           <div>
 
@@ -499,40 +290,81 @@ export default function ProfileFormSecond({
               />
 
               <label
-                htmlFor="about"
+                htmlFor="prompt1"
                 className="text-xs font-medium text-[#24151a]"
               >
-                Your Garba Vibe
+                What makes a Garba night perfect for you?
               </label>
 
             </div>
 
             <textarea
-              id="about"
-              value={about}
+              id="prompt1"
+              value={prompt1}
               onChange={(e) => {
-                setAbout(e.target.value);
+                setPrompt1(e.target.value);
                 setError("");
               }}
-              maxLength={120}
+              maxLength={150}
               rows={2}
-              placeholder="Love energetic Garba nights, good music and meeting new people..."
+              placeholder="Great music, energetic Garba, good people..."
               className="w-full resize-none rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-2.5 text-xs leading-relaxed outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-2 focus:ring-[#ed7137]/10"
             />
 
             <div className="mt-1 flex justify-end">
               <span className="text-[9px] text-[#24151a]/35">
-                {about.length}/120
+                {prompt1.length}/150
               </span>
             </div>
 
           </div>
 
+          {/* ================= PROMPT 2 ================= */}
+
+          <div>
+
+            <div className="mb-2 flex items-center gap-2">
+
+              <Sparkles
+                size={15}
+                className="text-[#ed7137]"
+              />
+
+              <label
+                htmlFor="prompt2"
+                className="text-xs font-medium text-[#24151a]"
+              >
+                What should your Garba partner know about you?
+              </label>
+
+            </div>
+
+            <textarea
+              id="prompt2"
+              value={prompt2}
+              onChange={(e) => {
+                setPrompt2(e.target.value);
+                setError("");
+              }}
+              maxLength={150}
+              rows={2}
+              placeholder="I'm always ready for one more round..."
+              className="w-full resize-none rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-2.5 text-xs leading-relaxed outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-2 focus:ring-[#ed7137]/10"
+            />
+
+            <div className="mt-1 flex justify-end">
+              <span className="text-[9px] text-[#24151a]/35">
+                {prompt2.length}/150
+              </span>
+            </div>
+
+          </div>
 
           {/* ================= BUTTONS ================= */}
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pt-1">
 
+            {/* Back */}
             <button
               type="button"
               onClick={onBack}
@@ -542,43 +374,28 @@ export default function ProfileFormSecond({
               <ArrowLeft size={17} />
             </button>
 
-
+            {/* NEXT */}
             <button
               type="submit"
-              disabled={loading}
-              className="group flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#741337] text-sm font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.99] disabled:opacity-60"
+              className="group flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#741337] text-sm font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.99]"
             >
+              Next
 
-              {loading ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-
-                  Saving...
-                </>
-              ) : (
-                <>
-                  Save & Continue
-
-                  <ArrowRight
-                    size={17}
-                    className="transition group-hover:translate-x-1"
-                  />
-                </>
-              )}
-
+              <ArrowRight
+                size={17}
+                className="transition group-hover:translate-x-1"
+              />
             </button>
 
           </div>
 
         </form>
 
-
         <p className="mt-3 text-center text-[10px] text-[#24151a]/35">
           Keep it genuine — this is about finding someone to enjoy Garba with.
         </p>
 
       </div>
-
     </div>
   );
 }

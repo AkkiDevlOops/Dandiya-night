@@ -51,12 +51,7 @@ export async function POST(request) {
     // 4. Securely set the JWT inside an HttpOnly Cookie
     response.cookies.set({
       name: 'auth_token',
-      value:
-      {
-        token:token,
-        userID:user._id,
-        name: user.name
-      },
+      value:JSON.stringify(user), // Store user info + token
       httpOnly: true,                         // Prevents frontend JavaScript from stealing the token
       secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
       sameSite: 'strict',                     // Protection against CSRF attacks
