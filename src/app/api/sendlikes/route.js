@@ -1,35 +1,45 @@
-import { cookies } from "next/headers";
-import likes from "@/models/like";
+import  {cookies}  from "next/headers";
+import likes from "../../../models/like";
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/db";
+import connectDB from "../../../lib/db";
 
 export async function POST(request) {
     try {
         connectDB();
         const cookieStore = await cookies();
         const userData = cookieStore.get("auth_token")
-        const auth = JSON.parse(userData?.value)
+        // console.log(userData);
+        const auth = JSON.parse(userData.value);
+        // console.log(auth);
     const data = await request.json();
     const GotLiked = data.someoneGotLiked;
      const meranaam = auth._id;
 
+    //  console.log(meranaam);
      const likedData = await likes.findOne({ whoLiked: meranaam });
-     
-     if(likedData){
-        console.log(likedData);
-     
-       const updatedliked = likedData.updateOne(
-            {whoLiked:meranaam},
-             { $push: {  likedWhom: GotLiked } }, // Adds 'developer' to the tags array
-             { new: true } 
-        );
-        console.log(updatedliked);
-        return;
 
-        return NextResponse({message:"liked added success"},
-            {status:200},
-            {data: likedData}
-        );
+     for(let i=0;i<likedData.likedWhom.length;i++){
+        if(likedData.likedWhom[i] == GotLiked){
+            return NextResponse.json({message:"you already liked this user"});
+        }
+     }
+    //  console.log(likedData.likedWhom[0])
+     if(likedData){
+        // console.log(likedData);
+     
+       const updatedliked = await likes.findOneAndUpdate(
+    { whoLiked: meranaam },
+    { $push: { likedWhom: GotLiked } }, 
+    { new: true } 
+     );
+
+        // console.log(updatedliked);
+        
+
+        return NextResponse.json({message: "fetching success"},
+        {status:200},
+        {data: updatedliked}
+    );
      }
     
      const newlikedData = await likes.create({
@@ -39,7 +49,7 @@ export async function POST(request) {
     likedWhom: [GotLiked]
     });
 
-    console.log(newlikedData)
+    // console.log(newlikedData)
     return NextResponse.json({message: "fetching success"},
         {status:200},
             {data: likedData}

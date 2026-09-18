@@ -1,10 +1,10 @@
-import { Type } from "lucide-react";
 import mongoose from "mongoose";
+
 
 const likeschema = new mongoose.Schema({
     whoLiked : {
-        type:String,
-        require:true
+    type:String,
+    required:true,
     },
      whoLikedname: {
     type: String,

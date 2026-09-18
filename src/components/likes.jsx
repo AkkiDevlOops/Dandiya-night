@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import { FiPlus, FiMusic, FiHeart, FiMessageCircle, FiChevronRight } from "react-icons/fi";
 import Background from "@/components/matchingpage/backgroundblur"
@@ -39,6 +39,16 @@ export default function RaasMitraLikesView() {
       time: "2d ago",
     }
   ];
+
+  const getLikedProfiles=async()=>{
+    const response = await fetch("/api/getLikedprof",{method:"POST"});
+    const data = await response.json();
+    console.log(data.message);
+  }
+
+  useEffect(()=>{
+    getLikedProfiles();
+  },[])
 
   return (
     <div className=" flex  flex-col  justify-center items-center min-h-screen">
