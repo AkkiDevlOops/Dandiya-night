@@ -24,6 +24,8 @@ const interests = [
   "Movies",
 ];
 
+import { useRouter } from "next/navigation";
+
 export default function ProfileFormSecond({
   profileData,
   onBack,
@@ -64,39 +66,35 @@ export default function ProfileFormSecond({
 
       return [...prev, interest];
     });
-  };
+  }
+  
+
+  const router = useRouter();
 
   // ================= NEXT =================
 
-  const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
 
+    // --- Frontend Validations ---
     if (selectedInterests.length === 0) {
       setError("Please choose at least one interest.");
       return;
     }
-
     if (!height) {
       setError("Please enter your height.");
       return;
     }
-
     if (Number(height) < 100 || Number(height) > 250) {
-      setError("Please enter a valid height.");
+      setError("Please enter a valid height (between 100cm and 250cm).");
+      return;
+    }
+    if (!prompt1.trim() || !prompt2.trim()) {
+      setError("Please fill out both prompts.");
       return;
     }
 
-    if (!prompt1.trim()) {
-      setError("Please answer the first prompt.");
-      return;
-    }
-
-    if (!prompt2.trim()) {
-      setError("Please answer the second prompt.");
-      return;
-    }
 
     const secondFormData = {
       interests: selectedInterests,
@@ -105,31 +103,47 @@ export default function ProfileFormSecond({
       prompt2: prompt2.trim(),
     };
 
-    console.log("STEP 2 DATA:", secondFormData);
+    try {
+      // --- Fetch API Request ---
+      const response = await fetch('/api/intrestdata' , {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(secondFormData),
+        credentials: 'include', // CRITICAL: Sends your encrypted session cookie automatically
+      });
 
-    // Send data back to CompleteProfile page
-    onSave(secondFormData);
+      const result = await response.json();
+      
+        if(result.success){
+          router.push('/testroute');
+        }
+      
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Something went wrong saving your profile.');
+      }
+
+      console.log("Backend Success:", result);
+      
+      // Pass data back up to the parent page state
+      
+
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
+
+      
+
   return (
-    <div className="w-full max-w-[650px]">
+    <div className="h-[95vh] rounded-2xl overflow-y-auto [&::-webkit-scrollbar]:hidden w-1/2">
 
-      {/* ================= HEADER ================= */}
+      
 
-      <div className="mb-4 text-center">
-        <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-[#fff0df] text-xl">
-          ✨
-        </div>
-
-        <h1 className="font-serif text-[30px] font-bold leading-tight text-[#741337]">
-          Show Your Vibe
-          <span className="ml-2 text-[#ed7137]">✧</span>
-        </h1>
-
-        <p className="mt-1 text-xs text-[#24151a]/50">
-          A few more things so people can know you better.
-        </p>
-      </div>
+     
 
       {/* ================= CARD ================= */}
 
@@ -140,17 +154,17 @@ export default function ProfileFormSecond({
         <div className="mb-4 flex items-center gap-3 rounded-xl bg-[#fffaf2] px-4 py-2.5">
 
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#741337] text-white">
-            <span className="text-sm font-semibold">
+            <span className="text-md font-semibold">
               {profileData?.name?.charAt(0)?.toUpperCase() || "M"}
             </span>
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-[#741337]">
+            <p className="text-md font-semibold text-[#741337]">
               {profileData?.name || "Your Profile"}
             </p>
 
-            <p className="text-[10px] text-[#24151a]/40">
+            <p className="text-sm text-[#24151a]/40">
               Almost there — complete your profile
             </p>
           </div>
@@ -176,16 +190,16 @@ export default function ProfileFormSecond({
             <div className="mb-2 flex items-center gap-2">
 
               <Heart
-                size={15}
+                size={20}
                 className="text-[#ed7137]"
               />
 
               <div>
-                <label className="block text-xs font-medium text-[#24151a]">
+                <label className="block text-md font-medium text-[#24151a]">
                   Your Interests
                 </label>
 
-                <p className="text-[10px] text-[#24151a]/40">
+                <p className="text-sm text-[#24151a]/40">
                   Pick up to 5
                 </p>
               </div>
@@ -206,7 +220,7 @@ export default function ProfileFormSecond({
                     onClick={() =>
                       toggleInterest(interest)
                     }
-                    className={`rounded-full border px-3 py-1.5 text-[10px] font-medium transition ${
+                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                       selected
                         ? "border-[#741337] bg-[#741337] text-white"
                         : "border-[#741337]/10 bg-[#fffaf2] text-[#741337] hover:border-[#ed7137]"
@@ -235,19 +249,19 @@ export default function ProfileFormSecond({
             <div className="mb-2 flex items-center gap-2">
 
               <Ruler
-                size={15}
+                size={20}
                 className="text-[#ed7137]"
               />
 
               <div>
                 <label
                   htmlFor="height"
-                  className="block text-xs font-medium text-[#24151a]"
+                  className="block text-md font-medium text-[#24151a]"
                 >
                   Your Height
                 </label>
 
-                <p className="text-[10px] text-[#24151a]/40">
+                <p className="text-sm text-[#24151a]/40">
                   Enter your height in centimeters
                 </p>
               </div>
@@ -291,7 +305,7 @@ export default function ProfileFormSecond({
 
               <label
                 htmlFor="prompt1"
-                className="text-xs font-medium text-[#24151a]"
+                className="text-sm font-medium text-[#24151a]"
               >
                 What makes a Garba night perfect for you?
               </label>
@@ -332,7 +346,7 @@ export default function ProfileFormSecond({
 
               <label
                 htmlFor="prompt2"
-                className="text-xs font-medium text-[#24151a]"
+                className="text-sm font-medium text-[#24151a]"
               >
                 What should your Garba partner know about you?
               </label>

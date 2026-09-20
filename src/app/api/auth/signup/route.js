@@ -13,9 +13,11 @@ export async function POST(request) {
 
     // 2. Parse registration data from the frontend request
     const data = await request.json();
-    const { enrollmentNo, password } = data.current; 
+    const { enrollmentNo, password ,email} = data.current; 
     console.log(enrollmentNo);
-
+    console.log(email);
+    console.log(password);
+    
    
     if (!enrollmentNo) {
       return NextResponse.json(
@@ -48,25 +50,26 @@ export async function POST(request) {
         { status: 400 })
     }
 
-    const dbpassword = existingUser.password;
+    // const dbpassword = existingUser.password;
 
-     if(existingUser.password){
-      const compare = await bcrypt.compare(password,dbpassword);
-      if(!compare){
-        return NextResponse.json(
-        { error: 'Password not correct' },
-        { status: 400 }
-      );
-      }
-     }
+    //  if(existingUser.password){
+    //   const compare = await bcrypt.compare(password,dbpassword);
+    //   if(!compare){
+    //     return NextResponse.json(
+    //     { error: 'Password not correct' },
+    //     { status: 400 }
+    //   );
+    //   }
+    //  }
 
-    if(!existingUser.password){
+   
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const updatedUser = await User.findByIdAndUpdate(
   existingUser._id, 
-  { password: hashedPassword }, // 👈 Added a comma here
+  { email: email,
+    password: hashedPassword }, // 👈 Added a comma here
   { 
     new: true,           
     runValidators: true  
@@ -76,14 +79,14 @@ export async function POST(request) {
   
 
     console.log(updatedUser)
-    }
+    
 
    
     
    if(existingUser){
     // 6. Generate the JWT Token for immediate login session
     const token = jwt.sign(
-      { userId:existingUser._id, enroll: existingUser.enrollmentNo }, // Data payload encoded inside token
+      {signIn : true }, // Data payload encoded inside token
       process.env.JWT_SECRET,                        // Secret encryption key from .env.local
       { expiresIn: '11d' }                            // Session duration (7 days)
     );
@@ -100,7 +103,7 @@ export async function POST(request) {
       { 
         message: 'Account created and logged in successfully!', 
         user: { name: existingUser.name } ,
-        token:{token}
+        
       },
       { status: 201 }
     );

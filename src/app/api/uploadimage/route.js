@@ -2,8 +2,9 @@ import { v2 as cloudinary } from 'cloudinary';
 import { NextResponse } from 'next/server';
 import User from '@/models/user'
 import Profile from '@/models/profile';
-
+import { jwtVerify } from 'jose';
 import connectDB from '@/lib/db';
+import { cookies } from 'next/headers';
 
 
 
@@ -17,15 +18,25 @@ export async function POST(request) {
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+     const cookieStore = await cookies();
+     const token = cookieStore.get('auth_token')?.value;
+     if (!token) {
+      console.log("no token found")
+      return Response.json(false);
+    }
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+  
+      // 3. Verify and decode the token payload
+      const { payload } = await jwtVerify(token, secret);
+
     // 2. Parse the incoming multi-part form data
     const formData = await request.formData();
     const file = formData.get('image'); // Looks for the input named 'image'
-    const id = formData.get('userId');
+    const id = payload.userId;
     const stringid = id.toString();
     console.log(stringid);
 
     
-
     if (!file) {
       return NextResponse.json({ error: 'No image file provided' }, { status: 400 });
     }
@@ -48,6 +59,7 @@ export async function POST(request) {
       ).end(buffer);
     });
 
+      console.log(uploadResult.secure_url);
     // const user = await  User.findOne()
 
      const updatedUser = await Profile.findOneAndUpdate(

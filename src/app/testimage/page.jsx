@@ -10,39 +10,40 @@ import { useAuthGuard } from "@/lib/authorisedroute";
 import { useAuth } from "@/lib/gettoken";
 
 export default function CloudinaryUploadForm() {
-  useAuthGuard();
+  // useAuthGuard();
 
   const router = useRouter();
-  const { user } = useAuth();
+  // const { user } = useAuth();
 
   const [userId, setUserId] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [open,setopen] = useState(false);
 
   // ================= GET USER =================
 
-  useEffect(() => {
-    if (!user) return;
+  // useEffect(() => {
+  //   if (!user) return;
 
-    try {
-      const data =
-        typeof user === "string"
-          ? JSON.parse(user)
-          : user;
+  //   try {
+  //     const data =
+  //       typeof user === "string"
+  //         ? JSON.parse(user)
+  //         : user;
 
-      if (data?.auth === false) {
-        router.push("/LoginRegister");
-        return;
-      }
+  //     if (data?.auth === false) {
+  //       router.push("/LoginRegister");
+  //       return;
+  //     }
 
-      setUserId(data?.id || "");
+  //     setUserId(data?.id || "");
 
-    } catch (err) {
-      console.error("User error:", err);
-      router.push("/LoginRegister");
-    }
-  }, [user, router]);
+  //   } catch (err) {
+  //     console.error("User error:", err);
+  //     router.push("/LoginRegister");
+  //   }
+  // }, [user, router]);
 
   // ================= UPLOAD =================
 
@@ -68,10 +69,8 @@ export default function CloudinaryUploadForm() {
 
       if (res.ok && result.success) {
         setImageUrl(result.imageUrl);
-
-        // Go to Discover after successful upload
         setTimeout(() => {
-          router.push("/discover");
+          router.push("/intrestpage");
         }, 1500);
 
       } else {
@@ -90,15 +89,39 @@ export default function CloudinaryUploadForm() {
     }
   };
 
+  useEffect(()=>{
+    async function get() {
+      const response = await fetch('/api/checkprofilecompletion',{method:"POST"});
+      const data = await response.json();
+      if(response.ok){
+      if(data){
+        
+        console.log(data);
+        return;
+      }
+      setopen(true);
+      setTimeout(() => {
+router.push('/completeProfile');
+         
+      }, 2000);
+     
+    }
+    }
+    get();
+  },[])
+
   return (
     <div className="relative h-dvh w-full overflow-hidden">
 
       <Background />
 
-      <div className="fixed inset-0 z-50 flex h-dvh items-center justify-center overflow-hidden px-4">
+      <div className="fixed inset-0 z-40 flex h-dvh items-center justify-center overflow-hidden px-4">
+        {open?(
+          <div className="w-full min-h-screen flex justify-center items-center fixed inset-0 z-50"><p className=" h-1/4 w-1/2 flex justify-center font-bold text-red-500 items-center">complete filling your details first</p></div>
+        ):('')}
 
         <div className="w-full max-w-md rounded-2xl border border-white/20 bg-[#fdfbf7] p-6 shadow-2xl sm:p-8">
-
+        
           {/* ================= HEADER ================= */}
 
           <div className="mb-6 text-center">
@@ -106,6 +129,7 @@ export default function CloudinaryUploadForm() {
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#fff0df] text-2xl">
               📸
             </div>
+
 
             <h2 className="text-3xl font-extrabold tracking-tight text-[#4c0519]">
               Add Your Photo

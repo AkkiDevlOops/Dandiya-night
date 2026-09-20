@@ -30,6 +30,22 @@ const UserProfile = new mongoose.Schema({
     required: true,
   },
 
+   intrest: [{
+    type: String,
+  }],
+
+   height: {
+    type: String,
+  },
+
+   promt1: {
+    type: String,
+  },
+
+   promt2: {
+    type: String,
+  },
+
   semester: {
     type: String,
     required: true,

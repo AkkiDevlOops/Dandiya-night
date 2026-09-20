@@ -29,6 +29,7 @@ export default function LoginForm() {
     
     const formData = useRef({
         enrollmentNo:"",
+        email:"",
         password:"",
      })
 
@@ -54,11 +55,12 @@ export default function LoginForm() {
       return;
     }
     if(response.ok){
-    
-    console.log(data);
     if( data.message == 'Login successful'){
-      router.push('/testroute')
-      console.log()
+      // router.push('/completeProfile');
+
+      if(data.user.profilecompleted){
+        router.push('/testroute');
+      }
   }
   if(data.error){
     setError(data.error);
@@ -72,9 +74,7 @@ export default function LoginForm() {
    }
 
    useEffect(()=>{
-    //  const data = JSON.parse(user);
-    //  const auth = data;
-    //  console.log(auth);
+   
    },[]);
 
   return (
@@ -83,14 +83,12 @@ export default function LoginForm() {
       {/* BRAND ICON */}
       <div className="mb-7 text-center">
 
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fff0df] text-2xl shadow-sm">
-          🪔
-        </div>
+        
 
         <div className="flex items-center justify-center gap-2">
 
           <h1 className="font-serif text-3xl font-bold text-[#741337]">
-            Welcome Back!
+           Login
           </h1>
 
           <Sparkles
@@ -117,14 +115,45 @@ export default function LoginForm() {
 
           {/* ERROR */}
          
-
-
-          {/* EMAIL */}
+          {/* EnrollmentNo */}
           <div>
            <div className="w-full flex items-center justify-center">
           <p className="text-red-600 mb-3 ">{error}</p>
           
           </div>
+            <label
+              htmlFor="login-email"
+              className="mb-2 block text-sm font-medium text-[#24151a]"
+            >
+              College EnrollmentNo.
+            </label>
+
+            <div className="relative">
+
+              <Mail
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
+              />
+
+              <input
+                id="login-email"
+                name="email"
+                
+               onChange={(e)=>{
+                    formData.current.enrollmentNo =e.target.value;
+                }}
+                placeholder="you@college.ac.in"
+                autoComplete="email"
+                className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+              />
+
+            </div>
+
+          </div>
+
+
+          {/* EMAIL */}
+          <div>
             <label
               htmlFor="login-email"
               className="mb-2 block text-sm font-medium text-[#24151a]"
@@ -144,7 +173,7 @@ export default function LoginForm() {
                 name="email"
                 
                onChange={(e)=>{
-                    formData.current.enrollmentNo =e.target.value;
+                    formData.current.email =e.target.value;
                 }}
                 placeholder="you@college.ac.in"
                 autoComplete="email"
@@ -270,7 +299,7 @@ export default function LoginForm() {
           />
 
           <p className="text-xs leading-relaxed text-[#24151a]/55">
-            Your college email helps keep RaasMitra
+            Your college enrollment helps keep RaasMitra
             a genuine student community.
           </p>
 

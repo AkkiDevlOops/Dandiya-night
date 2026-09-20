@@ -5,6 +5,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/user';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dbToken from '../../../../models/tokens.js';
 
 
 
@@ -15,8 +16,9 @@ export async function POST(request) {
   try {
     await connectDB();
     const data = await request.json();
-    const { enrollmentNo, password } = data.current;
-    console.log(enrollmentNo);
+    const { enrollmentNo, password,email } = data.current;
+    console.log(enrollmentNo,password,email);
+   
 
     
 
@@ -42,6 +44,26 @@ export async function POST(request) {
     }
     console.log("password check kia");
 
+    console.log(user);
+
+    const checktoken = await dbToken.findOne({
+           useId : user._id
+        });
+
+        console.log(checktoken);
+
+        
+              const token2 = jwt.sign(
+                  { userId: user._id ,
+                  name : user.name,
+                  insertedData1:true} ,// Data encoded inside the token
+                  process.env.JWT_SECRET,                  // Secret key
+                  { expiresIn: '11d' }                      // Token lifespan (e.g., 7 days)
+                );
+        
+            
+        
+
 
     // 2. Generate the JWT Token payload
     const token = jwt.sign(
@@ -49,30 +71,37 @@ export async function POST(request) {
       name : user.name,
       loggedIn:true} ,// Data encoded inside the token
       process.env.JWT_SECRET,                  // Secret key
-      { expiresIn: '7d' }                      // Token lifespan (e.g., 7 days)
+      { expiresIn: '11d' }                      // Token lifespan (e.g., 7 days)
     );
+
+    console.log(checktoken.setUpprofile);
 
     // 3. Create the response object
     const response = NextResponse.json(
-      { message: 'Login successful', user: { id: user._id, name: user.name, token :token } },
+      { message: 'Login successful', user: { id: user._id, name: user.name, token :token , profilecompleted: checktoken.setUpprofile } },
       { status: 200 },
-      {token:token}
     );
 
     // 4. Securely set the JWT inside an HttpOnly Cookie
     response.cookies.set({
       name: 'auth_token',
-
-      value:JSON.stringify(user), // Store user info + token
-
-      value:JSON.stringify(user),
-
+      value:token, // Store user info + token
       httpOnly: true,                         // Prevents frontend JavaScript from stealing the token
       secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
       sameSite: 'strict',                     // Protection against CSRF attacks
       maxAge: 60 * 60 * 24 * 11,               // 7 days in seconds
       path: '/',
     });
+
+     response.cookies.set({
+              name: 'profile3token',
+              value:token2, // Store user info + token
+              httpOnly: true,                         // Prevents frontend JavaScript from stealing the token
+              secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
+              sameSite: 'strict',                     // Protection against CSRF attacks
+              maxAge: 60 * 60 * 24 * 11,               // 7 days in seconds
+              path: '/',
+            });
 
     return response;
 

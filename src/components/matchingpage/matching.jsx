@@ -130,8 +130,24 @@ export default function RaasMitraProfile() {
         
      
       </div>
-      <div  >
-      <h1 className="font-bold ml-5">About</h1>
+
+          {/* About section */}
+
+      <div >
+      
+      <div className="border min-h-40 ha-auto p-3 rounded-md" ><h1 className="font-bold ml-5">About</h1><p className="ml-5 mt-3">
+        {profile.promt1}</p>
+        </div>
+
+          {/* // second image */}
+
+        <div>
+          <img
+            src={profile.images[1]?profile.images[1]:"/image"}
+            alt={`${profile.username}`}
+            className="object-cover rounded-md h-[60vh] mt-5"
+          />
+        </div>
       </div>
       </div>
     </div>

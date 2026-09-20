@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Googlelogin from '@/components/googlelogin'
 import Link from "next/link";
 import {
@@ -22,6 +22,7 @@ export default function RegisterForm() {
 
  const formData = useRef({
     enrollmentNo:"",
+    email:"",
     password:"",
  })
 
@@ -43,9 +44,13 @@ const[error,seterror] = useState('');
     const data = await response.json()
     console.log(data)
     if(response.ok){
-      console.log(data.token)
-      const token = localStorage.setItem('token',data.token);
-      console.log(token);
+      if(data.message == 'Account created and logged in successfully!'){
+        setTimeout(() => {
+          router.push('/login')
+        },2000);
+        
+      }
+
     }
     if(data.error){
       seterror(data.error);
@@ -55,6 +60,37 @@ const[error,seterror] = useState('');
     setnamedivopen(true);
     
  }
+
+ useEffect(()=>{
+//   const token = localStorage.getItem('token');
+  
+//   if (token) {
+//   try {
+//     // 1. Split the JWT parts (Header.Payload.Signature)
+//     const base64Url = token.split('.')[1]; 
+    
+//     // 2. Adjust base64url format to standard base64 strings
+//     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    
+//     // 3. Decode the base64 string back into JSON text
+//     const jsonPayload = decodeURIComponent(
+//       window.atob(base64)
+//         .split('')
+//         .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+//         .join('')
+//     );
+
+//     // 4. Parse the plain text into an interactive object
+//     const userData = JSON.parse(jsonPayload);
+    
+    
+//   } catch (error) {
+//     console.error("Failed to decode token:", error);
+//   }
+// }
+
+  
+ },[])
 
   return (
     <div className="w-full max-w-md">
@@ -126,8 +162,10 @@ const[error,seterror] = useState('');
   </div>
 </div>
         ):""}
-          {/* EMAIL */}
-          <div>
+
+
+        {/* enrollmentNo */}
+         <div>
             <div className="w-full flex items-center justify-center">
           <p className="text-red-600 mb-3 ">{error}</p>
           
@@ -148,10 +186,44 @@ const[error,seterror] = useState('');
 
               <input
                 id="register-email"
-                name="email"
+                name="enrollmentNo"
                 
                 onChange={(e)=>{
                     formData.current.enrollmentNo =e.target.value;
+                }}
+                placeholder="you@college.ac.in"
+                autoComplete="email"
+                className="h-12 w-full rounded-xl text-black border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+              />
+
+            </div>
+
+          </div>
+
+
+          {/* EMAIL */}
+          <div>
+           
+            <label
+             
+              className="mb-2 block text-sm font-medium text-[#24151a]"
+            >
+              Email 
+                          </label>
+
+            <div className="relative">
+
+              <Mail
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
+              />
+
+              <input
+                id="register-email"
+                name="email"
+                
+                onChange={(e)=>{
+                    formData.current.email =e.target.value;
                 }}
                 placeholder="you@college.ac.in"
                 autoComplete="email"

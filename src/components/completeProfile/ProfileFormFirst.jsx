@@ -19,6 +19,7 @@ import Navbar from "@/components/Navbar"
 
 import Background from "@/components/matchingpage/backgroundblur"
 
+
 const branches = [
   "Computer Science",
   "Information Technology",
@@ -56,13 +57,13 @@ export default function ProfileFormFirst({
   student,
   onNext,
 }) {
-  useAuthGuard();
+ 
 
 
   
  
  
-  useAuthGuard()
+  
 
   const [UserId,setuserId] = useState('')
   // const {user} = useAuth()
@@ -71,6 +72,7 @@ export default function ProfileFormFirst({
   const [enrollment,setenrollment] = useState('')
   const [login,setloginopen] = useState(false);
   const [loading,setloading] = useState(false);
+    const [open,setopen] = useState(false);
 
 
   const [formData, setFormData] = useState({
@@ -83,7 +85,7 @@ export default function ProfileFormFirst({
     email: "",
   });
 
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -98,18 +100,11 @@ export default function ProfileFormFirst({
  
 
 
-  const handleNext = (e) => {
+  const handleNext = async(e) => {
     e.preventDefault();
-
-      onNext(formData);
 
     if (!formData.username.trim()) {
       setError("Please choose a username.");
-      return;
-    }
-
-    if (formData.username.trim().length < 3) {
-      setError("Username must contain at least 3 characters.");
       return;
     }
 
@@ -138,36 +133,59 @@ export default function ProfileFormFirst({
       return;
     }
 
+    const router = useRouter();
+
     // Send data to page.jsx
-    onNext(formData);
+    const response = await fetch('/api/saveProfile',{method:'POST',
+      body: JSON.stringify(formData)
+    });
+    const data = await response.json();
+    console.log(data);
+    if(response.ok){
+      if(data.message == 'Profile completed successfully!'){
+        router.push('/testimage');
+      }
+    }
+    if(data.error){
+        console.log("an error occur");
+        setError(data.error);
+        return;
+      }
+  
+    
+    
   };
 
   
-  
 
-     const router = useRouter();
-       
-        useEffect(()=>{
+  useEffect(()=>{
+    async function get(params) {
+      const response = await fetch('/api/checkLogin',{method:"POST"});
+      const data = await response.json();
+      if(data){
+      return;
+      } 
+      setopen(true);
+      setTimeout(() => {
+      router.push('/LoginRegister');
          
-        //  const data = JSON.parse(user);
-        //  const auth = data;
-        //  if(data.auth == false){
-        //    router.push('/LoginRegister')
-        //  }
-        //    setuserId(data.id);
-        //    console.log(auth)
-        },[])
-
+      }, 2000);
+      
+     }
+    get();
+  },[])
 
   return (
     <div className="w-full inset-0 z-50 max-w-[700px]">
 
       {/* HEADER */}
     
-
+    {open?(
+          <div className="w-full min-h-screen flex justify-center items-center fixed inset-0 z-50"><p className=" h-1/4 w-1/2 flex justify-center font-bold text-red-500 items-center">complete filling your Login first</p></div>
+        ):('')}
     
 
-      <div className="rounded-[1.7rem] border border-[#741337]/10 bg-white p-5 shadow-xl shadow-[#741337]/5 sm:p-6">
+      <div className="rounded-[1.7rem]  border border-[#741337]/10 bg-white p-5 shadow-xl shadow-[#741337]/5 sm:p-6">
 
         {/* VERIFIED STUDENT */}
 
@@ -207,11 +225,11 @@ export default function ProfileFormFirst({
 
         {/* ERROR */}
 
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+        
+          <div className=" text-red-600">
             {error}
           </div>
-        )}
+       
 
 
         {/* FORM */}
