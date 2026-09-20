@@ -54,13 +54,15 @@ export default function LoginForm() {
       setError(data.error || "Something went wrong");
       return;
     }
+    console.log(data);
     if(response.ok){
     if( data.message == 'Login successful'){
-      // router.push('/completeProfile');
-
+      
       if(data.user.profilecompleted){
         router.push('/testroute');
+        return;
       }
+      router.push('/completeProfile');
   }
   if(data.error){
     setError(data.error);

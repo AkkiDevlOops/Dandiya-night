@@ -59,7 +59,7 @@ export default function ProfileFormFirst({
 }) {
  
 
-
+const router = useRouter();
   
  
  
@@ -133,7 +133,7 @@ export default function ProfileFormFirst({
       return;
     }
 
-    const router = useRouter();
+    
 
     // Send data to page.jsx
     const response = await fetch('/api/saveProfile',{method:'POST',

@@ -152,7 +152,7 @@ const[error,seterror] = useState('');
 
     <div className="flex justify-center gap-3 w-full">
       
-      <a href='/completeProfile'><button  onClick={()=>{setnamedivopen(false), setTimeout(() => {
+      <a><button  onClick={()=>{setnamedivopen(false), setTimeout(() => {
         router.push('/completeProfile')
       }, 2000); }} className="flex-1 py-3 px-4 rounded-xl bg-[#4a1525] text-white font-semibold hover:bg-[#3a101d] transition-colors shadow-md">
         Yes, that's me

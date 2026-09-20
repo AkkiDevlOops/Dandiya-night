@@ -31,6 +31,7 @@ export default function ProfileFormSecond({
   onBack,
   onSave,
 }) {
+   const router = useRouter();
   const [selectedInterests, setSelectedInterests] = useState(
     profileData?.interests || []
   );
@@ -69,7 +70,7 @@ export default function ProfileFormSecond({
   }
   
 
-  const router = useRouter();
+  
 
   // ================= NEXT =================
 
@@ -95,7 +96,7 @@ export default function ProfileFormSecond({
       return;
     }
 
-
+   
     const secondFormData = {
       interests: selectedInterests,
       height: Number(height),

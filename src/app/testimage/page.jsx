@@ -69,9 +69,7 @@ export default function CloudinaryUploadForm() {
 
       if (res.ok && result.success) {
         setImageUrl(result.imageUrl);
-        setTimeout(() => {
-          router.push("/intrestpage");
-        }, 1500);
+        
 
       } else {
         setError(
@@ -207,7 +205,7 @@ router.push('/completeProfile');
             </div>
 
             {/* ================= CREATE ACCOUNT ================= */}
-
+            <a href="/intrestpage">
             <button
               type="submit"
               disabled={loading}
@@ -217,7 +215,7 @@ router.push('/completeProfile');
                 ? "Creating Account..."
                 : "Create Account"}
             </button>
-
+                </a>
           </form>
 
           {/* ================= SUCCESS ================= */}

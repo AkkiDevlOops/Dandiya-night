@@ -74,11 +74,12 @@ export async function POST(request) {
       { expiresIn: '11d' }                      // Token lifespan (e.g., 7 days)
     );
 
-    console.log(checktoken.setUpprofile);
+    
 
+   
     // 3. Create the response object
     const response = NextResponse.json(
-      { message: 'Login successful', user: { id: user._id, name: user.name, token :token , profilecompleted: checktoken.setUpprofile } },
+      { message: 'Login successful', user: { id: user._id, name: user.name , profilecompleted: checktoken?.setUpprofile } },
       { status: 200 },
     );
 
@@ -102,6 +103,7 @@ export async function POST(request) {
               maxAge: 60 * 60 * 24 * 11,               // 7 days in seconds
               path: '/',
             });
+
 
     return response;
 
