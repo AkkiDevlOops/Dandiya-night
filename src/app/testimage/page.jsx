@@ -16,7 +16,7 @@ export default function CloudinaryUploadForm() {
   // const { user } = useAuth();
 
   const [userId, setUserId] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("//");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [open,setopen] = useState(false);
@@ -109,11 +109,11 @@ router.push('/completeProfile');
   },[])
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden">
+    <div className="relative min-h-screen pb-2 w-full overflow-y-auto">
 
       <Background />
 
-      <div className="fixed inset-0 z-40 flex h-dvh items-center justify-center overflow-hidden px-4">
+      <div className="fixed overflow-y-auto mt-1 mb-5 rounded-md inset-0 z-40 flex h-dvh items-center justify-center overflow-hidden px-4 [&::-webkit-scrollbar]:hidden">
         {open?(
           <div className="w-full min-h-screen flex justify-center items-center fixed inset-0 z-50"><p className=" h-1/4 w-1/2 flex justify-center font-bold text-red-500 items-center">complete filling your details first</p></div>
         ):('')}
@@ -205,17 +205,17 @@ router.push('/completeProfile');
             </div>
 
             {/* ================= CREATE ACCOUNT ================= */}
-            <a href="/intrestpage">
+            
             <button
               type="submit"
               disabled={loading}
               className="flex w-full justify-center rounded-xl bg-[#4c0519] px-4 py-3.5 text-sm font-semibold text-[#fdfbf7] shadow-lg transition hover:bg-[#630620] disabled:cursor-not-allowed disabled:bg-[#4c0519]/50"
             >
               {loading
-                ? "Creating Account..."
-                : "Create Account"}
+                ? "uploading..."
+                : "Upload"}
             </button>
-                </a>
+             
           </form>
 
           {/* ================= SUCCESS ================= */}
@@ -232,6 +232,15 @@ router.push('/completeProfile');
                 alt="Uploaded profile"
                 className="h-40 w-full rounded-xl object-cover"
               />
+               <a href="/intrestpage">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full justify-center rounded-xl bg-[#4c0519] px-4 py-3.5 text-sm font-semibold text-[#fdfbf7] shadow-lg transition hover:bg-[#630620] disabled:cursor-not-allowed disabled:bg-[#4c0519]/50"
+            >
+             Go ahead
+            </button>
+                </a>
 
               <p className="mt-3 text-center text-xs text-emerald-700">
                 Taking you to Discover...
