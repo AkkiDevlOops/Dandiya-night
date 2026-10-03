@@ -5,6 +5,7 @@ import Profile from '@/models/profile';
 import { jwtVerify } from 'jose';
 import connectDB from '@/lib/db';
 import { cookies } from 'next/headers';
+import { userlog } from '@/models/Registration';
 
 
 
@@ -19,7 +20,7 @@ export async function POST(request) {
 });
 
      const cookieStore = await cookies();
-     const token = cookieStore.get('auth_token')?.value;
+     const token = cookieStore.get('session')?.value;
      if (!token) {
       console.log("no token found")
       return Response.json(false);
@@ -28,14 +29,19 @@ export async function POST(request) {
   
       // 3. Verify and decode the token payload
       const { payload } = await jwtVerify(token, secret);
+      const email = payload.email;
+      
+           const user = await userlog.findOne({
+            email: email,
+          })
+      
+           const userToken = user.tokenDetails
 
     // 2. Parse the incoming multi-part form data
     const formData = await request.formData();
     const file = formData.get('image'); // Looks for the input named 'image'
-    const id = payload.userId;
-    const stringid = id.toString();
-    console.log(stringid);
-
+   
+  
     
     if (!file) {
       return NextResponse.json({ error: 'No image file provided' }, { status: 400 });
@@ -63,7 +69,7 @@ export async function POST(request) {
     // const user = await  User.findOne()
 
      const updatedUser = await Profile.findOneAndUpdate(
-      { id: stringid }, // 👈 Just write the key-value pair directly!
+      { email: email }, // 👈 Just write the key-value pair directly!
       { $push: { images: uploadResult.secure_url } },
       { returnDocument: 'after',
         runValidators: true
@@ -72,6 +78,9 @@ export async function POST(request) {
     );
 
     console.log(updatedUser);
+
+    userToken.isPhotoUploaded = true
+    await user.save();
 
    
     // 5. Return the permanent, queryable secure URL back to the frontend

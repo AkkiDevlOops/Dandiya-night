@@ -1,25 +1,21 @@
 import mongoose from "mongoose";
 
-const tokenSchema = new mongoose.Schema({
-    useId :{
-        type: String,
-        required: true,
-    },
-    username:{
-        type: String,
-        required: true,
-    },
-    setUpprofile:{
-        type:Boolean,
-        required: true,
-    },
-    createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+
+const TokenSchema = new mongoose.Schema({
+  currentToken: { type: String },
+  isFirstPhaseCompleted: { type: Boolean, default: true },
+  isPhotoUploaded: { type: Boolean, default: false },
+  isProfileFullyUpdated: { type: Boolean, default: false },
+  isLoggedIn: { type: Boolean, default: false },
+  
+  // Fields needed for the email OTP validation steps
+  tempOtp: { type: String, default: null },
+  otpExpiresAt: { type: Date, default: null },
+  
+  updatedAt: { type: Date, default: Date.now },
 });
 
-const dbToken = mongoose.models.dbToken || mongoose.model("dbToken", tokenSchema);
+const dbToken = mongoose.models.dbToken || mongoose.model("dbToken", TokenSchema);
 
 
 export default dbToken;

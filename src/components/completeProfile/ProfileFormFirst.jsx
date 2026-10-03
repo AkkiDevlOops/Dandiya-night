@@ -159,20 +159,20 @@ const router = useRouter();
   
 
   useEffect(()=>{
-    async function get(params) {
-      const response = await fetch('/api/checkLogin',{method:"POST"});
-      const data = await response.json();
-      if(data){
-      return;
-      } 
-      setopen(true);
-      setTimeout(() => {
-      router.push('/LoginRegister');
+    // async function get(params) {
+    //   const response = await fetch('/api/checkLogin',{method:"POST"});
+    //   const data = await response.json();
+    //   if(data){
+    //   return;
+    //   } 
+    //   setopen(true);
+    //   setTimeout(() => {
+    //   router.push('/LoginRegister');
          
-      }, 2000);
+    //   }, 2000);
       
-     }
-    get();
+    //  }
+    // get();
   },[])
 
   return (

@@ -140,7 +140,7 @@ export default function ProfileFormSecond({
       
 
   return (
-    <div className="h-[95vh] rounded-2xl overflow-y-auto [&::-webkit-scrollbar]:hidden w-1/2">
+    <div className="h-[95vh] rounded-2xl overflow-y-auto [&::-webkit-scrollbar]:hidden md:w-1/2">
 
       
 

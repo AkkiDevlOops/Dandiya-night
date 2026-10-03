@@ -10,6 +10,9 @@ export default function RaasMitraProfile() {
     const {user} = useAuth();
     const [error,setError] = useState('');
    const [profiles, setProfiles] = useState([]);
+   const [currentIndex, setCurrentIndex] = useState(0);
+
+const currentProfile = profiles[currentIndex];
   
 
  let i = 0;
@@ -31,9 +34,13 @@ export default function RaasMitraProfile() {
 
   const getprofile = async()=>{
     try{
-   const response = await fetch("api/getprofiles");
+   const response = await fetch("/api/getprofiles",{
+    method:"POST",
+   });
+  
   const data = await response.json();
   // const data2 = JSON.parse(data.users);
+  
   console.log(data.users);
   if(response.ok){
    setProfiles(data.users);
@@ -52,7 +59,9 @@ export default function RaasMitraProfile() {
   );
 };
 
-
+// const skipProfile = () => {
+//   setCurrentIndex((current) => current + 1);
+// };
 
 
 
@@ -96,7 +105,11 @@ export default function RaasMitraProfile() {
 
         <div className="relative w-full h-110 group">
           <img
-            src={profile.images[0]?profile.images[0]:"/image"}
+            src={
+  profile.images?.[0]
+    ? profile.images[0]
+    : "/default-profile.jpg"
+}
             alt={`${profile.username}`}
             className="object-cover h-[60vh] mt-5"
           />

@@ -5,13 +5,14 @@ import { jwtVerify } from 'jose';
 import Profile from '@/models/profile';
 import connectDB from '@/lib/db';
 import dbToken from '@/models/tokens';
+import { userlog } from '@/models/Registration';
 
 export async function POST(request) {
   try {
     await connectDB();
     // 1. Extract and Decrypt the Session Cookie (Inline Middleware)
     const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
+    const token = cookieStore.get('session')?.value;
     console.log(token)
 
     if (!token) {
@@ -22,11 +23,16 @@ export async function POST(request) {
   
       // 3. Verify and decode the token payload
       const { payload } = await jwtVerify(token, secret);
-  
+      const email = payload.email;
+        
+             const user = await userlog.findOne({
+              email: email,
+            })
+        
+             const userToken = user.tokenDetails
     
     // Now you have access to user info (e.g., payload.userId)
-    const userId = payload.userId;
-    console.log(payload);
+  
 
     // 2. Parse and Validate the Incoming Body Data
     const body = await request.json();
@@ -45,7 +51,7 @@ export async function POST(request) {
         // const { interests, height, prompt1, prompt2 } = body;
 
    const existing = await Profile.findOneAndUpdate(
-  { id: payload.userId }, // 1. Filter
+  { email: email }, // 1. Filter
   {
     $set: {
       intrest: interests, // Note: If 'interests' is already an array, wrapping it in brackets [interests] makes it a nested array [[item1, item2]]. Drop the brackets if it's already an array!
@@ -60,15 +66,18 @@ export async function POST(request) {
     console.log(existing);
     // 3. Save to Database (Placeholder Logic)
     // Example: await db.userProfile.update({ where: { userId }, data: { ... } })
-    console.log(`Saving profile data for user ${userId}:`, { interests, height, prompt1, prompt2 });
+    console.log(`Saving profile data for user :`, { interests, height, prompt1, prompt2 });
 
-    const savetoken = await dbToken.create({
-       useId : userId,
-    username: existing.username,
-    setUpprofile:true
-    });
+    // const savetoken = await dbToken.create({
+    //    useId : userId,
+    // username: existing.username,
+    // setUpprofile:true
+    // });
 
-    console.log(savetoken);
+    // console.log(savetoken);
+
+    userToken.isPhotoUploaded = true
+    await user.save();
 
     // 4. Return Success Response
     return NextResponse.json({ 

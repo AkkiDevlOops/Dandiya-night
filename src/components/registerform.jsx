@@ -10,7 +10,7 @@ import {
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Sparkles,
+  Sparkles, 
   UserRound,
 } from "lucide-react";
 import { useRouter } from 'next/navigation';
@@ -172,11 +172,9 @@ const[error,seterror] = useState('');
              
               className="mb-2 block text-sm font-medium text-[#24151a]"
             >
-              Enrollment Number
+              
             </label>
-
             <div className="relative">
-
               <Mail
                 size={18}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
@@ -185,11 +183,10 @@ const[error,seterror] = useState('');
               <input
                 id="register-email"
                 name="enrollmentNo"
-                
+                placeholder="Enrollment Number"
                 onChange={(e)=>{
                     formData.current.enrollmentNo =e.target.value;
                 }}
-                placeholder="you@college.ac.in"
                 autoComplete="email"
                 className="h-12 w-full rounded-xl text-black border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
               />
@@ -197,8 +194,6 @@ const[error,seterror] = useState('');
             </div>
 
           </div>
-
-
           {/* EMAIL */}
           <div>
            
@@ -206,7 +201,7 @@ const[error,seterror] = useState('');
              
               className="mb-2 block text-sm font-medium text-[#24151a]"
             >
-              Email 
+             
                           </label>
 
             <div className="relative">
@@ -223,16 +218,14 @@ const[error,seterror] = useState('');
                 onChange={(e)=>{
                     formData.current.email =e.target.value;
                 }}
-                placeholder="you@college.ac.in"
+                placeholder="Email "
                 autoComplete="email"
                 className="h-12 w-full rounded-xl text-black border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
               />
 
             </div>
 
-            <p className="mt-1.5 text-[13px] text-[#24151a]/40">
-              Enter email registered on UIT RGPV website 
-            </p>
+         
 
           </div>
 
@@ -247,7 +240,7 @@ const[error,seterror] = useState('');
               htmlFor="register-password"
               className="mb-2 block text-sm font-medium text-[#24151a]"
             >
-              Password
+              
             </label>
 
             <div className="relative">

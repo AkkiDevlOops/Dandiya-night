@@ -4,12 +4,14 @@ import  Profile  from '@/models/profile'; // 👈 Import your actual User/Profil
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import { userlog } from '@/models/Registration';
 
-export async function GET() {
+export async function POST() {
   try {
       await connectDB();
       const cookieStore = await cookies();
-      const token = cookieStore.get("auth_token")?.value;
+      const token = cookieStore.get("session")?.value;
+
      
          if (!token) {
            return NextResponse.json({ error: 'Session cookie missing. Please log in.' }, { status: 401 });
@@ -19,15 +21,20 @@ export async function GET() {
        
            // 3. Verify and decode the token payload
            const { payload } = await jwtVerify(token, secret);
+           
             console.log(payload)
             
-      const sessionId = payload.userId; 
-
+      const email = payload.email; 
+      
+           const user = await userlog.findOne({
+            email: email,
+          })
+          
      
     // 1. Ensure your app is actively connected to MongoDB
     
 
-    const alreadyusername = await Profile.findOne({ id: sessionId });
+    const alreadyusername = await Profile.findOne({ email: email });
     const gender = alreadyusername.gender;
 
     

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+
 import Googlelogin from "@/components/googlelogin"
 import {
   ArrowRight,
@@ -36,44 +37,101 @@ export default function LoginForm() {
      const [showPassword, setShowPassword] = useState('');
      const [error,setError] = useState('');
     
-  const handlesubmit = async(e)=>{
+  
+  const [email, setEmail] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [showMobileField, setShowMobileField] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadinglog, setLoadinglog] = useState(false);
+  const [message, setMessage] = useState("");
+
+    const [identifier, setIdentifier] = useState("");
+      const [number , setnumber] = useState("");// Captures email or phone input string
+  const [otpInput, setOtpInput] = useState("");      // Captures numerical input code string
+  const [trackingToken, setTrackingToken] = useState(null); // Saved behind the scenes
+  const [step, setStep] = useState(1);               // 1 = Request, 2 = Verify Code
+ 
+  const [successMsg, setSuccessMsg] = useState("");
+
+  // 🚀 SUBMIT HANDLER 1: Requests Email/Mobile routing access link
+  const handlesubmit= async (e) => {
+    e.preventDefault();
+    setLoadinglog(true);
+    setError("");
+    setSuccessMsg("");
+    console.log(identifier) 
     try {
-    e.preventDefault()
-    const response = await fetch("/api/auth/login",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body: JSON.stringify(
-            formData
-        )
-    });
-    const data = await response.json()
-     if (!response.ok) {
-      // Set the error message coming from your backend ('Email and password are required')
-      setError(data.error || "Something went wrong");
-      return;
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({identifier, number}),
+      });
+
+      const data = await res.json();
+      console.log(data);
+      if (!res.ok) throw new Error(data.error || "Request failed");
+
+      setTrackingToken(data.trackingToken); // Cache tracking state context
+      setSuccessMsg(data.message);
+      setStep(2); // Jump view screen to OTP layout inputs
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadinglog(false);
     }
-    console.log(data);
-    if(response.ok){
-    if( data.message == 'Login successful'){
-      
-      if(data.user.profilecompleted){
-        router.push('/testroute');
-        return;
+  };
+
+   const handleCheckOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccessMsg("");
+
+    try {
+      const response = await fetch("/api/auth/verify-otp", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    email: identifier,
+    otp: otpInput,
+    number: number,
+  }),
+});
+
+const data = await response.json();
+
+console.log(data.token);
+     
+
+      if (data.token.isLoggedIn) {
+      router.push("/completeProfile");
       }
-      router.push('/completeProfile');
-  }
-  if(data.error){
-    setError(data.error);
-  }
-}
-     } catch (error) {
-      console.log(error);
+      if (data.token.isFirstPhaseCompleted) {
+      router.push("/testimage");
+      }
+      if (isPhotoUploaded) {
+      router.push("/saveProfile");
+      }
+      if (isProfileFullyUpdated) {
+      router.push("/getprofiles");
+      }
+
+       if (!res.ok) throw new Error(data.error || "Verification failed");
+
+      setSuccessMsg("Welcome! Redirecting securely...");
+     
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    
-   
-   }
+  };
+  // Main submission function to contact the backend route
+
 
    useEffect(()=>{
    
@@ -90,7 +148,7 @@ export default function LoginForm() {
         <div className="flex items-center justify-center gap-2">
 
           <h1 className="font-serif text-3xl font-bold text-[#741337]">
-           Login
+           Login with Email
           </h1>
 
           <Sparkles
@@ -118,40 +176,7 @@ export default function LoginForm() {
           {/* ERROR */}
          
           {/* EnrollmentNo */}
-          <div>
-           <div className="w-full flex items-center justify-center">
-          <p className="text-red-600 mb-3 ">{error}</p>
-          
-          </div>
-            <label
-              htmlFor="login-email"
-              className="mb-2 block text-sm font-medium text-[#24151a]"
-            >
-              College EnrollmentNo.
-            </label>
-
-            <div className="relative">
-
-              <Mail
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
-              />
-
-              <input
-                id="login-email"
-                name="email"
-                
-               onChange={(e)=>{
-                    formData.current.enrollmentNo =e.target.value;
-                }}
-                placeholder="you@college.ac.in"
-                autoComplete="email"
-                className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
-              />
-
-            </div>
-
-          </div>
+       
 
 
           {/* EMAIL */}
@@ -160,7 +185,7 @@ export default function LoginForm() {
               htmlFor="login-email"
               className="mb-2 block text-sm font-medium text-[#24151a]"
             >
-              College Email
+              Email
             </label>
 
             <div className="relative">
@@ -173,10 +198,8 @@ export default function LoginForm() {
               <input
                 id="login-email"
                 name="email"
-                
-               onChange={(e)=>{
-                    formData.current.email =e.target.value;
-                }}
+              onChange={(e) => {setIdentifier(e.target.value)}}
+               
                 placeholder="you@college.ac.in"
                 autoComplete="email"
                 className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
@@ -188,63 +211,35 @@ export default function LoginForm() {
 
 
           {/* PASSWORD */}
-          <div>
-
-            <div className="mb-2 flex items-center justify-between">
-
-              <label
-                htmlFor="login-password"
-                className="text-sm font-medium text-[#24151a]"
-              >
-                Password
-              </label>
-
-              <Link
-                href="#"
-                className="text-xs font-semibold text-[#741337] hover:text-[#ed7137]"
-              >
-                Forgot password?
-              </Link>
-
-            </div>
+         
+         <div>
+            <label
+              htmlFor="login-email"
+              className="mb-2 block text-sm font-medium text-[#24151a]"
+            >
+              Number
+            </label>
 
             <div className="relative">
 
-              <LockKeyhole
+              <Mail
                 size={18}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
               />
 
               <input
-                id="login-password"
-                name="password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
-                
-              onChange={(e)=>{
-                    formData.current.password =e.target.value;
-                }}
-                placeholder="Enter your password"
-                autoComplete="current-password"
-                className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-12 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+                id="login-number"
+                name="number"
+                inputMode="numeric" // Displays the numeric keypad layout on mobile devices
+                value={number}
+                maxLength={10}
+              onChange={(e,value) => {setnumber(e.target.value)
+              }}
+               
+                placeholder="9234*****1"
+                autoComplete="number"
+                className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
               />
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPassword((prev) => !prev)
-                }
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[#24151a]/40 transition hover:bg-[#fff0df] hover:text-[#741337]"
-              >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
-              </button>
 
             </div>
 
@@ -275,7 +270,7 @@ export default function LoginForm() {
              
           
               <>
-                Login to RaasMitra
+                {loadinglog?"loading...":"Login to RaasMitra"}
 
                 <ArrowRight
                   size={18}
@@ -286,6 +281,74 @@ export default function LoginForm() {
 
           </button>
 
+        </form>
+        <form onSubmit={handleCheckOtp}>
+           <div>
+
+            <div className="mt-5 mb-2 flex items-center justify-between">
+
+              <label
+                htmlFor="login-password"
+                className="text-sm font-medium text-[#24151a]"
+              >
+               OTP
+              </label>
+
+              <Link
+                href="#"
+                className="text-xs font-semibold text-[#741337] hover:text-[#ed7137]"
+              >
+                
+              </Link>
+
+            </div>
+
+            <div className="relative">
+
+              <LockKeyhole
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
+              />
+
+              <input
+                id="login-password"
+                name="password"
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
+                
+              onChange={(e)=>{
+                    setOtpInput(e.target.value)
+                }}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-12 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPassword((prev) => !prev)
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[#24151a]/40 transition hover:bg-[#fff0df] hover:text-[#741337]"
+              >
+                {showPassword ? (
+                  <EyeOff size={18} />
+                ) : (
+                  <Eye size={18} />
+                )}
+              </button>
+
+            </div>
+
+          </div>
+          <div>
+           <button
+            type="submit"
+            className="group mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#741337] font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >{loading?"Loading...":"Submit"}</button></div>
         </form>
          <div className="w-full pt-3 flex justify-center">
                      <Googlelogin/>

@@ -74,14 +74,14 @@ export default function LoginPage() {
          <div className="mt-7 border-t border-[#741337]/10 pt-6 text-center">
 
           <p className="text-sm text-[#24151a]/50">
-            New to RaasMitra?
+            
           </p>
 
           <a
             onClick={()=>{islogin(true)}}
             className="mt-1 inline-block text-sm font-semibold text-[#741337] transition hover:text-[#ed7137]"
           >
-            Create your account →
+            Login with email
           </a>
 
         </div>

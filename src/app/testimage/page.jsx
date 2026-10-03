@@ -1,256 +1,407 @@
-
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-
 import Background from "@/components/matchingpage/backgroundblur";
-import { useAuthGuard } from "@/lib/authorisedroute";
-import { useAuth } from "@/lib/gettoken";
 
 export default function CloudinaryUploadForm() {
-  // useAuthGuard();
-
   const router = useRouter();
-  // const { user } = useAuth();
 
-  const [userId, setUserId] = useState("");
-  const [imageUrl, setImageUrl] = useState("//");
-  const [loading, setLoading] = useState(false);
+  const [photos, setPhotos] = useState([
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+  ]);
+
+  const [uploadingIndex, setUploadingIndex] = useState(null);
   const [error, setError] = useState("");
-  const [open,setopen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  // ================= GET USER =================
+  // =========================================================
+  // UPLOAD ONE PHOTO
+  // =========================================================
 
-  // useEffect(() => {
-  //   if (!user) return;
+  const handleImageSelect = async (event, index) => {
+    const file = event.target.files?.[0];
 
-  //   try {
-  //     const data =
-  //       typeof user === "string"
-  //         ? JSON.parse(user)
-  //         : user;
+    if (!file) return;
 
-  //     if (data?.auth === false) {
-  //       router.push("/LoginRegister");
-  //       return;
-  //     }
-
-  //     setUserId(data?.id || "");
-
-  //   } catch (err) {
-  //     console.error("User error:", err);
-  //     router.push("/LoginRegister");
-  //   }
-  // }, [user, router]);
-
-  // ================= UPLOAD =================
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-
-    setLoading(true);
     setError("");
-    setImageUrl("");
 
-    const data = new FormData(e.currentTarget);
+    // Basic validation
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file.");
+      return;
+    }
 
-    // Add logged-in user ID
-    data.append("userId", userId);
+    // 10MB limit
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image must be smaller than 10MB.");
+      return;
+    }
 
     try {
-      const res = await fetch("/api/uploadimage", {
+      setUploadingIndex(index);
+
+      const formData = new FormData();
+
+      formData.append("image", file);
+
+      /*
+       * Keeping your existing API.
+       *
+       * Your current code was already using:
+       *
+       * /api/uploadimage
+       *
+       * so we continue using exactly that.
+       */
+      const response = await fetch("/api/uploadimage", {
         method: "POST",
-        body: data,
+        body: formData,
       });
 
-      const result = await res.json();
+      const result = await response.json();
 
-      if (res.ok && result.success) {
-        setImageUrl(result.imageUrl);
-        
-
-      } else {
-        setError(
+      if (!response.ok || !result.success) {
+        throw new Error(
           result.error ||
-            "Something went wrong during the upload."
+            result.message ||
+            "Image upload failed."
         );
       }
 
-    } catch (err) {
-      console.error(err);
-      setError("Failed to connect to the upload server.");
+      if (!result.imageUrl) {
+        throw new Error(
+          "Upload succeeded but no image URL was returned."
+        );
+      }
 
+      // Add uploaded image to this slot
+      setPhotos((currentPhotos) => {
+        const updatedPhotos = [...currentPhotos];
+
+        updatedPhotos[index] = {
+          url: result.imageUrl,
+          name: file.name,
+        };
+
+        return updatedPhotos;
+      });
+    } catch (err) {
+      console.error("IMAGE UPLOAD ERROR:", err);
+
+      setError(
+        err.message ||
+          "Something went wrong while uploading the image."
+      );
     } finally {
-      setLoading(false);
+      setUploadingIndex(null);
+
+      // Allows selecting the same file again
+      event.target.value = "";
     }
   };
 
-  useEffect(()=>{
-    async function get() {
-      const response = await fetch('/api/checkprofilecompletion',{method:"POST"});
-      const data = await response.json();
-      if(response.ok){
-      if(data){
-        
-        console.log(data);
-        return;
-      }
-      setopen(true);
-      setTimeout(() => {
-router.push('/completeProfile');
-         
-      }, 2000);
-     
+  // =========================================================
+  // COUNT UPLOADED PHOTOS
+  // =========================================================
+
+  const uploadedCount = photos.filter(
+    (photo) => photo !== null
+  ).length;
+
+  const minimumPhotosUploaded =
+    uploadedCount >= 3;
+
+  // =========================================================
+  // GO TO NEXT PAGE
+  // =========================================================
+
+  const handleNext = () => {
+    setError("");
+
+    if (uploadedCount < 3) {
+      setError(
+        `Please upload at least 3 photos. You have uploaded ${uploadedCount} of 3 required photos.`
+      );
+
+      return;
     }
-    }
-    get();
-  },[])
+
+    router.push("/intrestpage");
+  };
+
+  // =========================================================
+  // RENDER PHOTO SLOT
+  // =========================================================
+
+  const renderPhotoSlot = (index) => {
+    const photo = photos[index];
+
+    const isRequired = index < 3;
+
+    const isUploading =
+      uploadingIndex === index;
+
+    return (
+      <div
+        key={index}
+        className="relative aspect-[0.78]  w-full"
+      >
+        <label
+          className={`
+            group relative flex h-full w-full
+            cursor-pointer items-center justify-center
+            overflow-hidden rounded-2xl
+            border-2 border-dashed
+            transition-all duration-200
+            ${
+              photo
+                ? "border-[#4c0519]/30 bg-white"
+                : "border-amber-900/25 bg-amber-950/[0.02] hover:border-[#4c0519]/60 hover:bg-amber-950/[0.04]"
+            }
+          `}
+        >
+          {/* =================================================
+              IMAGE PREVIEW
+          ================================================= */}
+
+          {photo ? (
+            <>
+              <img
+                src={photo.url}
+                alt={`Uploaded photo ${index + 1}`}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+
+              {/* Dark hover overlay */}
+              <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/25" />
+
+              {/* Uploaded check */}
+              <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#4c0519] text-sm font-bold text-white shadow-lg">
+                ✓
+              </div>
+
+              {/* Change text */}
+              <div className="absolute bottom-2 left-2 right-2 rounded-xl bg-black/45 px-2 py-1.5 text-center text-[10px] font-semibold text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
+                Tap to change
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Plus icon */}
+              <div className="flex flex-col items-center justify-center">
+                {isUploading ? (
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#4c0519]/20 border-t-[#4c0519]" />
+                ) : (
+                  <>
+                    <span className="text-5xl font-light leading-none text-gray-400">
+                      +
+                    </span>
+
+                    {isRequired && (
+                      <span className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-[#4c0519]/50">
+                        Required
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+            </>
+          )}
+
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            onChange={(event) =>
+              handleImageSelect(event, index)
+            }
+            disabled={isUploading}
+          />
+        </label>
+      </div>
+    );
+  };
 
   return (
-    <div className="relative min-h-screen pb-2 w-full overflow-y-auto">
+    <div className="relative min-h-screen  w-full overflow-y-auto pb-4">
+      {/* =====================================================
+          YOUR EXISTING BACKGROUND
+      ===================================================== */}
 
       <Background />
 
-      <div className="fixed overflow-y-auto mt-1 mb-5 rounded-md inset-0 z-40 flex h-dvh items-center justify-center overflow-hidden px-4 [&::-webkit-scrollbar]:hidden">
-        {open?(
-          <div className="w-full min-h-screen flex justify-center items-center fixed inset-0 z-50"><p className=" h-1/4 w-1/2 flex justify-center font-bold text-red-500 items-center">complete filling your details first</p></div>
-        ):('')}
+      <div className="fixed inset-0 z-40 pt-40  md:pt-55  mt-2 flex h-dvh items-center justify-center overflow-y-auto px-4 py-4 [&::-webkit-scrollbar]:hidden">
+        {/* ===================================================
+            MAIN CARD
+        =================================================== */}
 
-        <div className="w-full max-w-md rounded-2xl border border-white/20 bg-[#fdfbf7] p-6 shadow-2xl sm:p-8">
-        
-          {/* ================= HEADER ================= */}
+        <div className="w-full max-w-md rounded-2xl mt-10 border border-white/20 bg-[#fdfbf7] p-5 shadow-2xl sm:p-7">
+          {/* =================================================
+              HEADER
+          ================================================= */}
 
-          <div className="mb-6 text-center">
+          <div className="mb-5">
+            {/* Small progress indicator */}
+            <div className="mb-5 flex items-center justify-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-[#4c0519]" />
 
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#fff0df] text-2xl">
-              📸
+              <div className="h-2 w-2 rounded-full bg-[#4c0519]" />
+
+              <div className="h-2 w-2 rounded-full bg-gray-300" />
             </div>
 
+            <div className="flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-[#4c0519] bg-white text-2xl shadow-sm">
+                📷
+              </div>
+            </div>
 
-            <h2 className="text-3xl font-extrabold tracking-tight text-[#4c0519]">
-              Add Your Photo
-            </h2>
+            <h1 className="mt-5 text-center text-3xl font-extrabold leading-tight tracking-tight text-[#4c0519]">
+              Pair your photos and
+              <br />
+              videos with prompts
+            </h1>
 
-            <p className="mt-2 text-sm text-amber-950/60">
-              One photo is enough to complete your profile.
+            <p className="mt-3 text-center text-sm text-amber-950/60">
+              Add at least 3 photos to continue.
             </p>
-
           </div>
 
-          {/* ================= ERROR ================= */}
+          {/* =================================================
+              ERROR
+          ================================================= */}
 
           {error && (
-            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-3">
-              <p className="text-sm font-medium text-red-800">
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+              <p className="text-center text-sm font-medium text-red-800">
                 {error}
               </p>
             </div>
           )}
 
-          {/* ================= FORM ================= */}
+          {/* =================================================
+              PHOTO GRID
+          ================================================= */}
 
-          <form
-            onSubmit={handleFormSubmit}
-            className="space-y-5"
+          <div className="grid grid-cols-3 gap-2.5">
+            {photos.map((_, index) =>
+              renderPhotoSlot(index)
+            )}
+          </div>
+
+          {/* =================================================
+              PHOTO COUNT
+          ================================================= */}
+
+          <div className="mt-3 flex items-center justify-between px-1">
+            <p
+              className={`text-sm font-medium ${
+                minimumPhotosUploaded
+                  ? "text-emerald-700"
+                  : "text-gray-400"
+              }`}
+            >
+              {uploadedCount} / 6 uploaded
+            </p>
+
+            <p className="text-xs text-gray-400">
+              {minimumPhotosUploaded
+                ? "Minimum reached ✓"
+                : `${3 - uploadedCount} more required`}
+            </p>
+          </div>
+
+          {/* =================================================
+              PROGRESS
+          ================================================= */}
+
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-200">
+            <div
+              className="h-full rounded-full bg-[#4c0519] transition-all duration-300"
+              style={{
+                width: `${Math.min(
+                  (uploadedCount / 3) * 100,
+                  100
+                )}%`,
+              }}
+            />
+          </div>
+
+          {/* =================================================
+              TIP BOX
+          ================================================= */}
+
+          <div className="mt-5 rounded-2xl border border-gray-200 bg-white px-4 py-4">
+            <div className="mb-2 flex justify-center">
+              <span className="text-2xl">💡</span>
+            </div>
+
+            <p className="text-center text-sm font-medium leading-5 text-gray-700">
+              Tap a photo to add one.
+              <br />
+              Good photos help your profile stand out.
+            </p>
+          </div>
+
+          {/* =================================================
+              NEXT BUTTON
+          ================================================= */}
+
+          <button
+            type="button"
+            onClick={handleNext}
+            disabled={
+              !minimumPhotosUploaded ||
+              uploadingIndex !== null
+            }
+            className={`
+              mt-5 flex w-full items-center justify-center
+              rounded-xl px-4 py-3.5
+              text-sm font-semibold
+              shadow-lg transition
+              ${
+                minimumPhotosUploaded
+                  ? "bg-[#4c0519] text-[#fdfbf7] hover:bg-[#630620]"
+                  : "cursor-not-allowed bg-[#4c0519]/30 text-white"
+              }
+            `}
           >
+            {uploadingIndex !== null
+              ? "Uploading..."
+              : minimumPhotosUploaded
+              ? "Continue"
+              : "Upload 3 photos to continue"}
+          </button>
 
-            <div>
+          {/* =================================================
+              REQUIREMENT TEXT
+          ================================================= */}
 
-              <label className="mb-2 block text-sm font-semibold text-amber-950/80">
-                Select Image
-              </label>
-
-              <div className="relative flex min-h-[190px] cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-amber-900/20 bg-amber-950/[0.02] transition hover:border-[#4c0519] hover:bg-amber-950/[0.04]">
-
-                <div className="text-center">
-
-                  <svg
-                    className="mx-auto mb-3 h-12 w-12 text-amber-950/30"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-
-                  <p className="text-sm text-amber-950/70">
-                    <span className="font-bold text-[#4c0519]">
-                      Upload a file
-                    </span>
-                  </p>
-
-                  <p className="mt-2 text-xs text-amber-950/40">
-                    PNG, JPG, GIF up to 10MB
-                  </p>
-
-                </div>
-
-                <input
-                  type="file"
-                  name="image"
-                  accept="image/*"
-                  required
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                />
-
-              </div>
-
-            </div>
-
-            {/* ================= CREATE ACCOUNT ================= */}
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full justify-center rounded-xl bg-[#4c0519] px-4 py-3.5 text-sm font-semibold text-[#fdfbf7] shadow-lg transition hover:bg-[#630620] disabled:cursor-not-allowed disabled:bg-[#4c0519]/50"
-            >
-              {loading
-                ? "uploading..."
-                : "Upload"}
-            </button>
-             
-          </form>
-
-          {/* ================= SUCCESS ================= */}
-
-          {imageUrl && (
-            <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-
-              <p className="mb-3 text-sm font-bold text-emerald-800">
-                ✓ Profile completed successfully!
-              </p>
-
-              <img
-                src={imageUrl}
-                alt="Uploaded profile"
-                className="h-40 w-full rounded-xl object-cover"
-              />
-               <a href="/intrestpage">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full justify-center rounded-xl bg-[#4c0519] px-4 py-3.5 text-sm font-semibold text-[#fdfbf7] shadow-lg transition hover:bg-[#630620] disabled:cursor-not-allowed disabled:bg-[#4c0519]/50"
-            >
-             Go ahead
-            </button>
-                </a>
-
-              <p className="mt-3 text-center text-xs text-emerald-700">
-                Taking you to Discover...
-              </p>
-
-            </div>
-          )}
-
+          <p className="mt-3 text-center text-xs text-gray-400">
+            At least 3 photos are required
+          </p>
         </div>
       </div>
+
+      {/* =====================================================
+          UNUSED STATE KEPT AVAILABLE
+      ===================================================== */}
+
+      {open && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 px-5">
+          <div className="rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <p className="font-bold text-red-500">
+              Complete filling your details first
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
