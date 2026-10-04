@@ -1,3 +1,5 @@
+
+
 import mongoose from "mongoose";
 
 const UserProfile = new mongoose.Schema({
@@ -51,15 +53,7 @@ const UserProfile = new mongoose.Schema({
     required: true,
   },
 
- images: {
-  type: [String],
-  default: [],
-},
-
-imageHashes: {
-  type: [String],
-  default: [],
-},
+  images:[{type: String}],
 
   createdAt: {
     type: Date,
@@ -70,5 +64,6 @@ imageHashes: {
 const Profile =
   mongoose.models.Profile ||
   mongoose.model("Profile", UserProfile);
+
 
 export default Profile;
