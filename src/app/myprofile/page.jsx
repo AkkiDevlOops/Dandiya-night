@@ -9,8 +9,9 @@ const page = () => {
  
   return (
     <div>
-      <MyProfile/>
-      <Background/>
+      <div className='relative z-50 inset-0'><MyProfile/></div>
+      <div className='fixed z-10 inset-0'><Background/></div>
+      
       
 
     </div>
