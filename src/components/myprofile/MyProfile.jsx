@@ -1467,7 +1467,3 @@ function PromptCard({
     </div>
   );
 }
-
-
-
-

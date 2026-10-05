@@ -12,10 +12,8 @@ function page() {
   
   return (
     <div className='max-h-screen overscroll-none'>
-<div className='inset-0 z-10 fixed'>
-<Background/>
-</div>
-<div className='inset-0 relative z-20 '>
+
+<div className='inset-0  z-50'>
     <Matching/>
 </div>
 
