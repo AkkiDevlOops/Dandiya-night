@@ -592,102 +592,59 @@ useEffect(() => {
 
 
 
-  // ============================================================
-  // FETCH MESSAGES
-  // ============================================================
+  ============================================================
+  FETCH MESSAGES
+  ============================================================
 
-  // const fetchMessages = async (
-  //   conversationId
-  // ) => {
-  //   try {
-  //     setLoadingMessages(true);
-  //     setError("");
-
-  //     const response = await fetch(
-  //       `/api/conversations/${conversationId}/messages`,
-  //       {
-  //         method: "GET",
-  //         credentials: "include",
-  //       }
-  //     );
-
-  //     const data =
-  //       await response.json();
-
-  //     if (
-  //       !response.ok ||
-  //       !data.success
-  //     ) {
-  //       throw new Error(
-  //         data.message ||
-  //           "Failed to fetch messages"
-  //       );
-  //     }
-
-  //     setMessages(
-  //       data.messages || []
-  //     );
-  //   } catch (error) {
-  //     console.error(
-  //       "Fetch Messages Error:",
-  //       error
-  //     );
-
-  //     setMessages([]);
-
-  //     setError(
-  //       error.message ||
-  //         "Unable to load messages"
-  //     );
-  //   } finally {
-  //     setLoadingMessages(false);
-  //   }
-  // };
-
-  const fetchMessages = async (conversationId, showLoader = true) => {
-  try {
-    if (showLoader) {
+  const fetchMessages = async (
+    conversationId
+  ) => {
+    try {
       setLoadingMessages(true);
-    }
+      setError("");
 
-    setError("");
-
-    const response = await fetch(
-      `/api/conversations/${conversationId}/messages`,
-      {
-        method: "GET",
-        credentials: "include",
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(
-        data.message || "Failed to fetch messages"
+      const response = await fetch(
+        `/api/conversations/${conversationId}/messages`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
       );
-    }
 
-    setMessages(data.messages || []);
+      const data =
+        await response.json();
 
-  } catch (error) {
-    console.error("Fetch Messages Error:", error);
+      if (
+        !response.ok ||
+        !data.success
+      ) {
+        throw new Error(
+          data.message ||
+            "Failed to fetch messages"
+        );
+      }
 
-    // DON'T erase existing messages if this was a background refresh
-    if (showLoader) {
+      setMessages(
+        data.messages || []
+      );
+    } catch (error) {
+      console.error(
+        "Fetch Messages Error:",
+        error
+      );
+
       setMessages([]);
-    }
 
-    setError(
-      error.message || "Unable to load messages"
-    );
-
-  } finally {
-    if (showLoader) {
+      setError(
+        error.message ||
+          "Unable to load messages"
+      );
+    } finally {
       setLoadingMessages(false);
     }
-  }
-};
+  };
+
+
   // ============================================================
   // SELECT CONVERSATION
   // ============================================================
