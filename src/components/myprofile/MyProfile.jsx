@@ -1,1431 +1,2324 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
-import {
-  FiX,
-  FiHeart,
-  FiChevronLeft,
-  FiChevronRight,
-  FiMoreHorizontal,
-  FiCornerUpLeft,
-  FiFlag,
-  FiSlash,
-  FiSend,
-} from "react-icons/fi";
+import React, { useEffect, useRef, useState } from "react";
+import Navbar from '@/components/Navbar'
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+/* =========================================================
+   INTERESTS
+========================================================= */
 
-export default function RaasMitraProfile() {
-  const [profiles, setProfiles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState("");
+const INTERESTS = [
+  "Music",
+  "Movies",
+  "TV",
+  "Books",
+  "Travel",
+  "Food",
+  "Sports",
+  "Gaming",
+  "Photography",
+  "Art",
+  "Fitness",
+  "Cooking",
+  "Dancing",
+  "Hiking",
+  "Pets",
+  "Fashion",
+  "Technology",
+  "Business",
+  "Cars",
+  "Nature",
+  "Nightlife",
+  "Coffee",
+  "Volunteering",
+  "Reading",
+  "Writing",
+  "Cricket",
+  "Football",
+  "Badminton",
+  "Basketball",
+  "Trekking",
+  "Road Trips",
+  "Beaches",
+  "Mountains",
+  "Anime",
+  "Podcasts",
+  "Memes",
+  "Startups",
+  "Coding",
+  "Design",
+  "Content Creation",
+  "Fitness Training",
+  "Yoga",
+  "Meditation",
+  "Dance",
+  "Fashion Design",
+  "Concerts",
+  "Festivals",
+  "Garba",
+  "Dandiya",
+];
 
-  // Current profile
-  const [currentIndex, setCurrentIndex] = useState(0);
+/* =========================================================
+   PROMPT TYPES
+========================================================= */
 
-  // Current photo
-  const [photoIndex, setPhotoIndex] = useState(0);
+const PROMPT_TYPES = [
+  {
+    value: "text",
+    label: "Text",
+  },
+  {
+    value: "voice",
+    label: "Voice",
+  },
+  {
+    value: "video",
+    label: "Video",
+  },
+  {
+    value: "poll",
+    label: "Poll",
+  },
+];
 
-  // More menu
-  const [showMenu, setShowMenu] = useState(false);
+/* =========================================================
+   DEFAULT PROMPT
+========================================================= */
 
-  // Report menu
-  const [showReport, setShowReport] = useState(false);
+const createEmptyPrompt = () => ({
+  question: "",
+  answer: "",
+  type: "text",
+});
 
-  // Comment modal
-  const [showComment, setShowComment] = useState(false);
-  const [comment, setComment] = useState("");
+/* =========================================================
+   HELPERS
+========================================================= */
 
-  // What is being liked
-  const [likeTarget, setLikeTarget] = useState({
-    type: "profile",
-    id: null,
+const normalizeProfile = (profile) => {
+  if (!profile) return null;
+
+  return {
+    username: profile.username || "",
+    branch: profile.branch || "",
+    semester: profile.semester || "",
+    college: profile.college || "",
+    gender: profile.gender || "",
+
+    dateOfBirth: profile.dateOfBirth
+      ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
+      : "",
+
+    intro: profile.intro || "",
+
+    interests: Array.isArray(profile.interests)
+      ? profile.interests
+      : [],
+
+    prompts: Array.isArray(profile.prompts)
+      ? profile.prompts.map((prompt) => ({
+          _id: prompt._id,
+          question: prompt.question || "",
+          answer: prompt.answer || "",
+          type: ["text", "voice", "video", "poll"].includes(prompt.type)
+            ? prompt.type
+            : "text",
+        }))
+      : [],
+
+    images: Array.isArray(profile.images)
+      ? profile.images
+      : [],
+  };
+};
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
+export default function MyProfilePage() {
+  /* -------------------------------------------------------
+     PROFILE / ACCOUNT DATA
+  ------------------------------------------------------- */
+
+  const [user, setUser] = useState({
+    username: "",
+    branch: "",
+    semester: "",
+    college: "",
+    gender: "",
   });
 
-  // Last skipped profile for Undo
-  const [lastSkipped, setLastSkipped] = useState(null);
+  /* -------------------------------------------------------
+     EDITABLE PROFILE STATE
+  ------------------------------------------------------- */
 
-  // -------------------------------------------------------
-  // Current profile
-  // -------------------------------------------------------
+  const [profileData, setProfileData] = useState({
+    dateOfBirth: "",
+    intro: "",
+    interests: [],
+    prompts: [],
+    images: [],
+  });
 
-  const currentProfile = profiles[currentIndex];
+  /* -------------------------------------------------------
+     UI STATES
+  ------------------------------------------------------- */
 
-  // -------------------------------------------------------
-  // Get profiles
-  // -------------------------------------------------------
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const getProfiles = async () => {
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const [showMoreInterests, setShowMoreInterests] =
+    useState(false);
+
+  const [activePhotoIndex, setActivePhotoIndex] =
+    useState(null);
+
+  const fileInputRef = useRef(null);
+  const router = useRouter();
+  /* =======================================================
+     GET PROFILE
+  ======================================================= */
+
+  useEffect(() => {
+    getProfile();
+  }, []);
+
+  const getProfile = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await fetch("/api/chatgptroute", {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          action: "discover",
-          limit: 10,
-        }),
+      const res = await fetch("/api/myprofile", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
       });
 
-      const data = await response.json();
+      const data = await res.json();
       console.log(data);
-       
-
-      if (!response.ok || !data.success) {
-         if (response.status === 401 || data.redirect) {
-        setTimeout(() => {
-          window.location.href = data.url; 
-      return;
-        }, 3000);
+      if (!res.ok) {
         throw new Error(
-          data.message ||
-            data.error ||
-            "Failed to load profiles."
+          data.error || "Failed to load profile."
         );
-       
-      }
       }
 
-      setProfiles(data.users || []);
-      setCurrentIndex(0);
-      setPhotoIndex(0);
+      const profile =
+        data.user ||
+        data.profile ||
+        data.users;
 
-      
-      
-    
+      if (!profile) {
+        throw new Error("Profile data not found.");
+      }
 
-    } catch (error) {
-      console.error(error);
+      const normalized = normalizeProfile(profile);
+
+      /* -----------------------------------------------
+         LOCKED USER INFORMATION
+      ------------------------------------------------ */
+
+      setUser({
+        username: normalized.username,
+        branch: normalized.branch,
+        semester: normalized.semester,
+        college: normalized.college,
+        gender: normalized.gender,
+      });
+
+      /* -----------------------------------------------
+         EDITABLE PROFILE INFORMATION
+      ------------------------------------------------ */
+
+      setProfileData({
+        dateOfBirth: normalized.dateOfBirth,
+        intro: normalized.intro,
+        interests: normalized.interests,
+        prompts: normalized.prompts,
+        images: normalized.images,
+      });
+    } catch (err) {
+      console.error("Get profile error:", err);
 
       setError(
-        error.message ||
-          "Could not load profiles."
+        err.message || "Unable to load your profile."
       );
-
     } finally {
       setLoading(false);
     }
   };
 
-  // -------------------------------------------------------
-  // Initial load
-  // -------------------------------------------------------
+  /* =======================================================
+     GENERIC STATE UPDATE
+  ======================================================= */
 
-  useEffect(() => {
-    getProfiles();
-  }, []);
+  const updateProfileState = (updates) => {
+    setProfileData((prev) => ({
+      ...prev,
+      ...updates,
+    }));
 
-  // -------------------------------------------------------
-  // Move to next profile
-  // -------------------------------------------------------
-
-  const nextProfile = () => {
-    setPhotoIndex(0);
-    setShowMenu(false);
-    setShowReport(false);
-    setShowComment(false);
-    setComment("");
-
-    setCurrentIndex((current) => current + 1);
+    // Clear old messages when user starts editing
+    setSuccess("");
+    setError("");
   };
 
-  // -------------------------------------------------------
-  // Remove current profile locally
-  // -------------------------------------------------------
+  /* =======================================================
+     DATE OF BIRTH
+  ======================================================= */
 
-  const removeCurrentProfile = () => {
-    setProfiles((currentProfiles) => {
-      return currentProfiles.filter(
-        (_, index) =>
-          index !== currentIndex
-      );
+  const handleDateChange = (value) => {
+    updateProfileState({
+      dateOfBirth: value,
+    });
+  };
+
+  /* =======================================================
+     INTRO
+  ======================================================= */
+
+  const handleIntroChange = (value) => {
+    if (value.length > 500) return;
+
+    updateProfileState({
+      intro: value,
+    });
+  };
+
+  /* =======================================================
+     INTERESTS
+  ======================================================= */
+
+  const toggleInterest = (interest) => {
+    setProfileData((prev) => {
+      const exists = prev.interests.includes(interest);
+
+      const updatedInterests = exists
+        ? prev.interests.filter(
+            (item) => item !== interest
+          )
+        : [...prev.interests, interest];
+
+      return {
+        ...prev,
+        interests: updatedInterests,
+      };
     });
 
-    setPhotoIndex(0);
+    setSuccess("");
+    setError("");
   };
 
-  // -------------------------------------------------------
-  // Skip profile
-  // -------------------------------------------------------
+  const clearAllInterests = () => {
+    updateProfileState({
+      interests: [],
+    });
+  };
 
-  const skipProfile = async () => {
-    if (!currentProfile || processing) {
+  const visibleInterests = showMoreInterests
+    ? INTERESTS
+    : INTERESTS.slice(0, 16);
+
+  /* =======================================================
+     PROMPTS
+  ======================================================= */
+
+  const addPrompt = () => {
+    if (profileData.prompts.length >= 6) {
       return;
     }
 
-    try {
-      setProcessing(true);
+    updateProfileState({
+      prompts: [
+        ...profileData.prompts,
+        createEmptyPrompt(),
+      ],
+    });
+  };
 
-      const profileId =
-        currentProfile._id;
+  const updatePrompt = (
+    index,
+    field,
+    value
+  ) => {
+    setProfileData((prev) => {
+      const prompts = [...prev.prompts];
 
-      const response = await fetch(
-        "/api/",
-        {
-          method: "POST",
+      prompts[index] = {
+        ...prompts[index],
+        [field]: value,
+      };
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+      return {
+        ...prev,
+        prompts,
+      };
+    });
 
-          body: JSON.stringify({
-            action: "skip",
-            profileId,
-          }),
-        }
-      );
+    setSuccess("");
+    setError("");
+  };
 
-      // const data =
-      //   await response.json();
+  const removePrompt = (index) => {
+    setProfileData((prev) => ({
+      ...prev,
+      prompts: prev.prompts.filter(
+        (_, i) => i !== index
+      ),
+    }));
 
-      // if (!response.ok || !data.success) {
-      //   throw new Error(
-      //     data.message ||
-      //       "Could not skip profile."
-      //   );
-      // }
+    setSuccess("");
+    setError("");
+  };
 
-      // Save for undo
-      setLastSkipped({
-        profile: currentProfile,
-        index: currentIndex,
+  /* =======================================================
+     IMAGE HANDLING
+     
+     NOTE:
+     This stores image as base64 in React state.
+     Your backend can later receive it with Update Profile.
+  ======================================================= */
+
+  const openImagePicker = (index) => {
+    setActivePhotoIndex(index);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be smaller than 5MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const imageData = reader.result;
+
+      setProfileData((prev) => {
+        const images = [...prev.images];
+
+        images[activePhotoIndex] = imageData;
+
+        return {
+          ...prev,
+          images,
+        };
       });
 
-      removeCurrentProfile();
+      setSuccess("");
+      setError("");
+    };
 
-    } catch (error) {
-      console.error(error);
+    reader.onerror = () => {
+      setError("Failed to read image.");
+    };
 
-      alert(
-        error.message ||
-          "Could not skip this profile."
-      );
-
-    } finally {
-      setProcessing(false);
-    }
+    reader.readAsDataURL(file);
   };
 
-  // -------------------------------------------------------
-  // Undo skip
-  // -------------------------------------------------------
+  const removeImage = (index) => {
+    setProfileData((prev) => {
+      const images = [...prev.images];
 
-  const undoSkip = async () => {
-    if (!lastSkipped || processing) {
-      return;
-    }
+      images.splice(index, 1);
 
+      return {
+        ...prev,
+        images,
+      };
+    });
+
+    setSuccess("");
+    setError("");
+  };
+
+  /* =======================================================
+     UPDATE PROFILE
+     
+     THIS IS THE ONLY PLACE WHERE PROFILE DATA IS SENT
+     TO THE BACKEND.
+  ======================================================= */
+
+  const handleUpdateProfile = async () => {
     try {
-      setProcessing(true);
+      setSaving(true);
+      setError("");
+      setSuccess("");
 
-      const response = await fetch(
-        "/api/",
+      /* -----------------------------------------------
+         CLEAN PROMPTS BEFORE SENDING
+      ------------------------------------------------ */
+
+      const cleanedPrompts =
+        profileData.prompts
+          .slice(0, 6)
+          .map((prompt) => ({
+            ...(prompt._id
+              ? { _id: prompt._id }
+              : {}),
+            question:
+              String(
+                prompt.question || ""
+              ).trim(),
+
+            answer:
+              String(
+                prompt.answer || ""
+              ).trim(),
+
+            type: [
+              "text",
+              "voice",
+              "video",
+              "poll",
+            ].includes(prompt.type)
+              ? prompt.type
+              : "text",
+          }))
+          .filter(
+            (prompt) =>
+              prompt.question ||
+              prompt.answer
+          );
+
+      /* -----------------------------------------------
+         PAYLOAD
+         
+         Username / branch / semester / college are
+         intentionally NOT included.
+      ------------------------------------------------ */
+
+      const payload = {
+        dateOfBirth:
+          profileData.dateOfBirth || null,
+
+        intro:
+          profileData.intro.trim(),
+
+        interests:
+          profileData.interests,
+
+        prompts:
+          cleanedPrompts,
+
+        images:
+          profileData.images,
+      };
+
+      console.log(
+        "Updating profile:",
+        payload
+      );
+
+      const res = await fetch(
+        "/api/updateprofile",
         {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify({
-            action: "undo",
-            profileId:
-              lastSkipped.profile._id,
-          }),
-        }
-      );
-
-      const data =
-        await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data.message ||
-            "Could not undo skip."
-        );
-      }
-
-      setProfiles((currentProfiles) => {
-        const updated = [
-          ...currentProfiles,
-        ];
-
-        updated.splice(
-          Math.min(
-            lastSkipped.index,
-            updated.length
-          ),
-          0,
-          lastSkipped.profile
-        );
-
-        return updated;
-      });
-
-      setCurrentIndex(
-        Math.min(
-          lastSkipped.index,
-          profiles.length
-        )
-      );
-
-      setLastSkipped(null);
-
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        error.message ||
-          "Could not undo."
-      );
-
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  // -------------------------------------------------------
-  // Like profile
-  // -------------------------------------------------------
-
-  const likeProfile = async (current) => {
-    if (!currentProfile || processing) {
-      return;
-    }
-    console.log(current)
-    setLikeTarget({
-      type: "profile",
-      id: current._id,
-    });
-
-    setShowComment(true);
-  };
-
-  // -------------------------------------------------------
-  // Like photo
-  // -------------------------------------------------------
-
-  const likePhoto = () => {
-    if (!currentProfile || processing) {
-      return;
-    }
-
-    const photos =
-      currentProfile.images || [];
-
-    if (!photos[photoIndex]) {
-      return;
-    }
-
-    setLikeTarget({
-      type: "photo",
-      id: String(currentProfile._id),
-    });
-
-    setShowComment(true);
-  };
-
-  // -------------------------------------------------------
-  // Like prompt
-  // -------------------------------------------------------
-
-  const likePrompt = () => {
-    if (!currentProfile || processing) {
-      return;
-    }
-
-    setLikeTarget({
-      type: "prompt",
-      id: "promt1",
-    });
-
-    setShowComment(true);
-  };
-
-  // -------------------------------------------------------
-  // Submit like
-  // -------------------------------------------------------
-
-  const submitLike = async (current) => {
-    if (!current || processing) {
-      return;
-    }
-    console.log(current);
-    try {
-      setProcessing(true);
-
-      const response = await fetch(
-        "/api/discoverFunctions/likes",
-        {
-          method: "POST",
-
+          method: "PATCH",
           headers: {
             "Content-Type":
               "application/json",
           },
-
-          body: JSON.stringify({
-            action: "like",
-
-            targetType:
-              likeTarget.type,
-
-            targetId:
-              current._id,
-
-            targetIdphoto:current.images[0],
-            targetIdName: current.username,
-            comment:
-              comment.trim(),
-          }),
+          credentials: "include",
+          body: JSON.stringify(payload),
         }
       );
 
-      // const data = await response.json();
-        const data = await response.json();
-        console.log(data);
-       if( data.message === "You already Liked this profile"){
-        setError("You already Liked this profile");
-         setTimeout(() => {
-          nextProfile()
-          setError("");
-           return;
-          }, 3000);
-          
-         
-       }
+      const data = await res.json();
 
-      if (!response.ok || !data.success) {
+      if (!res.ok) {
         throw new Error(
-          data.message ||
-            "Could not send like."
+          data.error ||
+            "Failed to update profile."
         );
       }
 
-      setShowComment(false);
-      setComment("");
+      /* -----------------------------------------------
+         UPDATE STATE WITH BACKEND RESPONSE
+      ------------------------------------------------ */
 
-      nextProfile();
+      const updatedProfile =
+        data.user ||
+        data.profile ||
+        data.users;
 
-    } catch (error) {
-      
-      
-      console.error(error);
-  
-  // 1. Set the error message to display the div
-  setError(error.message || "Could not send like.");
+      if (updatedProfile) {
+        const normalized =
+          normalizeProfile(
+            updatedProfile
+          );
 
-  // 2. Hide the div automatically after 3 seconds
-  setTimeout(() => {
-    setError("");
-  }, 3000);
+        setUser({
+          username:
+            normalized.username,
 
+          branch:
+            normalized.branch,
+
+          semester:
+            normalized.semester,
+
+          college:
+            normalized.college,
+
+          gender:
+            normalized.gender,
+        });
+
+        setProfileData({
+          dateOfBirth:
+            normalized.dateOfBirth,
+
+          intro:
+            normalized.intro,
+
+          interests:
+            normalized.interests,
+
+          prompts:
+            normalized.prompts,
+
+          images:
+            normalized.images,
+        });
+      } else {
+        /* ---------------------------------------------
+           If backend doesn't return profile,
+           keep our current state but normalize prompts.
+        --------------------------------------------- */
+
+        setProfileData((prev) => ({
+          ...prev,
+          prompts: cleanedPrompts,
+        }));
+      }
+
+      setSuccess(
+        "Profile updated successfully."
+      );
+    } catch (err) {
+      console.error(
+        "Update profile error:",
+        err
+      );
+
+      setError(
+        err.message ||
+          "Something went wrong while updating your profile."
+      );
     } finally {
-      setProcessing(false);
+      setSaving(false);
     }
   };
 
-  // -------------------------------------------------------
-  // Block
-  // -------------------------------------------------------
+  /* =======================================================
+     LOGOUT
+  ======================================================= */
 
- const blockProfile = async () => {
-  if (!currentProfile || processing) {
-    return;
-  }
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      setError("");
 
-  const confirmed = window.confirm(
-    "Block this profile? You won't see them again."
+      const res = await fetch(
+        "/api/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data.error ||
+            "Logout failed."
+        );
+      }
+
+      window.location.href = "/login";
+    } catch (err) {
+      console.error(
+        "Logout error:",
+        err
+      );
+
+      setError(
+        err.message ||
+          "Unable to logout."
+      );
+
+      setLoggingOut(false);
+    }
+  };
+
+  /* =======================================================
+     AGE CALCULATOR
+  ======================================================= */
+
+  const calculateAge = (dob) => {
+    if (!dob) return null;
+
+    const birthDate =
+      new Date(dob);
+
+    if (Number.isNaN(
+      birthDate.getTime()
+    )) {
+      return null;
+    }
+
+    const today =
+      new Date();
+
+    let age =
+      today.getFullYear() -
+      birthDate.getFullYear();
+
+    const monthDifference =
+      today.getMonth() -
+      birthDate.getMonth();
+
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 &&
+        today.getDate() <
+          birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+
+  const age = calculateAge(
+    profileData.dateOfBirth
   );
 
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-    setProcessing(true);
-
-    const response = await fetch("/api/discoverFunctions/blocked", {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        profileId: currentProfile._id,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(
-        data.message || "Could not block profile."
-      );
-    }
-
-    console.log(data);
-
-    setShowMenu(false);
-
-    removeCurrentProfile();
-
-  } catch (error) {
-    console.error("BLOCK ERROR:", error);
-
-    alert(
-      error.message || "Could not block profile."
-    );
-
-  } finally {
-    setProcessing(false);
-  }
-};
-
-  // -------------------------------------------------------
-  // Report
-  // -------------------------------------------------------
-
-  const reportProfile = async (reason) => {
-    if (!currentProfile || processing) {
-      return;
-    }
-
-    try {
-      setProcessing(true);
-
-      const response = await fetch(
-        "/api/",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            action: "report",
-
-            profileId:
-              currentProfile._id,
-
-            reason,
-          }),
-        }
-      );
-
-      const data =
-        await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data.message ||
-            "Could not report profile."
-        );
-      }
-
-      setShowReport(false);
-      setShowMenu(false);
-
-      removeCurrentProfile();
-
-      alert(
-        "Thank you. This profile has been reported."
-      );
-
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        error.message ||
-          "Could not report profile."
-      );
-
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  // -------------------------------------------------------
-  // Photo navigation
-  // -------------------------------------------------------
-
-  const nextPhoto = () => {
-    if (!currentProfile) {
-      return;
-    }
-
-    const photos =
-      currentProfile.images || [];
-
-    if (photos.length === 0) {
-      return;
-    }
-
-    setPhotoIndex(
-      (current) =>
-        (current + 1) %
-        photos.length
-    );
-  };
-
-  const previousPhoto = () => {
-    if (!currentProfile) {
-      return;
-    }
-
-    const photos =
-      currentProfile.images || [];
-
-    if (photos.length === 0) {
-      return;
-    }
-
-    setPhotoIndex(
-      (current) =>
-        (current - 1 + photos.length) %
-        photos.length
-    );
-  };
-
-  // -------------------------------------------------------
-  // Loading
-  // -------------------------------------------------------
+  /* =======================================================
+     LOADING
+  ======================================================= */
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center">
+      <main className="min-h-screen inset-0 z-60 fixed bg-[#fffaf2] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-[#4a1525]/20 border-t-[#4a1525] rounded-full animate-spin mx-auto" />
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#741337]/20 border-t-[#741337]" />
 
-          <p className="mt-4 text-gray-600">
-            Finding people for you...
+          <p className="text-sm text-[#741337]/60">
+            Loading your profile...
           </p>
         </div>
-      </div>
+      </main>
     );
   }
 
-  // -------------------------------------------------------
-  // Error
-  // -------------------------------------------------------
+  /* =======================================================
+     PAGE
+  ======================================================= */
+// text-[#741337]
+  return (
+    <main className="min-h-screen inset-0 z-50 fixed overflow-y-auto  [&::-webkit-scrollbar]:hidden px-4 py-8 text-white sm:px-6 lg:px-8">
+      
+      <div className="mx-auto max-w-2xl">
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center px-6">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-[#4a1525]">
+        {/* =================================================
+            HEADER
+        ================================================= */}
+        
+        <div className="mb-8">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-red-400">
+            Your profile
+          </p>
+
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Edit Profile
+          </h1>
+
+          <p className="mt-2 max-w-xl text-sm leading-6 text-red-400">
+            {/* Make your profile feel more like you.
+            Changes will only be saved when you
+            press Update Profile. */}
+          </p>
+        </div>
+
+        {/* =================================================
+            ERROR
+        ================================================= */}
+
+        {error && (
+          <div className="mb-5 rounded-2xl  border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}
-          </h2>
+          </div>
+        )}
 
-          <p className="mt-2 text-gray-600">
-            
-          </p>
+        {/* =================================================
+            SUCCESS
+        ================================================= */}
 
-          <button
-            onClick={getProfiles}
-            className="mt-5 px-6 py-3 rounded-full bg-[#4a1525] text-white font-semibold"
+        {success && (
+          <div className="mb-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            {success}
+          </div>
+        )}
+
+        {/* =================================================
+            PROFILE CARD
+        ================================================= */}
+
+        <section className="rounded-[28px] border border-[#741337]/8 bg-white text-[#741337] p-5 shadow-[0_10px_40px_rgba(116,19,55,0.06)] sm:p-7">
+          <div className="flex "><div><button onClick={()=>router.push("/testroute")}><ArrowLeft/></button></div><div className="mx-2"><h1><a href="/testroute">Get Back to explore Page</a></h1></div></div>
+          {/* ===============================================
+              PHOTOS
+          =============================================== */}
+
+          <ProfileSection 
+          
+            number="01"
+            title="Photos"
+            description="Choose the photos people will see on your profile."
           >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
 
-  // -------------------------------------------------------
-  // No more profiles
-  // -------------------------------------------------------
+            <div className="grid grid-cols-3  gap-3 sm:grid-cols-6">
 
-  if (!currentProfile) {
-    return (
-      <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
+              {Array.from({
+                length: 6,
+              }).map((_, index) => {
+                const image =
+                  profileData.images[
+                    index
+                  ];
 
-        <div className="flex-1 flex items-center justify-center px-6">
+                return (
+                  <div
+                    key={index}
+                    className="relative aspect-[3/4]"
+                  >
+                    {image ? (
+                      <div className="group relative h-full w-full overflow-hidden rounded-2xl bg-[#f7efe8]">
 
-          <div className="text-center max-w-sm">
+                        <img
+                          src={image}
+                          alt={`Profile photo ${
+                            index + 1
+                          }`}
+                          className="h-full w-full object-cover"
+                        />
 
-            <div className="text-6xl mb-5">
-              💜
+                        <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition group-hover:opacity-100">
+                          <div className="mb-2 flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openImagePicker(
+                                  index
+                                )
+                              }
+                              className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#741337] "
+                            >
+                              Change
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeImage(
+                                  index
+                                )
+                              }
+                              className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-red-600"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openImagePicker(
+                            index
+                          )
+                        }
+                        className="flex h-full w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#741337]/15 bg-[#fffaf2] text-[#741337]/50 transition hover:border-[#741337]/35 hover:bg-[#fdf3e9]"
+                      >
+                        <span className="text-2xl">
+                          +
+                        </span>
+
+                        <span className="mt-1 text-[11px]">
+                          Add
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+
             </div>
 
-            <h2 className="text-2xl font-extrabold text-[#4a1525]">
-              You've reached the end
-            </h2>
-
-            <p className="mt-3 text-gray-600">
-              You've seen everyone available
-              right now. Check back later for
-              new people.
+            <p className="mt-3 text-xs text-[#741337]/40">
+              Maximum 5MB per image.
             </p>
 
-            <button
-              onClick={getProfiles}
-              className="mt-6 px-7 py-3 rounded-full bg-[#4a1525] text-white font-semibold"
-            >
-              Refresh
-            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+          </ProfileSection>
 
-          </div>
+          {/* ===============================================
+              BASIC INFORMATION
+          =============================================== */}
 
-        </div>
-
-        <Navbar />
-
-      </div>
-    );
-  }
-
-  const photos =
-    currentProfile.images || [];
-
-  const currentImage =
-    photos[photoIndex] ||
-    "/default-profile.jpg";
-
-  // -------------------------------------------------------
-  // MAIN UI
-  // -------------------------------------------------------
-
-  return (
-    <div className="flex justify-center">
-    <div className="min-h-screen w-md bg-[#fdfbf7]">
-
-      <div className="max-w-md mx-auto min-h-screen">
-
-        {/* --------------------------------------------- */}
-        {/* HEADER */}
-        {/* --------------------------------------------- */}
-
-        <div className="flex items-center justify-between px-5 pt-7 pb-4">
-
-          <div>
-            <h1 className="text-2xl font-black text-[#4a1525]">
-              Raas Mitra
-            </h1>
-
-            <p className="text-xs text-gray-500 mt-1">
-              Discover people
-            </p>
-          </div>
-
-          <div className="relative">
-
-            <button
-              onClick={() =>
-                setShowMenu(
-                  (current) =>
-                    !current
-                )
-              }
-              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5"
-            >
-              <FiMoreHorizontal
-                size={25}
-              />
-            </button>
-
-          </div>
-
-        </div>
-
-
-        {/* --------------------------------------------- */}
-        {/* PROFILE CARD */}
-        {/* --------------------------------------------- */}
-
-        <div className="px-4 pb-32">
-
-          <div
-            key={currentProfile._id}
-            className="bg-white rounded-[28px] overflow-hidden shadow-lg border border-gray-100"
+          <ProfileSection
+            number="02"
+            title="Basic Information"
+            description="Some account information is fixed and cannot be edited here."
           >
 
-            {/* --------------------------------------- */}
-            {/* NAME */}
-            {/* --------------------------------------- */}
+            <div className="grid gap-4 sm:grid-cols-2">
 
-            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+              {/* Username */}
+
+              <LockedField
+                label="Username"
+                value={
+                  user.username
+                }
+              />
+
+              {/* Branch */}
+
+              <LockedField
+                label="Branch"
+                value={
+                  user.branch
+                }
+              />
+
+              {/* Semester */}
+
+              <LockedField
+                label="Year / Semester"
+                value={
+                  user.semester
+                }
+              />
+
+              {/* College */}
+
+              <LockedField
+                label="College"
+                value={
+                  user.college
+                }
+              />
+
+            </div>
+          </ProfileSection>
+
+          {/* ===============================================
+              AGE / DOB
+          =============================================== */}
+
+          <ProfileSection
+            number="03"
+            title="Age"
+            description="Your date of birth is used to calculate your age."
+          >
+
+            <div className="grid gap-4 sm:grid-cols-2">
 
               <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Date of Birth
+                </label>
 
-                <h2 className="text-3xl font-black text-gray-900">
-                  {currentProfile.username}
-                </h2>
-
-                {currentProfile.age && (
-                  <p className="text-gray-500 mt-1">
-                    {currentProfile.age}
-                  </p>
-                )}
-
-              </div>
-
-              <button
-                onClick={() =>
-                  setShowMenu(
-                    (current) =>
-                      !current
-                  )
-                }
-                className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
-              >
-                <FiMoreHorizontal />
-              </button>
-
-            </div>
-
-
-            {/* --------------------------------------- */}
-            {/* PHOTO */}
-            {/* --------------------------------------- */}
-
-            <div className="relative">
-
-              <img
-                src={currentImage}
-                alt={
-                  currentProfile.username ||
-                  "Profile"
-                }
-                className="w-full h-[58vh] object-cover"
-              />
-
-             
-
-
-              {/* Photo counter */}
-
-              {photos.length > 1 && (
-                <div className="absolute top-4 left-4 right-4 flex gap-1">
-
-                  {photos.map(
-                    (_, index) => (
-                      <div
-                        key={index}
-                        className={`h-1 flex-1 rounded-full ${
-                          index ===
-                          photoIndex
-                            ? "bg-white"
-                            : "bg-white/40"
-                        }`}
-                      />
-                    )
-                  )}
-
-                </div>
-              )}
-
-
-              {/* Previous */}
-
-              {photos.length > 1 && (
-                <button
-                  onClick={
-                    previousPhoto
+                <input
+                  type="date"
+                  value={
+                    profileData.dateOfBirth
                   }
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 text-white flex items-center justify-center"
-                >
-                  <FiChevronLeft
-                    size={24}
-                  />
-                </button>
-              )}
-
-
-              {/* Next */}
-
-              {photos.length > 1 && (
-                <button
-                  onClick={
-                    nextPhoto
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 text-white flex items-center justify-center"
-                >
-                  <FiChevronRight
-                    size={24}
-                  />
-                </button>
-              )}
-
-
-              {/* Like photo */}
-
-              <button
-                onClick={
-                  likePhoto
-                }
-                disabled={processing}
-                className="absolute bottom-5 right-5 w-14 h-14 rounded-full bg-white shadow-xl flex items-center justify-center hover:scale-105 transition-transform"
-              >
-                <FiHeart
-                  size={28}
-                  className="text-red-500"
-                />
-              </button>
-
-            </div>
-
-
-            {/* --------------------------------------- */}
-            {/* PHOTO LIKE HINT */}
-            {/* --------------------------------------- */}
-
-            <div className="px-5 pt-3">
-
-              <p className="text-xs text-gray-400">
-                Tap ❤️ on a photo to like
-                something specific
-              </p>
-
-            </div>
-
-
-            {/* --------------------------------------- */}
-            {/* ABOUT */}
-            {/* --------------------------------------- */}
-
-            {currentProfile.promt1 && (
-              <div className="px-5 pt-6">
-
-                <button
-                  onClick={
-                    likePrompt
-                  }
-                  className="w-full text-left border border-gray-200 rounded-2xl p-5 hover:border-[#4a1525]/40 transition"
-                >
-
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
-                    About
-                  </p>
-
-                  <p className="text-lg font-semibold text-gray-900">
-                    {currentProfile.promt1}
-                  </p>
-
-                  <div className="mt-4 flex justify-end">
-
-                    <div className="w-9 h-9 rounded-full border flex items-center justify-center">
-                      <FiHeart
-                        size={17}
-                        className="text-red-400"
-                      />
-                    </div>
-
-                  </div>
-
-                </button>
-
-              </div>
-            )}
-
-
-            {/* --------------------------------------- */}
-            {/* Second PHOTO */}
-            {/* --------------------------------------- */}
-
-            {photos.length > 1 && (
-              <div className="px-5 pt-6">
-
-                <div className="relative">
-
-                  <img
-                    src={photos[1]}
-                    alt={
-                      currentProfile.username
-                    }
-                    className="w-full h-[55vh] object-cover rounded-2xl"
-                  />
-
-                  <button
-                    onClick={() => {
-                      setPhotoIndex(1);
-                      likePhoto();
-                      setLikeTarget.id(currentProfile._id)
-                    }}
-                    className="absolute bottom-4 right-4 w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center"
-                  >
-                    <FiHeart
-                      size={27}
-                      className="text-red-500"
-                    />
-                  </button>
-
-                </div>
-
-              </div>
-            )}
-
-            
-             {/* --------------------------------------- */}
-            {/* Second PHOTO */}
-            {/* --------------------------------------- */}
-
-                   {photos.length > 1 && (
-              <div className="px-5 pt-6">
-
-                <div className="relative">
-
-                  <img
-                    src={photos[2]}
-                    alt={
-                      currentProfile.username
-                    }
-                    className="w-full h-[55vh] object-cover rounded-2xl"
-                  />
-
-                  <button
-                    onClick={() => {
-                      setPhotoIndex(1);
-                      likePhoto();
-                       setLikeTarget.id(currentProfile._id)
-                    }}
-                    className="absolute bottom-4 right-4 w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center"
-                  >
-                    <FiHeart
-                      size={27}
-                      className="text-red-500"
-                    />
-                  </button>
-
-                </div>
-
-              </div>
-            )}
-
-
-
-              {/* --------------------------------------- */}
-            {/* third PHOTO */}
-            {/* --------------------------------------- */}
-
-                   {photos.length > 4 && (
-              <div className="px-5 pt-6">
-
-                <div className="relative">
-
-                  <img
-                    src={photos[3]}
-                    alt={
-                      currentProfile.username
-                    }
-                    className="w-full h-[55vh] object-cover rounded-2xl"
-                  />
-
-                  <button
-                    onClick={() => {
-                      setPhotoIndex(3);
-                      likePhoto();
-                       setLikeTarget.id(currentProfile._id)
-                    }}
-                    className="absolute bottom-4 right-4 w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center"
-                  >
-                    <FiHeart
-                      size={27}
-                      className="text-red-500"
-                    />
-                  </button>
-
-                </div>
-
-              </div>
-            )}
-
-              {/* --------------------------------------- */}
-            {/* Second PHOTO */}
-            {/* --------------------------------------- */}
-
-                   {photos.length > 5 && (
-              <div className="px-5 pt-6">
-
-                <div className="relative">
-
-                  <img
-                    src={photos[4]}
-                    alt={
-                      currentProfile.username
-                    }
-                    className="w-full h-[55vh] object-cover rounded-2xl"
-                  />
-
-                  <button
-                    onClick={() => {
-                      setPhotoIndex(4);
-                      likePhoto();
-                       setLikeTarget.id(currentProfile._id)
-                    }}
-                    className="absolute bottom-4 right-4 w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center"
-                  >
-                    <FiHeart
-                      size={27}
-                      className="text-red-500"
-                    />
-                  </button>
-
-                </div>
-
-              </div>
-            )}
-
-
-              {/* --------------------------------------- */}
-            {/* Second PHOTO */}
-            {/* --------------------------------------- */}
-
-                   {photos.length > 6 && (
-              <div className="px-5 pt-6">
-
-                <div className="relative">
-
-                  <img
-                    src={photos[5]}
-                    alt={
-                      currentProfile.username
-                    }
-                    className="w-full h-[55vh] object-cover rounded-2xl"
-                  />
-
-                  <button
-                    onClick={() => {
-                      setPhotoIndex(5);
-                      likePhoto();
-                       setLikeTarget.id(currentProfile._id)
-                    }}
-                    className="absolute bottom-4 right-4 w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center"
-                  >
-                    <FiHeart
-                      size={27}
-                      className="text-red-500"
-                    />
-                  </button>
-
-                </div>
-
-              </div>
-            )}
-
-              {/* --------------------------------------- */}
-            {/* Second PHOTO */}
-            {/* --------------------------------------- */}
-
-                   {photos.length > 7 && (
-              <div className="px-5 pt-6">
-
-                <div className="relative">
-
-                  <img
-                    src={photos[6]}
-                    alt={
-                      currentProfile.username
-                    }
-                    className="w-full h-[55vh] object-cover rounded-2xl"
-                  />
-
-                  <button
-                    onClick={() => {
-                      setPhotoIndex(6);
-                      likePhoto();
-                       setLikeTarget.id(currentProfile._id)
-                    }}
-                    className="absolute bottom-4 right-4 w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center"
-                  >
-                    <FiHeart
-                      size={27}
-                      className="text-red-500"
-                    />
-                  </button>
-
-                </div>
-
-              </div>
-            )}
-
-
-            {/* --------------------------------------- */}
-            {/* ACTION BUTTONS */}
-            {/* --------------------------------------- */}
-
-            <div className="flex justify-center gap-5 px-5 py-7">
-
-              {/* Undo */}
-
-              <button
-                onClick={
-                  undoSkip
-                }
-                disabled={
-                  !lastSkipped ||
-                  processing
-                }
-                className="w-14 h-14 rounded-full border border-yellow-200 bg-yellow-50 flex items-center justify-center disabled:opacity-30"
-              >
-                <FiCornerUpLeft
-                  size={24}
-                  className="text-yellow-600"
-                />
-              </button>
-
-
-              {/* Skip */}
-
-              <button
-                onClick={
-                  skipProfile
-                }
-                disabled={processing}
-                className="w-16 h-16 rounded-full bg-white border border-red-100 shadow-md flex items-center justify-center disabled:opacity-50"
-              >
-                <FiX
-                  size={30}
-                  className="text-red-500"
-                />
-              </button>
-
-
-              {/* Like */}
-
-              <button
-                onClick={()=>{
-                   likeProfile(currentProfile)
-                }
-                 
-                }
-                disabled={processing}
-                className="w-16 h-16 rounded-full bg-[#4a1525] shadow-lg flex items-center justify-center disabled:opacity-50"
-              >
-                <FiHeart
-                  size={30}
-                  className="text-white"
-                />
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        {/* --------------------------------------------- */}
-        {/* MORE MENU */}
-        {/* --------------------------------------------- */}
-
-        {showMenu && (
-          <div className="fixed inset-0 z-50">
-
-            <button
-              className="absolute inset-0 bg-black/20"
-              onClick={() =>
-                setShowMenu(false)
-              }
-            />
-
-            <div className="absolute bottom-0 left-0 right-0 max-w-md mx-auto bg-white rounded-t-3xl p-5 shadow-2xl">
-
-              <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5" />
-
-              <button
-                onClick={
-                  blockProfile
-                }
-                className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-left"
-              >
-                <FiSlash
-                  size={22}
-                  className="text-gray-700"
-                />
-
-                <div>
-                  <p className="font-semibold">
-                    Block
-                  </p>
-
-                  <p className="text-sm text-gray-500">
-                    You won't see this profile again.
-                  </p>
-                </div>
-              </button>
-
-
-              <button
-                onClick={() => {
-                  setShowMenu(false);
-                  setShowReport(true);
-                }}
-                className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 text-left"
-              >
-                <FiFlag
-                  size={22}
-                  className="text-red-500"
-                />
-
-                <div>
-                  <p className="font-semibold text-red-600">
-                    Report
-                  </p>
-
-                  <p className="text-sm text-gray-500">
-                    Report something inappropriate.
-                  </p>
-                </div>
-              </button>
-
-            </div>
-
-          </div>
-        )}
-
-
-        {/* --------------------------------------------- */}
-        {/* REPORT MODAL */}
-        {/* --------------------------------------------- */}
-
-        {showReport && (
-          <div className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center">
-
-            <div className="bg-white w-full max-w-md rounded-t-3xl p-6">
-
-              <h2 className="text-xl font-bold">
-                Report profile
-              </h2>
-
-              <p className="text-gray-500 text-sm mt-2 mb-5">
-                Why are you reporting this profile?
-              </p>
-
-
-              {[
-                "Fake profile",
-                "Inappropriate content",
-                "Harassment",
-                "Spam",
-                "Something else",
-              ].map((reason) => (
-
-                <button
-                  key={reason}
-                  onClick={() =>
-                    reportProfile(
-                      reason
+                  onChange={(e) =>
+                    handleDateChange(
+                      e.target.value
                     )
                   }
-                  disabled={
-                    processing
-                  }
-                  className="w-full text-left px-4 py-4 border-b hover:bg-gray-50"
-                >
-                  {reason}
-                </button>
+                  className="w-full rounded-2xl border border-[#741337]/10 bg-[#fffaf2] px-4 py-3 text-sm outline-none transition focus:border-[#741337]/30"
+                />
+              </div>
 
-              ))}
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Age
+                </label>
 
-
-              <button
-                onClick={() =>
-                  setShowReport(false)
-                }
-                className="w-full mt-4 py-3 rounded-full bg-gray-100 font-semibold"
-              >
-                Cancel
-              </button>
+                <div className="flex h-[46px] items-center rounded-2xl border border-[#741337]/10 bg-[#f7efe8] px-4 text-sm">
+                  {age !== null
+                    ? `${age} years`
+                    : "Select your date of birth"}
+                </div>
+              </div>
 
             </div>
+          </ProfileSection>
 
-          </div>
-        )}
+          {/* ===============================================
+              INTRO
+          =============================================== */}
 
+          <ProfileSection
+            number="04"
+            title="About You"
+            description="Give people a small idea of who you are."
+          >
 
-        {/* --------------------------------------------- */}
-        {/* COMMENT MODAL */}
-        {/* --------------------------------------------- */}
-
-        {showComment && (
-          <div className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center">
-
-            <div className="bg-white w-full max-w-md rounded-t-3xl p-6">
-
-              <h2 className="text-xl font-bold text-gray-900">
-                Send a Like
-              </h2>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Add a comment if you want to start the conversation.
-              </p>
-
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Intro
+              </label>
 
               <textarea
-                value={comment}
-                onChange={(event) =>
-                  setComment(
-                    event.target.value
+                value={
+                  profileData.intro
+                }
+                onChange={(e) =>
+                  handleIntroChange(
+                    e.target.value
                   )
                 }
                 maxLength={500}
-                placeholder="Say something nice..."
-                className="w-full mt-5 h-28 border border-gray-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-[#4a1525]/20 resize-none"
+                rows={5}
+                placeholder="Tell people something about yourself..."
+                className="w-full resize-none rounded-2xl border border-[#741337]/10 bg-[#fffaf2] px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[#741337]/30 focus:border-[#741337]/30"
               />
 
-
-              <div className="flex gap-3 mt-4">
-
-                <button
-                  onClick={() => {
-                    setShowComment(
-                      false
-                    );
-                    setComment("");
-                  }}
-                  className="flex-1 py-3 rounded-full bg-gray-100 font-semibold"
-                >
-                  Cancel
-                </button>
-
-
-                <button
-                  onClick={()=>{
-                    submitLike(currentProfile);
-                  }
-                    
-                  }
-                  disabled={processing}
-                  className="flex-1 py-3 rounded-full bg-[#4a1525] text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  <FiSend />
-
-                  {processing
-                    ? "Sending..."
-                    : "Send Like"}
-                </button>
-
+              <div className="mt-2 text-right text-xs text-[#741337]/35">
+                {
+                  profileData.intro
+                    .length
+                }
+                /500
               </div>
+            </div>
+          </ProfileSection>
+
+          {/* ===============================================
+              INTERESTS
+          =============================================== */}
+
+          <ProfileSection
+            number="05"
+            title="Interests & Personality"
+            description="Tap interests to select or remove them."
+          >
+
+            <div className="flex items-center justify-between gap-3">
+
+              <p className="text-xs text-[#741337]/45">
+                {
+                  profileData.interests
+                    .length
+                }{" "}
+                selected
+              </p>
+
+              {profileData.interests
+                .length > 0 && (
+                <button
+                  type="button"
+                  onClick={
+                    clearAllInterests
+                  }
+                  className="text-xs font-medium text-[#741337]/55 underline underline-offset-4"
+                >
+                  Clear all
+                </button>
+              )}
 
             </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+
+              {visibleInterests.map(
+                (interest) => {
+                  const selected =
+                    profileData.interests.includes(
+                      interest
+                    );
+
+                  return (
+                    <button
+                      key={interest}
+                      type="button"
+                      onClick={() =>
+                        toggleInterest(
+                          interest
+                        )
+                      }
+                      className={`rounded-full border px-4 py-2 text-sm transition ${
+                        selected
+                          ? "border-[#741337] bg-[#741337] text-white shadow-sm"
+                          : "border-[#741337]/8 bg-[#fffaf2] text-[#741337]/55 hover:border-[#741337]/20 hover:text-[#741337]"
+                      }`}
+                    >
+                      {interest}
+                    </button>
+                  );
+                }
+              )}
+
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowMoreInterests(
+                  (prev) => !prev
+                )
+              }
+              className="mt-5 text-sm font-semibold underline underline-offset-4"
+            >
+              {showMoreInterests
+                ? "Show less"
+                : "More interests"}
+            </button>
+
+          </ProfileSection>
+
+          {/* ===============================================
+              PROMPTS
+          =============================================== */}
+
+          <ProfileSection
+            number="06"
+            title="Prompts"
+            description="Add up to 6 prompts to show more personality."
+          >
+
+            <div className="space-y-5">
+
+              {profileData.prompts.map(
+                (prompt, index) => (
+                  <PromptCard
+                    key={
+                      prompt._id ||
+                      index
+                    }
+                    prompt={prompt}
+                    index={index}
+                    onChange={
+                      updatePrompt
+                    }
+                    onRemove={
+                      removePrompt
+                    }
+                  />
+                )
+              )}
+
+            </div>
+
+            {profileData.prompts
+              .length < 6 && (
+              <button
+                type="button"
+                onClick={addPrompt}
+                className="mt-5 w-full rounded-2xl border border-dashed border-[#741337]/15 bg-[#fffaf2] py-4 text-sm font-semibold transition hover:border-[#741337]/30 hover:bg-[#fdf3e9]"
+              >
+                + Add another prompt
+              </button>
+            )}
+
+            <p className="mt-3 text-xs text-[#741337]/40">
+              {
+                profileData.prompts
+                  .length
+              }{" "}
+              / 6 prompts
+            </p>
+
+          </ProfileSection>
+
+          {/* ===============================================
+              UPDATE + LOGOUT
+          =============================================== */}
+
+          <div className="mt-8 border-t border-[#741337]/8 pt-7">
+
+            <button
+              type="button"
+              onClick={
+                handleUpdateProfile
+              }
+              disabled={
+                saving ||
+                loggingOut
+              }
+              className="w-full rounded-full bg-[#741337] py-4 text-sm font-semibold text-white shadow-[0_8px_25px_rgba(116,19,55,0.18)] transition hover:bg-[#62102e] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving
+                ? "Updating Profile..."
+                : "Update Profile"}
+            </button>
+
+            <button
+              type="button"
+              onClick={
+                handleLogout
+              }
+              disabled={
+                saving ||
+                loggingOut
+              }
+              className="mt-4 w-full rounded-full border border-red-200 bg-white py-4 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loggingOut
+                ? "Logging out..."
+                : "Logout"}
+            </button>
+
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+  );
+}
+
+/* =========================================================
+   PROFILE SECTION
+========================================================= */
+
+function ProfileSection({
+  number,
+  title,
+  description,
+  children,
+}) {
+  return (
+    <section className="border-b border-[#741337]/8 py-7 first:pt-0 last:border-b-0">
+
+      <div className="mb-5 flex gap-4">
+
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#741337]/8 text-xs font-semibold">
+          {number}
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold">
+            {title}
+          </h2>
+
+          {description && (
+            <p className="mt-1 text-sm leading-5 text-[#741337]/45">
+              {description}
+            </p>
+          )}
+        </div>
+
+      </div>
+
+      {children}
+
+    </section>
+  );
+}
+
+/* =========================================================
+   LOCKED FIELD
+========================================================= */
+
+function LockedField({
+  label,
+  value,
+}) {
+  return (
+    <div>
+      <label className="mb-2 block text-sm font-medium">
+        {label}
+      </label>
+
+      <div className="flex min-h-[46px] items-center justify-between rounded-2xl border border-[#741337]/8 bg-[#f7efe8] px-4">
+
+        <span className="text-sm text-[#741337]/65">
+          {value || "—"}
+        </span>
+
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#741337]/30">
+          Locked
+        </span>
+
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   PROMPT CARD
+========================================================= */
+
+function PromptCard({
+  prompt,
+  index,
+  onChange,
+  onRemove,
+}) {
+  return (
+    <div className="rounded-3xl border border-[#741337]/8 bg-[#fffaf2] p-4 sm:p-5">
+
+      {/* HEADER */}
+
+      <div className="mb-4 flex items-center justify-between">
+
+        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#741337]/40">
+          Prompt {index + 1}
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            onRemove(index)
+          }
+          className="text-xs font-medium text-red-500"
+        >
+          Remove
+        </button>
+
+      </div>
+
+      {/* QUESTION */}
+
+      <div>
+        <label className="mb-2 block text-sm font-medium">
+          Question
+        </label>
+
+        <input
+          type="text"
+          value={
+            prompt.question
+          }
+          onChange={(e) =>
+            onChange(
+              index,
+              "question",
+              e.target.value
+            )
+          }
+          placeholder="e.g. My ideal Sunday is..."
+          className="w-full rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-[#741337]/25 focus:border-[#741337]/30"
+        />
+      </div>
+
+      {/* TYPE */}
+
+      <div className="mt-4">
+
+        <label className="mb-2 block text-sm font-medium">
+          Response type
+        </label>
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+
+          {PROMPT_TYPES.map(
+            (type) => {
+              const selected =
+                prompt.type ===
+                type.value;
+
+              return (
+                <button
+                  key={
+                    type.value
+                  }
+                  type="button"
+                  onClick={() =>
+                    onChange(
+                      index,
+                      "type",
+                      type.value
+                    )
+                  }
+                  className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
+                    selected
+                      ? "border-[#741337] bg-[#741337] text-white"
+                      : "border-[#741337]/8 bg-white text-[#741337]/50 hover:border-[#741337]/20"
+                  }`}
+                >
+                  {type.label}
+                </button>
+              );
+            }
+          )}
+
+        </div>
+
+      </div>
+
+      {/* ANSWER */}
+
+      <div className="mt-4">
+
+        <label className="mb-2 block text-sm font-medium">
+          Answer
+        </label>
+
+        {prompt.type ===
+        "text" ? (
+          <textarea
+            value={
+              prompt.answer
+            }
+            onChange={(e) =>
+              onChange(
+                index,
+                "answer",
+                e.target.value
+              )
+            }
+            rows={4}
+            placeholder="Write your answer..."
+            className="w-full resize-none rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[#741337]/25 focus:border-[#741337]/30"
+          />
+        ) : prompt.type ===
+          "voice" ? (
+          <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+            <div className="text-2xl">
+              🎙️
+            </div>
+
+            <p className="mt-2 text-sm font-medium">
+              Voice answer
+            </p>
+
+            <p className="mt-1 text-xs text-[#741337]/40">
+              Voice upload can be connected
+              to your media upload API.
+            </p>
+
+          </div>
+        ) : prompt.type ===
+          "video" ? (
+          <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+            <div className="text-2xl">
+              🎥
+            </div>
+
+            <p className="mt-2 text-sm font-medium">
+              Video answer
+            </p>
+
+            <p className="mt-1 text-xs text-[#741337]/40">
+              Video upload can be connected
+              to your media upload API.
+            </p>
+
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+            <div className="text-2xl">
+              📊
+            </div>
+
+            <p className="mt-2 text-sm font-medium">
+              Poll
+            </p>
+
+            <p className="mt-1 text-xs text-[#741337]/40">
+              Poll options can be added
+              when the poll system is connected.
+            </p>
 
           </div>
         )}
 
       </div>
 
-      {/* --------------------------------------------- */}
-      {/* NAVBAR */}
-      {/* --------------------------------------------- */}
-
-      <div className="fixed bottom-0 left-0 right-0 z-40">
-        <div className="max-w-md mx-auto">
-          <Navbar />
-        </div>
-      </div>
-
-    </div>
     </div>
   );
 }
+
+
+
+
+// "use client";
+
+// import {
+//   ArrowLeft,
+//   Camera,
+//   ChevronRight,
+//   Pencil,
+//   Plus,
+//   X,
+// } from "lucide-react";
+
+// import Background from "@/components/matchingpage/backgroundblur";
+// import { useEffect, useState } from "react";
+
+// export default function MyProfile() {
+//   const [user, setUser] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [saving, setSaving] = useState(false);
+//   const [error, setError] = useState("");
+
+//   const [editing, setEditing] = useState(null);
+
+//   const [username, setUsername] = useState("");
+//   const [branch, setBranch] = useState("");
+//   const [semester, setSemester] = useState("");
+//   const [intro, setIntro] = useState("");
+
+//   const [interests, setInterests] = useState([]);
+//   const [prompts, setPrompts] = useState([]);
+
+//   useEffect(() => {
+//     getProfile();
+//   }, []);
+
+//   const getProfile = async () => {
+//     try {
+//       setLoading(true);
+//       setError("");
+
+//       const response = await fetch("/api/myprofile");
+
+//       const data = await response.json();
+
+//       if (!response.ok || !data.success) {
+//         throw new Error(
+//           data.error || "Could not load your profile."
+//         );
+//       }
+
+//       const profile = data.users;
+
+//       setUser(profile);
+
+//       setUsername(profile?.username || "");
+//       setBranch(profile?.branch || "");
+//       setSemester(profile?.semester || "");
+//       setIntro(profile?.intro || "");
+
+//       setInterests(
+//         Array.isArray(profile?.interests)
+//           ? profile.interests
+//           : []
+//       );
+
+//       setPrompts(
+//         Array.isArray(profile?.prompts)
+//           ? profile.prompts
+//           : []
+//       );
+//     } catch (err) {
+//       console.error(err);
+//       setError(
+//         err.message ||
+//           "Could not connect to the profile server."
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // --------------------------------------------------
+//   // UPDATE PROFILE
+//   // --------------------------------------------------
+
+//   const updateProfile = async (updates) => {
+//     try {
+//       setSaving(true);
+//       setError("");
+
+//       const response = await fetch(
+//         "/api/updateprofile",
+//         {
+//           method: "PATCH",
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify(updates),
+//         }
+//       );
+
+//       const data = await response.json();
+
+//       if (!response.ok || !data.success) {
+//         throw new Error(
+//           data.error || "Could not update profile."
+//         );
+//       }
+
+//       const updatedUser =
+//         data.users || data.user || data.profile;
+
+//       if (updatedUser) {
+//         setUser(updatedUser);
+
+//         setUsername(
+//           updatedUser.username || ""
+//         );
+
+//         setBranch(
+//           updatedUser.branch || ""
+//         );
+
+//         setSemester(
+//           updatedUser.semester || ""
+//         );
+
+//         setIntro(
+//           updatedUser.intro || ""
+//         );
+
+//         setInterests(
+//           Array.isArray(updatedUser.interests)
+//             ? updatedUser.interests
+//             : []
+//         );
+
+//         setPrompts(
+//           Array.isArray(updatedUser.prompts)
+//             ? updatedUser.prompts
+//             : []
+//         );
+//       } else {
+//         await getProfile();
+//       }
+
+//       setEditing(null);
+//     } catch (err) {
+//       console.error(err);
+
+//       setError(
+//         err.message ||
+//           "Could not update your profile."
+//       );
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   // --------------------------------------------------
+//   // SAVE BASIC PROFILE
+//   // --------------------------------------------------
+
+//   const saveBasicProfile = () => {
+//     updateProfile({
+//       username,
+//       branch,
+//       semester,
+//       intro,
+//     });
+//   };
+
+//   // --------------------------------------------------
+//   // SAVE INTERESTS
+//   // --------------------------------------------------
+
+//   const saveInterests = () => {
+//     updateProfile({
+//       interests,
+//     });
+//   };
+
+//   // --------------------------------------------------
+//   // SAVE PROMPT
+//   // --------------------------------------------------
+
+//   const savePrompt = (index, question, answer) => {
+//     const updatedPrompts = [...prompts];
+
+//     updatedPrompts[index] = {
+//       ...updatedPrompts[index],
+//       question,
+//       answer,
+//     };
+
+//     setPrompts(updatedPrompts);
+
+//     updateProfile({
+//       prompts: updatedPrompts,
+//     });
+//   };
+
+//   // --------------------------------------------------
+//   // REMOVE INTEREST
+//   // --------------------------------------------------
+
+//   const removeInterest = (interest) => {
+//     const updated = interests.filter(
+//       (item) => item !== interest
+//     );
+
+//     setInterests(updated);
+
+//     updateProfile({
+//       interests: updated,
+//     });
+//   };
+
+//   if (loading) {
+//     return (
+//       <main className="h-dvh overflow-hidden bg-[#fffaf2]">
+//         <div className="fixed inset-0 z-10">
+//           <Background />
+//         </div>
+
+//         <div className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[500px] items-center justify-center bg-white">
+//           <p className="text-sm text-[#741337]">
+//             Loading profile...
+//           </p>
+//         </div>
+//       </main>
+//     );
+//   }
+
+//   return (
+//     <main className="h-dvh overflow-hidden bg-[#fffaf2]">
+//       <div className="fixed inset-0 z-10">
+//         <Background />
+//       </div>
+
+//       <div className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[500px] flex-col bg-white">
+
+//         {/* ================= HEADER ================= */}
+
+//         <div className="flex shrink-0 items-center justify-between border-b border-[#741337]/10 px-4 py-3">
+
+//           <a href="/testroute">
+//             <button
+//               type="button"
+//               className="flex h-9 w-9 items-center justify-center rounded-full text-[#741337] hover:bg-[#fff0df]"
+//             >
+//               <ArrowLeft size={20} />
+//             </button>
+//           </a>
+
+//           <h1 className="font-serif text-xl font-bold text-[#24151a]">
+//             My Profile
+//           </h1>
+
+//           <div className="w-9" />
+
+//         </div>
+
+//         {/* ================= SCROLL AREA ================= */}
+
+//         <div className="flex-1 overflow-y-auto px-4 pb-8">
+
+//           {/* ================= ERROR ================= */}
+
+//           {error && (
+//             <div className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-center text-xs text-red-500">
+//               {error}
+//             </div>
+//           )}
+
+//           {/* ================= PHOTOS ================= */}
+
+//           <section className="mt-5">
+
+//             <div className="mb-2 flex items-center justify-between">
+
+//               <div>
+//                 <h2 className="font-serif text-lg font-bold text-[#741337]">
+//                   Your Photos
+//                 </h2>
+
+//                 <p className="text-[10px] text-[#24151a]/45">
+//                   Show your best moments
+//                 </p>
+//               </div>
+
+//               <Camera
+//                 size={18}
+//                 className="text-[#741337]"
+//               />
+
+//             </div>
+
+//             <div className="grid grid-cols-3 gap-2">
+
+//               {Array.from({
+//                 length: 6,
+//               }).map((_, index) => {
+
+//                 const photo =
+//                   user?.images?.[index];
+
+//                 return (
+//                   <div
+//                     key={index}
+//                     className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-[#741337]/10 bg-[#fffaf2]"
+//                   >
+
+//                     {photo ? (
+//                       <>
+//                         <img
+//                           src={photo}
+//                           alt={`Profile ${index + 1}`}
+//                           className="h-full w-full object-cover"
+//                         />
+
+//                         <button
+//                           type="button"
+//                           className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white"
+//                         >
+//                           <Pencil size={12} />
+//                         </button>
+//                       </>
+//                     ) : (
+//                       <button
+//                         type="button"
+//                         className="flex h-full w-full flex-col items-center justify-center text-[#741337]/50"
+//                       >
+//                         <Plus size={23} />
+
+//                         <span className="mt-1 text-[9px]">
+//                           Add photo
+//                         </span>
+//                       </button>
+//                     )}
+
+//                   </div>
+//                 );
+//               })}
+
+//             </div>
+
+//           </section>
+
+//           {/* ================= BASIC INFO ================= */}
+
+//           <section className="mt-6">
+
+//             <div className="mb-2 flex items-center justify-between">
+
+//               <h2 className="font-serif text-lg font-bold text-[#741337]">
+//                 About You
+//               </h2>
+
+//               <button
+//                 type="button"
+//                 onClick={() =>
+//                   setEditing("basic")
+//                 }
+//                 className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
+//               >
+//                 <Pencil size={13} />
+//                 Edit
+//               </button>
+
+//             </div>
+
+//             <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
+
+//               <h3 className="font-serif text-[23px] font-bold text-[#741337]">
+//                 {username || "Your name"}
+//               </h3>
+
+//               <p className="mt-1 text-xs text-[#24151a]/55">
+//                 {semester || "Semester"}
+
+//                 <span className="mx-1.5 text-[#ed7137]">
+//                   •
+//                 </span>
+
+//                 {branch || "Branch"}
+//               </p>
+
+//               {intro && (
+//                 <div className="mt-3 rounded-xl bg-[#fffaf2] px-3 py-3">
+
+//                   <p className="text-xs italic leading-5 text-[#24151a]/65">
+//                     {intro}
+//                   </p>
+
+//                 </div>
+//               )}
+
+//             </div>
+
+//           </section>
+
+//           {/* ================= BASIC EDITOR ================= */}
+
+//           {editing === "basic" && (
+//             <div className="mt-3 rounded-2xl border border-[#741337]/10 bg-[#fffaf2] p-4">
+
+//               <input
+//                 value={username}
+//                 onChange={(e) =>
+//                   setUsername(e.target.value)
+//                 }
+//                 placeholder="Username"
+//                 className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
+//               />
+
+//               <input
+//                 value={semester}
+//                 onChange={(e) =>
+//                   setSemester(e.target.value)
+//                 }
+//                 placeholder="Semester"
+//                 className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
+//               />
+
+//               <input
+//                 value={branch}
+//                 onChange={(e) =>
+//                   setBranch(e.target.value)
+//                 }
+//                 placeholder="Branch"
+//                 className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
+//               />
+
+//               <textarea
+//                 value={intro}
+//                 onChange={(e) =>
+//                   setIntro(e.target.value)
+//                 }
+//                 placeholder="Tell people a little about yourself..."
+//                 rows={3}
+//                 className="w-full resize-none rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
+//               />
+
+//               <div className="mt-3 flex gap-2">
+
+//                 <button
+//                   type="button"
+//                   onClick={() =>
+//                     setEditing(null)
+//                   }
+//                   className="flex-1 rounded-xl border border-[#741337]/15 bg-white py-2.5 text-xs font-semibold text-[#741337]"
+//                 >
+//                   Cancel
+//                 </button>
+
+//                 <button
+//                   type="button"
+//                   disabled={saving}
+//                   onClick={saveBasicProfile}
+//                   className="flex-1 rounded-xl bg-[#741337] py-2.5 text-xs font-semibold text-white disabled:opacity-50"
+//                 >
+//                   {saving
+//                     ? "Saving..."
+//                     : "Save"}
+//                 </button>
+
+//               </div>
+
+//             </div>
+//           )}
+
+//           {/* ================= PROMPTS ================= */}
+
+//           <section className="mt-7">
+
+//             <div className="mb-2 flex items-center justify-between">
+
+//               <div>
+//                 <h2 className="font-serif text-lg font-bold text-[#741337]">
+//                   Your Prompts
+//                 </h2>
+
+//                 <p className="text-[10px] text-[#24151a]/45">
+//                   Let people know what makes you, you
+//                 </p>
+//               </div>
+
+//               <button
+//                 type="button"
+//                 onClick={() =>
+//                   setEditing("newPrompt")
+//                 }
+//                 className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
+//               >
+//                 <Plus size={14} />
+//                 Add
+//               </button>
+
+//             </div>
+
+//             <div className="space-y-3">
+
+//               {prompts.length === 0 && (
+//                 <button
+//                   type="button"
+//                   onClick={() =>
+//                     setEditing("newPrompt")
+//                   }
+//                   className="flex w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#741337]/20 bg-[#fffaf2] py-8 text-[#741337]"
+//                 >
+//                   <Plus size={24} />
+
+//                   <span className="mt-2 text-xs font-semibold">
+//                     Add your first prompt
+//                   </span>
+//                 </button>
+//               )}
+
+//               {prompts.map(
+//                 (prompt, index) => (
+//                   <PromptCard
+//                     key={index}
+//                     prompt={prompt}
+//                     index={index}
+//                     editing={editing}
+//                     setEditing={setEditing}
+//                     savePrompt={savePrompt}
+//                     saving={saving}
+//                   />
+//                 )
+//               )}
+
+//             </div>
+
+//           </section>
+
+//           {/* ================= INTERESTS ================= */}
+
+//           <section className="mt-7">
+
+//             <div className="mb-2 flex items-center justify-between">
+
+//               <div>
+//                 <h2 className="font-serif text-lg font-bold text-[#741337]">
+//                   Interests
+//                 </h2>
+
+//                 <p className="text-[10px] text-[#24151a]/45">
+//                   Things you enjoy
+//                 </p>
+//               </div>
+
+//               <button
+//                 type="button"
+//                 onClick={() =>
+//                   setEditing("interests")
+//                 }
+//                 className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
+//               >
+//                 <Pencil size={13} />
+//                 Edit
+//               </button>
+
+//             </div>
+
+//             <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
+
+//               <div className="flex flex-wrap gap-2">
+
+//                 {interests.length === 0 ? (
+//                   <button
+//                     type="button"
+//                     onClick={() =>
+//                       setEditing("interests")
+//                     }
+//                     className="flex items-center gap-1 rounded-full border border-dashed border-[#741337]/20 px-3 py-2 text-xs text-[#741337]"
+//                   >
+//                     <Plus size={13} />
+//                     Add interests
+//                   </button>
+//                 ) : (
+//                   interests.map(
+//                     (interest, index) => (
+//                       <span
+//                         key={index}
+//                         className="rounded-full bg-[#fff0df] px-3 py-2 text-xs font-medium text-[#741337]"
+//                       >
+//                         {interest}
+//                       </span>
+//                     )
+//                   )
+//                 )}
+
+//               </div>
+
+//             </div>
+
+//           </section>
+
+//           {/* ================= INTEREST EDITOR ================= */}
+
+//           {editing === "interests" && (
+//             <InterestEditor
+//               interests={interests}
+//               setInterests={setInterests}
+//               saveInterests={saveInterests}
+//               saving={saving}
+//             />
+//           )}
+
+//           {/* ================= FOOTER ================= */}
+
+//           <p className="pb-3 pt-8 text-center text-[9px] text-[#24151a]/30">
+//             Made for the Garba community ✨
+//           </p>
+
+//         </div>
+//       </div>
+//     </main>
+//   );
+// }
+
+// // ==================================================
+// // PROMPT CARD
+// // ==================================================
+
+// function PromptCard({
+//   prompt,
+//   index,
+//   editing,
+//   setEditing,
+//   savePrompt,
+//   saving,
+// }) {
+//   const [question, setQuestion] =
+//     useState(prompt?.question || "");
+
+//   const [answer, setAnswer] =
+//     useState(prompt?.answer || "");
+
+//   const isEditing =
+//     editing === `prompt-${index}`;
+
+//   return (
+//     <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
+
+//       {isEditing ? (
+//         <>
+//           <input
+//             value={question}
+//             onChange={(e) =>
+//               setQuestion(e.target.value)
+//             }
+//             placeholder="Prompt question"
+//             className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-3 text-xs font-semibold outline-none focus:border-[#741337]"
+//           />
+
+//           <textarea
+//             value={answer}
+//             onChange={(e) =>
+//               setAnswer(e.target.value)
+//             }
+//             placeholder="Your answer..."
+//             rows={4}
+//             className="w-full resize-none rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-3 text-sm outline-none focus:border-[#741337]"
+//           />
+
+//           <div className="mt-3 flex gap-2">
+
+//             <button
+//               type="button"
+//               onClick={() =>
+//                 setEditing(null)
+//               }
+//               className="flex-1 rounded-xl border border-[#741337]/15 py-2.5 text-xs font-semibold text-[#741337]"
+//             >
+//               Cancel
+//             </button>
+
+//             <button
+//               type="button"
+//               disabled={saving}
+//               onClick={() =>
+//                 savePrompt(
+//                   index,
+//                   question,
+//                   answer
+//                 )
+//               }
+//               className="flex-1 rounded-xl bg-[#741337] py-2.5 text-xs font-semibold text-white disabled:opacity-50"
+//             >
+//               {saving
+//                 ? "Saving..."
+//                 : "Save"}
+//             </button>
+
+//           </div>
+//         </>
+//       ) : (
+//         <>
+//           <div className="flex items-start justify-between gap-3">
+
+//             <div className="flex-1">
+
+//               <p className="text-[11px] font-semibold text-[#741337]">
+//                 {prompt?.question ||
+//                   "Prompt"}
+//               </p>
+
+//               <p className="mt-2 text-sm leading-6 text-[#24151a]">
+//                 {prompt?.answer ||
+//                   "Add your answer"}
+//               </p>
+
+//             </div>
+
+//             <button
+//               type="button"
+//               onClick={() =>
+//                 setEditing(
+//                   `prompt-${index}`
+//                 )
+//               }
+//               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff0df] text-[#741337]"
+//             >
+//               <Pencil size={13} />
+//             </button>
+
+//           </div>
+//         </>
+//       )}
+
+//     </div>
+//   );
+// }
+
+// // ==================================================
+// // INTEREST EDITOR
+// // ==================================================
+
+// function InterestEditor({
+//   interests,
+//   setInterests,
+//   saveInterests,
+//   saving,
+// }) {
+//   const [value, setValue] =
+//     useState("");
+
+//   const addInterest = () => {
+//     const cleanValue =
+//       value.trim();
+
+//     if (!cleanValue) return;
+
+//     if (
+//       interests.includes(
+//         cleanValue
+//       )
+//     ) {
+//       setValue("");
+//       return;
+//     }
+
+//     setInterests([
+//       ...interests,
+//       cleanValue,
+//     ]);
+
+//     setValue("");
+//   };
+
+//   const removeInterest = (
+//     interest
+//   ) => {
+//     setInterests(
+//       interests.filter(
+//         (item) =>
+//           item !== interest
+//       )
+//     );
+//   };
+
+//   return (
+//     <div className="mt-3 rounded-2xl border border-[#741337]/10 bg-[#fffaf2] p-4">
+
+//       <div className="flex gap-2">
+
+//         <input
+//           value={value}
+//           onChange={(e) =>
+//             setValue(e.target.value)
+//           }
+//           onKeyDown={(e) => {
+//             if (e.key === "Enter") {
+//               e.preventDefault();
+//               addInterest();
+//             }
+//           }}
+//           placeholder="Add an interest"
+//           className="flex-1 rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-xs outline-none focus:border-[#741337]"
+//         />
+
+//         <button
+//           type="button"
+//           onClick={addInterest}
+//           className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#741337] text-white"
+//         >
+//           <Plus size={17} />
+//         </button>
+
+//       </div>
+
+//       <div className="mt-3 flex flex-wrap gap-2">
+
+//         {interests.map(
+//           (interest, index) => (
+//             <button
+//               type="button"
+//               key={index}
+//               onClick={() =>
+//                 removeInterest(
+//                   interest
+//                 )
+//               }
+//               className="flex items-center gap-1 rounded-full bg-[#fff0df] px-3 py-2 text-xs font-medium text-[#741337]"
+//             >
+//               {interest}
+
+//               <X size={12} />
+//             </button>
+//           )
+//         )}
+
+//       </div>
+
+//       <button
+//         type="button"
+//         disabled={saving}
+//         onClick={saveInterests}
+//         className="mt-4 w-full rounded-xl bg-[#741337] py-3 text-xs font-semibold text-white disabled:opacity-50"
+//       >
+//         {saving
+//           ? "Saving..."
+//           : "Save Interests"}
+//       </button>
+
+//     </div>
+//   );
+// }
 
