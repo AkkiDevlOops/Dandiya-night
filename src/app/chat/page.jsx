@@ -148,7 +148,7 @@ export default function Chat() {
 
   const fetchConversations = async () => {
     try {
-      setLoadingConversations(true);
+      setLoadingConversations(false);
       setError("");
 
       const response = await fetch(
