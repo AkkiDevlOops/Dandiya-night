@@ -13,6 +13,7 @@ import {
 
 import Background from "@/components/matchingpage/backgroundblur";
 import Navbar from "@/components/Navbar";
+import { useRouter } from "next/navigation";
 
 export default function RaasMitraLikesView() {
   const [likes, setLikes] = useState([]);
@@ -26,12 +27,43 @@ export default function RaasMitraLikesView() {
 
   // Match loading
   const [matching, setMatching] = useState(false);
+  const router = useRouter();
 
   // ============================================
   // GET LIKES
   // ============================================
+const openChat = async (match) => {
+  try {
+    const profileId = match.profileId;
 
-  
+    const response = await fetch(
+      `/api/conversations/with-profile/${profileId}`,
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      console.error(
+        "Open chat failed:",
+        data.message
+      );
+      return;
+    }
+
+    router.push(
+      `/chat?conversationId=${data.conversation._id}`
+    );
+  } catch (error) {
+    console.error(
+      "Open chat error:",
+      error
+    );
+  }
+};
+
 const getLikedProfiles = async () => {
   try {
     setLoading(true);
@@ -369,10 +401,18 @@ const matchWithUser = async () => {
     <div className="space-y-3">
 
       {matches.map((match) => (
-        <div
-          key={String(match.profileId)}
-          className="bg-white p-3.5 rounded-2xl border border-[#eae5de] shadow-sm flex items-center justify-between hover:border-[#4a1525]/30 transition-all cursor-pointer group"
-        >
+//        <div
+//   key={String(match.profileId)}
+//   onClick={() => {
+//     router.push(`/chat?userId=${match.profileId}`);
+//   }}
+//   className="bg-white p-3.5 rounded-2xl border border-[#eae5de] shadow-sm flex items-center justify-between hover:border-[#4a1525]/30 transition-all cursor-pointer group"
+// >
+<div
+  key={String(match.profileId)}
+  onClick={() => openChat(match)}
+  className="bg-white p-3.5 rounded-2xl border border-[#eae5de] shadow-sm flex items-center justify-between hover:border-[#4a1525]/30 transition-all cursor-pointer group"
+>
 
           <div className="flex items-center gap-3.5">
 
@@ -415,11 +455,31 @@ const matchWithUser = async () => {
           </div>
 
           {/* Message */}
-          <button
+          {/* <button
             className="w-10 h-10 rounded-full bg-[#f7f3ed] flex items-center justify-center text-[#4a1525] group-hover:bg-[#4a1525] group-hover:text-white transition-colors"
           >
             <FiMessageCircle size={18} />
-          </button>
+          </button> */}
+
+          {/* <button
+  onClick={(e) => {
+    e.stopPropagation();
+    router.push(`/chat?userId=${match.profileId}`);
+  }}
+  className="w-10 h-10 rounded-full bg-[#f7f3ed] flex items-center justify-center text-[#4a1525] group-hover:bg-[#4a1525] group-hover:text-white transition-colors"
+>
+  <FiMessageCircle size={18} />
+</button> */}
+
+<button
+  onClick={(e) => {
+    e.stopPropagation();
+    openChat(match);
+  }}
+  className="w-10 h-10 rounded-full bg-[#f7f1ec] flex items-center justify-center text-[#4a1525] hover:bg-[#4a1525] hover:text-white transition-all"
+>
+  <FiMessageCircle size={18} />
+</button>
 
         </div>
       ))}

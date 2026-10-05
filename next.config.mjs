@@ -12,7 +12,7 @@ const nextConfig = {
     ],
   },
   reactCompiler: true,
-  allowedDevOrigins: ['192.168.1.2'], // Combined right into the main config object
+  allowedDevOrigins: ['192.168.1.6', '192.168.1.2'], // Combined right into the main config object
 };
 
 export default nextConfig;

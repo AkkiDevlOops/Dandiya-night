@@ -11,7 +11,7 @@ export async function POST(request) {
     // ============================================
     // 1. GET DATA
     // ============================================
-
+    // await connectDB();
     const data = await request.json();
 
     const email = data.identifier;
@@ -77,6 +77,7 @@ export async function POST(request) {
       ],
     });
 
+    
     // ============================================
     // 6. USER DOES NOT EXIST
     // ============================================
