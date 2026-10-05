@@ -22,7 +22,7 @@ const httpServer = createServer((req, res) => {
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://dandiya-night-six.vercel.app",
+    origin: "https://dandiya-night-one.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   },

@@ -80,19 +80,19 @@ export async function GET(request, { params }) {
     // 4. Find current user's Discovery document
     // ============================================
 
-    const discovery = await DiscoverySchema.findOne({
-      email: currentUser.email.toLowerCase(),
-    }).lean();
+ const discovery = await DiscoverySchema.findOne({
+  email: currentUser.email.toLowerCase(),
+}).lean();
 
-    if (!discovery) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Discovery profile not found",
-        },
-        { status: 404 }
-      );
-    }
+if (!discovery) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Discovery profile not found",
+    },
+    { status: 404 }
+  );
+}
 
     // ============================================
     // 5. Check whether target is actually
