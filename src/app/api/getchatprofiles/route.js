@@ -65,64 +65,12 @@ export async function GET() {
     // 2. Find current user's Discovery document
     // ============================================
 
-<<<<<<< Updated upstream
-   })
-  .select("likedBy liked matches")// 🌟 This tells MongoDB to ONLY return the likedBy field
-  .lean();
-
- const matches = (discovery.matches || [])
-  .map((match) => ({
-    profileId: match.profileId?._id || match.profileId,
-    email: match.profileId?.email || match.email,
-    username: match.username,
-    images: match.images || [],
-    matchedAt: match.matchedAt,
-    status: match.status || "active",
-  }));
-
-
-     
-    
-      
-     
-// const array1 = (discovery?.liked || [])
-//   .filter((match) => match.acknowledge === true)
-//   .map((match) => ({
-//     profileId: match.profileId,
-//     email: match.email,
-//     username: match.targetIdName,
-//     image: match.targetIdphoto,
-//     status: match.status,
-//   }));
-
-// const array2 = (discovery?.likedBy || [])
-//   .filter((match) => match.acknowledge === true)
-//   .map((match) => ({
-//     profileId: match.profileId,
-//     email: match.email,
-//     username: match.targetIdName,
-//     image: match.targetIdphoto,
-//     status: match.status,
-//   }));
-
-// const matches = [];
-
-// matches.push(...array1);
-// matches.push(...array2);
-
-
-  
-
-
-
-=======
     const discovery =
       await DiscoverySchema.findOne({
         email,
       })
         .select("matches")
         .lean();
->>>>>>> Stashed changes
 
     if (!discovery) {
       return NextResponse.json(

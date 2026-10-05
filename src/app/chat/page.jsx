@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { io } from "socket.io-client";
 
 import {
   ArrowLeft,
@@ -61,6 +62,8 @@ export default function Chat() {
 
   const messagesEndRef =
     useRef(null);
+
+    const socketRef = useRef(null);
 
   // ============================================================
   // GET OTHER USER FROM CONVERSATION
@@ -226,6 +229,356 @@ export default function Chat() {
     conversations,
   ]);
 
+  //socket io
+
+// ============================================================
+// SOCKET.IO
+// ============================================================
+
+// ============================================================
+// SOCKET.IO REAL-TIME CHAT
+// ============================================================
+
+// useEffect(() => {
+//   const socket = io("http://localhost:3000", {
+//     withCredentials: true,
+//   });
+
+//   socketRef.current = socket;
+
+//   // ----------------------------------------------------------
+//   // SOCKET CONNECTED
+//   // ----------------------------------------------------------
+
+//   socket.on("connect", () => {
+//     console.log(
+//       "🟢 SOCKET CONNECTED:",
+//       socket.id
+//     );
+
+//     if (conversationId) {
+//       socket.emit(
+//         "joinConversation",
+//         conversationId
+//       );
+
+//       console.log(
+//         "➡️ JOINED ROOM:",
+//         `conversation:${conversationId}`
+//       );
+//     }
+//   });
+
+//   // ----------------------------------------------------------
+//   // RECEIVE MESSAGE
+//   // ----------------------------------------------------------
+
+//   socket.on("newMessage", (newMessage) => {
+//     console.log(
+//       "📩 NEW MESSAGE RECEIVED:",
+//       newMessage
+//     );
+
+//     // Make sure this message belongs
+//     // to the currently opened conversation
+//     if (
+//       String(newMessage.conversationId) !==
+//       String(conversationId)
+//     ) {
+//       console.log(
+//         "⚠️ Message belongs to another conversation"
+//       );
+
+//       return;
+//     }
+
+//     setMessages((prev) => {
+//       // Prevent duplicate messages
+//       const exists = prev.some(
+//         (msg) =>
+//           String(msg._id) ===
+//           String(newMessage._id)
+//       );
+
+//       if (exists) {
+//         console.log(
+//           "⚠️ Duplicate message ignored"
+//         );
+
+//         return prev;
+//       }
+
+//       console.log(
+//         "✅ Adding message to UI"
+//       );
+
+//       return [
+//         ...prev,
+//         newMessage,
+//       ];
+//     });
+
+//     // Update conversation preview
+//     setConversations((prev) =>
+//       prev.map((conversation) => {
+//         if (
+//           String(conversation._id) ===
+//           String(newMessage.conversationId)
+//         ) {
+//           return {
+//             ...conversation,
+//             lastMessage:
+//               newMessage.text,
+//             lastMessageAt:
+//               newMessage.createdAt,
+//           };
+//         }
+
+//         return conversation;
+//       })
+//     );
+
+//     // Update selected conversation preview
+//     setSelectedConversation((prev) => {
+//       if (
+//         !prev ||
+//         String(prev._id) !==
+//           String(newMessage.conversationId)
+//       ) {
+//         return prev;
+//       }
+
+//       return {
+//         ...prev,
+//         lastMessage:
+//           newMessage.text,
+//         lastMessageAt:
+//           newMessage.createdAt,
+//       };
+//     });
+//   });
+
+//   // ----------------------------------------------------------
+//   // DISCONNECT
+//   // ----------------------------------------------------------
+
+//   socket.on("disconnect", () => {
+//     console.log(
+//       "🔴 SOCKET DISCONNECTED"
+//     );
+//   });
+
+//   // ----------------------------------------------------------
+//   // CLEANUP
+//   // ----------------------------------------------------------
+
+//   return () => {
+//     if (conversationId) {
+//       socket.emit(
+//         "leaveConversation",
+//         conversationId
+//       );
+//     }
+
+//     socket.disconnect();
+//     socketRef.current = null;
+//   };
+// }, [conversationId]);
+
+
+// ============================================================
+// SOCKET.IO CONNECTION
+// ============================================================
+
+useEffect(() => {
+  const socket = io("http://localhost:3000", {
+    withCredentials: true,
+  });
+
+  socketRef.current = socket;
+
+  socket.on("connect", () => {
+    console.log(
+      "🟢 SOCKET CONNECTED:",
+      socket.id
+    );
+  });
+
+  socket.on("disconnect", () => {
+    console.log(
+      "🔴 SOCKET DISCONNECTED"
+    );
+  });
+
+  return () => {
+    console.log(
+      "🔌 CLOSING SOCKET"
+    );
+
+    socket.disconnect();
+    socketRef.current = null;
+  };
+}, []);
+
+// ============================================================
+// JOIN / LEAVE CONVERSATION ROOM
+// ============================================================
+
+useEffect(() => {
+  const socket = socketRef.current;
+
+  if (!socket || !conversationId) {
+    return;
+  }
+
+  const joinRoom = () => {
+    socket.emit(
+      "joinConversation",
+      conversationId
+    );
+
+    console.log(
+      "➡️ JOINED ROOM:",
+      `conversation:${conversationId}`
+    );
+  };
+
+  // Socket already connected
+  if (socket.connected) {
+    joinRoom();
+  } else {
+    // Wait until socket connects
+    socket.once(
+      "connect",
+      joinRoom
+    );
+  }
+
+  return () => {
+    socket.off(
+      "connect",
+      joinRoom
+    );
+
+    socket.emit(
+      "leaveConversation",
+      conversationId
+    );
+
+    console.log(
+      "⬅️ LEFT ROOM:",
+      `conversation:${conversationId}`
+    );
+  };
+}, [conversationId]);
+
+// ============================================================
+// RECEIVE REAL-TIME MESSAGES
+// ============================================================
+
+useEffect(() => {
+  const socket = socketRef.current;
+
+  if (!socket) {
+    return;
+  }
+
+  const handleNewMessage = (newMessage) => {
+    console.log(
+      "📩 NEW MESSAGE RECEIVED:",
+      newMessage
+    );
+
+    // Only handle message for current conversation
+    if (
+      String(newMessage.conversationId) !==
+      String(conversationId)
+    ) {
+      return;
+    }
+
+    setMessages((prev) => {
+      // Prevent duplicate message
+      const alreadyExists = prev.some(
+        (msg) =>
+          String(msg._id) ===
+          String(newMessage._id)
+      );
+
+      if (alreadyExists) {
+        console.log(
+          "⚠️ Duplicate message ignored"
+        );
+
+        return prev;
+      }
+
+      console.log(
+        "✅ Adding message to chat"
+      );
+
+      return [
+        ...prev,
+        newMessage,
+      ];
+    });
+
+    // Update conversation preview
+    setConversations((prev) =>
+      prev.map((conversation) => {
+        if (
+          String(conversation._id) ===
+          String(newMessage.conversationId)
+        ) {
+          return {
+            ...conversation,
+            lastMessage:
+              newMessage.text,
+            lastMessageAt:
+              newMessage.createdAt,
+          };
+        }
+
+        return conversation;
+      })
+    );
+
+    // Update selected conversation
+    setSelectedConversation((prev) => {
+      if (
+        !prev ||
+        String(prev._id) !==
+          String(newMessage.conversationId)
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        lastMessage:
+          newMessage.text,
+        lastMessageAt:
+          newMessage.createdAt,
+      };
+    });
+  };
+
+  socket.on(
+    "newMessage",
+    handleNewMessage
+  );
+
+  return () => {
+    socket.off(
+      "newMessage",
+      handleNewMessage
+    );
+  };
+}, [conversationId]);
+
+
+
+
   // ============================================================
   // FETCH MESSAGES
   // ============================================================
@@ -352,12 +705,18 @@ export default function Chat() {
       if (
         !response.ok ||
         !data.success
-      ) {
+      )
+     
+      {
         throw new Error(
           data.message ||
             "Failed to send message"
         );
       }
+         socketRef.current?.emit("sendMessage", {
+      conversationId: selectedConversation._id,
+      message: data.message,
+    });
 
       // Add newly created message
       setMessages((prev) => [

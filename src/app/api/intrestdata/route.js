@@ -20,9 +20,11 @@ export async function POST(request) {
     ===================================================== */
 
     const cookieStore = await cookies();
+     const token = cookieStore.get("session")?.value;;
+    
 
-    const token =
-      cookieStore.get("session")?.value;
+  
+    
 
     if (!token) {
       return NextResponse.json(
@@ -34,7 +36,7 @@ export async function POST(request) {
         { status: 401 }
       );
     }
-
+   
     if (!process.env.JWT_SECRET) {
       console.error(
         "JWT_SECRET is missing."
@@ -49,10 +51,12 @@ export async function POST(request) {
         { status: 500 }
       );
     }
-
+   
     /* =====================================================
        VERIFY JWT
     ===================================================== */
+    
+
 
     let payload;
 
@@ -72,6 +76,8 @@ export async function POST(request) {
         "JWT verification error:",
         error
       );
+
+       return NextResponse.json(payload)
 
       return NextResponse.json(
         {
@@ -450,10 +456,7 @@ export async function POST(request) {
 
     await DiscoverySchema.create({
               email:email,
-<<<<<<< Updated upstream
-=======
                 
->>>>>>> Stashed changes
     
               liked: [],
     
