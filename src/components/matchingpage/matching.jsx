@@ -962,15 +962,15 @@ export default function RaasMitraProfile() {
   // =====================================================
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7]">
+    <div className="min-h-screen ">
 
-      <div className="max-w-md mx-auto min-h-screen bg-[#fdfbf7]">
+      <div className="max-w-md mx-auto rounded-2xl min-h-screen bg-[#fdfbf7]">
 
         {/* =================================================
             HEADER
         ================================================= */}
 
-        <div className="sticky top-0 z-30 bg-[#fdfbf7]/95 backdrop-blur px-5 pt-6 pb-4">
+        <div className="sticky top-0 z-30 rounded-2xl bg-[#fdfbf7]/95 backdrop-blur px-5 pt-6 pb-4">
 
           <div className="flex items-center justify-between">
 

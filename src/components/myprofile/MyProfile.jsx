@@ -1,2343 +1,3064 @@
 "use client";
 
-<<<<<<< Updated upstream
-import React, { useEffect, useRef, useState } from "react";
-import Navbar from '@/components/Navbar'
-import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-/* =========================================================
-   INTERESTS
-========================================================= */
 
-const INTERESTS = [
-  "Music",
-  "Movies",
-  "TV",
-  "Books",
-  "Travel",
-  "Food",
-  "Sports",
-  "Gaming",
-  "Photography",
-  "Art",
-  "Fitness",
-  "Cooking",
-  "Dancing",
-  "Hiking",
-  "Pets",
-  "Fashion",
-  "Technology",
-  "Business",
-  "Cars",
-  "Nature",
-  "Nightlife",
-  "Coffee",
-  "Volunteering",
-  "Reading",
-  "Writing",
-  "Cricket",
-  "Football",
-  "Badminton",
-  "Basketball",
-  "Trekking",
-  "Road Trips",
-  "Beaches",
-  "Mountains",
-  "Anime",
-  "Podcasts",
-  "Memes",
-  "Startups",
-  "Coding",
-  "Design",
-  "Content Creation",
-  "Fitness Training",
-  "Yoga",
-  "Meditation",
-  "Dance",
-  "Fashion Design",
-  "Concerts",
-  "Festivals",
-  "Garba",
-  "Dandiya",
-];
 
-/* =========================================================
-   PROMPT TYPES
-========================================================= */
+import React, { useEffect, useState } from "react";
 
-const PROMPT_TYPES = [
-  {
-    value: "text",
-    label: "Text",
-  },
-  {
-    value: "voice",
-    label: "Voice",
-  },
-  {
-    value: "video",
-    label: "Video",
-  },
-  {
-    value: "poll",
-    label: "Poll",
-  },
-];
+import Navbar from "@/components/Navbar";
 
-/* =========================================================
-   DEFAULT PROMPT
-========================================================= */
 
-const createEmptyPrompt = () => ({
-  question: "",
-  answer: "",
-  type: "text",
-});
 
-/* =========================================================
-   HELPERS
-========================================================= */
-
-const normalizeProfile = (profile) => {
-  if (!profile) return null;
-
-  return {
-    username: profile.username || "",
-    branch: profile.branch || "",
-    semester: profile.semester || "",
-    college: profile.college || "",
-    gender: profile.gender || "",
-
-    dateOfBirth: profile.dateOfBirth
-      ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
-      : "",
-
-    intro: profile.intro || "",
-
-    interests: Array.isArray(profile.interests)
-      ? profile.interests
-      : [],
-
-    prompts: Array.isArray(profile.prompts)
-      ? profile.prompts.map((prompt) => ({
-          _id: prompt._id,
-          question: prompt.question || "",
-          answer: prompt.answer || "",
-          type: ["text", "voice", "video", "poll"].includes(prompt.type)
-            ? prompt.type
-            : "text",
-        }))
-      : [],
-
-    images: Array.isArray(profile.images)
-      ? profile.images
-      : [],
-  };
-};
-
-/* =========================================================
-   MAIN PAGE
-========================================================= */
-
-export default function MyProfilePage() {
-  /* -------------------------------------------------------
-     PROFILE / ACCOUNT DATA
-  ------------------------------------------------------- */
-
-  const [user, setUser] = useState({
-    username: "",
-    branch: "",
-    semester: "",
-    college: "",
-    gender: "",
-  });
-
-  /* -------------------------------------------------------
-     EDITABLE PROFILE STATE
-  ------------------------------------------------------- */
-
-  const [profileData, setProfileData] = useState({
-    dateOfBirth: "",
-    intro: "",
-    interests: [],
-    prompts: [],
-    images: [],
-  });
-
-  /* -------------------------------------------------------
-     UI STATES
-  ------------------------------------------------------- */
-
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const [showMoreInterests, setShowMoreInterests] =
-    useState(false);
-
-  const [activePhotoIndex, setActivePhotoIndex] =
-    useState(null);
-
-  const fileInputRef = useRef(null);
-  const router = useRouter();
-  /* =======================================================
-     GET PROFILE
-  ======================================================= */
-
-  useEffect(() => {
-    getProfile();
-  }, []);
-
-=======
 import {
-  ArrowLeft,
-  Camera,
-  ChevronRight,
-  Pencil,
-  Plus,
-  X,
-} from "lucide-react";
 
-import Background from "@/components/matchingpage/backgroundblur";
-import { useEffect, useState } from "react";
+  FiHeart,
 
-export default function MyProfile() {
-  const [user, setUser] = useState(null);
+  FiChevronLeft,
+
+  FiChevronRight,
+
+  FiMoreHorizontal,
+
+  FiFlag,
+
+  FiSlash,
+
+  FiSend,
+
+  FiX,
+
+} from "react-icons/fi";
+
+
+
+export default function RaasMitraProfile() {
+
+  const [profiles, setProfiles] = useState([]);
+
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+
+  const [processing, setProcessing] = useState(false);
+
   const [error, setError] = useState("");
 
-  const [editing, setEditing] = useState(null);
 
-  const [username, setUsername] = useState("");
-  const [branch, setBranch] = useState("");
-  const [semester, setSemester] = useState("");
-  const [intro, setIntro] = useState("");
 
-  const [interests, setInterests] = useState([]);
-  const [prompts, setPrompts] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  useEffect(() => {
-    getProfile();
-  }, []);
 
->>>>>>> Stashed changes
-  const getProfile = async () => {
-    try {
-      setLoading(true);
-      setError("");
 
-<<<<<<< Updated upstream
-      const res = await fetch("/api/myprofile", {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      });
+  // Main image currently selected
 
-      const data = await res.json();
-      console.log(data);
-      if (!res.ok) {
-        throw new Error(
-          data.error || "Failed to load profile."
-        );
-      }
+  const [photoIndex, setPhotoIndex] = useState(0);
 
-      const profile =
-        data.user ||
-        data.profile ||
-        data.users;
 
-      if (!profile) {
-        throw new Error("Profile data not found.");
-      }
 
-      const normalized = normalizeProfile(profile);
+  const [showMenu, setShowMenu] = useState(false);
 
-      /* -----------------------------------------------
-         LOCKED USER INFORMATION
-      ------------------------------------------------ */
+  const [showReport, setShowReport] = useState(false);
 
-      setUser({
-        username: normalized.username,
-        branch: normalized.branch,
-        semester: normalized.semester,
-        college: normalized.college,
-        gender: normalized.gender,
-      });
 
-      /* -----------------------------------------------
-         EDITABLE PROFILE INFORMATION
-      ------------------------------------------------ */
 
-      setProfileData({
-        dateOfBirth: normalized.dateOfBirth,
-        intro: normalized.intro,
-        interests: normalized.interests,
-        prompts: normalized.prompts,
-        images: normalized.images,
-      });
-    } catch (err) {
-      console.error("Get profile error:", err);
+  const [showComment, setShowComment] = useState(false);
 
-      setError(
-        err.message || "Unable to load your profile."
-      );
-=======
-      const response = await fetch("/api/myprofile");
+  const [comment, setComment] = useState("");
 
-      const data = await response.json();
 
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data.error || "Could not load your profile."
-        );
-      }
 
-      const profile = data.users;
+  const [likeTarget, setLikeTarget] = useState({
 
-      setUser(profile);
+    type: "profile",
 
-      setUsername(profile?.username || "");
-      setBranch(profile?.branch || "");
-      setSemester(profile?.semester || "");
-      setIntro(profile?.intro || "");
+    id: null,
 
-      setInterests(
-        Array.isArray(profile?.interests)
-          ? profile.interests
-          : []
-      );
+    photoIndex: null,
 
-      setPrompts(
-        Array.isArray(profile?.prompts)
-          ? profile.prompts
-          : []
-      );
-    } catch (err) {
-      console.error(err);
-      setError(
-        err.message ||
-          "Could not connect to the profile server."
-      );
->>>>>>> Stashed changes
-    } finally {
-      setLoading(false);
-    }
+    promptId: null,
+
+  });
+
+
+
+  const [lastSkipped, setLastSkipped] = useState(null);
+
+
+
+  const currentProfile = profiles[currentIndex];
+
+
+
+  // =========================================================
+
+  // HELPERS
+
+  // =========================================================
+
+
+
+  const getImages = (profile) => {
+
+    if (!Array.isArray(profile?.images)) return [];
+
+
+
+    return profile.images
+
+      .filter(
+
+        (image) =>
+
+          typeof image === "string" &&
+
+          image.trim().length > 0
+
+      )
+
+      .slice(0, 6);
+
   };
 
-<<<<<<< Updated upstream
-  /* =======================================================
-     GENERIC STATE UPDATE
-  ======================================================= */
 
-  const updateProfileState = (updates) => {
-    setProfileData((prev) => ({
-      ...prev,
-      ...updates,
-    }));
 
-    // Clear old messages when user starts editing
-    setSuccess("");
-    setError("");
+  const getPrompts = (profile) => {
+
+    if (!Array.isArray(profile?.prompts)) return [];
+
+
+
+    return profile.prompts
+
+      .filter(
+
+        (prompt) =>
+
+          prompt &&
+
+          typeof prompt.question === "string" &&
+
+          typeof prompt.answer === "string" &&
+
+          prompt.question.trim() &&
+
+          prompt.answer.trim()
+
+      )
+
+      .slice(0, 6);
+
   };
 
-  /* =======================================================
-     DATE OF BIRTH
-  ======================================================= */
 
-  const handleDateChange = (value) => {
-    updateProfileState({
-      dateOfBirth: value,
-    });
-  };
-
-  /* =======================================================
-     INTRO
-  ======================================================= */
-
-  const handleIntroChange = (value) => {
-    if (value.length > 500) return;
-
-    updateProfileState({
-      intro: value,
-    });
-  };
-
-  /* =======================================================
-     INTERESTS
-  ======================================================= */
-
-  const toggleInterest = (interest) => {
-    setProfileData((prev) => {
-      const exists = prev.interests.includes(interest);
-
-      const updatedInterests = exists
-        ? prev.interests.filter(
-            (item) => item !== interest
-          )
-        : [...prev.interests, interest];
-
-      return {
-        ...prev,
-        interests: updatedInterests,
-      };
-    });
-
-    setSuccess("");
-    setError("");
-  };
-
-  const clearAllInterests = () => {
-    updateProfileState({
-      interests: [],
-    });
-  };
-
-  const visibleInterests = showMoreInterests
-    ? INTERESTS
-    : INTERESTS.slice(0, 16);
-
-  /* =======================================================
-     PROMPTS
-  ======================================================= */
-
-  const addPrompt = () => {
-    if (profileData.prompts.length >= 6) {
-      return;
-    }
-
-    updateProfileState({
-      prompts: [
-        ...profileData.prompts,
-        createEmptyPrompt(),
-      ],
-    });
-  };
-
-  const updatePrompt = (
-    index,
-    field,
-    value
-  ) => {
-    setProfileData((prev) => {
-      const prompts = [...prev.prompts];
-
-      prompts[index] = {
-        ...prompts[index],
-        [field]: value,
-      };
-
-      return {
-        ...prev,
-        prompts,
-      };
-    });
-
-    setSuccess("");
-    setError("");
-  };
-
-  const removePrompt = (index) => {
-    setProfileData((prev) => ({
-      ...prev,
-      prompts: prev.prompts.filter(
-        (_, i) => i !== index
-      ),
-    }));
-
-    setSuccess("");
-    setError("");
-  };
-
-  /* =======================================================
-     IMAGE HANDLING
-     
-     NOTE:
-     This stores image as base64 in React state.
-     Your backend can later receive it with Update Profile.
-  ======================================================= */
-
-  const openImagePicker = (index) => {
-    setActivePhotoIndex(index);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleImageChange = (event) => {
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setError("Please select a valid image.");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be smaller than 5MB.");
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const imageData = reader.result;
-
-      setProfileData((prev) => {
-        const images = [...prev.images];
-
-        images[activePhotoIndex] = imageData;
-
-        return {
-          ...prev,
-          images,
-        };
-      });
-
-      setSuccess("");
-      setError("");
-    };
-
-    reader.onerror = () => {
-      setError("Failed to read image.");
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  const removeImage = (index) => {
-    setProfileData((prev) => {
-      const images = [...prev.images];
-
-      images.splice(index, 1);
-
-      return {
-        ...prev,
-        images,
-      };
-    });
-
-    setSuccess("");
-    setError("");
-  };
-
-  /* =======================================================
-     UPDATE PROFILE
-     
-     THIS IS THE ONLY PLACE WHERE PROFILE DATA IS SENT
-     TO THE BACKEND.
-  ======================================================= */
-
-  const handleUpdateProfile = async () => {
-    try {
-      setSaving(true);
-      setError("");
-      setSuccess("");
-
-      /* -----------------------------------------------
-         CLEAN PROMPTS BEFORE SENDING
-      ------------------------------------------------ */
-
-      const cleanedPrompts =
-        profileData.prompts
-          .slice(0, 6)
-          .map((prompt) => ({
-            ...(prompt._id
-              ? { _id: prompt._id }
-              : {}),
-            question:
-              String(
-                prompt.question || ""
-              ).trim(),
-
-            answer:
-              String(
-                prompt.answer || ""
-              ).trim(),
-
-            type: [
-              "text",
-              "voice",
-              "video",
-              "poll",
-            ].includes(prompt.type)
-              ? prompt.type
-              : "text",
-          }))
-          .filter(
-            (prompt) =>
-              prompt.question ||
-              prompt.answer
-          );
-
-      /* -----------------------------------------------
-         PAYLOAD
-         
-         Username / branch / semester / college are
-         intentionally NOT included.
-      ------------------------------------------------ */
-
-      const payload = {
-        dateOfBirth:
-          profileData.dateOfBirth || null,
-
-        intro:
-          profileData.intro.trim(),
-
-        interests:
-          profileData.interests,
-
-        prompts:
-          cleanedPrompts,
-
-        images:
-          profileData.images,
-      };
-
-      console.log(
-        "Updating profile:",
-        payload
-      );
-
-      const res = await fetch(
-        "/api/updateprofile",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data.error ||
-            "Failed to update profile."
-=======
-  // --------------------------------------------------
-  // UPDATE PROFILE
-  // --------------------------------------------------
-
-  const updateProfile = async (updates) => {
-    try {
-      setSaving(true);
-      setError("");
-
-      const response = await fetch(
-        "/api/updateprofile",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updates),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data.error || "Could not update profile."
-        );
-      }
-
-      const updatedUser =
-        data.users || data.user || data.profile;
-
-      if (updatedUser) {
-        setUser(updatedUser);
-
-        setUsername(
-          updatedUser.username || ""
-        );
-
-        setBranch(
-          updatedUser.branch || ""
->>>>>>> Stashed changes
-        );
-
-        setSemester(
-          updatedUser.semester || ""
-        );
-
-        setIntro(
-          updatedUser.intro || ""
-        );
-
-        setInterests(
-          Array.isArray(updatedUser.interests)
-            ? updatedUser.interests
-            : []
-        );
-
-        setPrompts(
-          Array.isArray(updatedUser.prompts)
-            ? updatedUser.prompts
-            : []
-        );
-      } else {
-        await getProfile();
-      }
-
-<<<<<<< Updated upstream
-      /* -----------------------------------------------
-         UPDATE STATE WITH BACKEND RESPONSE
-      ------------------------------------------------ */
-
-      const updatedProfile =
-        data.user ||
-        data.profile ||
-        data.users;
-
-      if (updatedProfile) {
-        const normalized =
-          normalizeProfile(
-            updatedProfile
-          );
-
-        setUser({
-          username:
-            normalized.username,
-
-          branch:
-            normalized.branch,
-
-          semester:
-            normalized.semester,
-
-          college:
-            normalized.college,
-
-          gender:
-            normalized.gender,
-        });
-
-        setProfileData({
-          dateOfBirth:
-            normalized.dateOfBirth,
-
-          intro:
-            normalized.intro,
-
-          interests:
-            normalized.interests,
-
-          prompts:
-            normalized.prompts,
-
-          images:
-            normalized.images,
-        });
-      } else {
-        /* ---------------------------------------------
-           If backend doesn't return profile,
-           keep our current state but normalize prompts.
-        --------------------------------------------- */
-
-        setProfileData((prev) => ({
-          ...prev,
-          prompts: cleanedPrompts,
-        }));
-      }
-
-      setSuccess(
-        "Profile updated successfully."
-      );
-    } catch (err) {
-      console.error(
-        "Update profile error:",
-        err
-      );
-
-      setError(
-        err.message ||
-          "Something went wrong while updating your profile."
-=======
-      setEditing(null);
-    } catch (err) {
-      console.error(err);
-
-      setError(
-        err.message ||
-          "Could not update your profile."
->>>>>>> Stashed changes
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
-<<<<<<< Updated upstream
-  /* =======================================================
-     LOGOUT
-  ======================================================= */
-
-  const handleLogout = async () => {
-    try {
-      setLoggingOut(true);
-      setError("");
-
-      const res = await fetch(
-        "/api/logout",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data.error ||
-            "Logout failed."
-        );
-      }
-
-      window.location.href = "/login";
-    } catch (err) {
-      console.error(
-        "Logout error:",
-        err
-      );
-
-      setError(
-        err.message ||
-          "Unable to logout."
-      );
-
-      setLoggingOut(false);
-    }
-  };
-
-  /* =======================================================
-     AGE CALCULATOR
-  ======================================================= */
 
   const calculateAge = (dob) => {
+
     if (!dob) return null;
 
-    const birthDate =
-      new Date(dob);
 
-    if (Number.isNaN(
-      birthDate.getTime()
-    )) {
+
+    const birthDate = new Date(dob);
+
+
+
+    if (Number.isNaN(birthDate.getTime())) {
+
       return null;
+
     }
 
-    const today =
-      new Date();
+
+
+    const today = new Date();
+
+
 
     let age =
+
       today.getFullYear() -
+
       birthDate.getFullYear();
 
+
+
     const monthDifference =
+
       today.getMonth() -
+
       birthDate.getMonth();
 
+
+
     if (
+
       monthDifference < 0 ||
+
       (monthDifference === 0 &&
-        today.getDate() <
-          birthDate.getDate())
+
+        today.getDate() < birthDate.getDate())
+
     ) {
+
       age--;
+
     }
 
-    return age;
+
+
+    return age >= 0 ? age : null;
+
   };
 
-  const age = calculateAge(
-    profileData.dateOfBirth
-  );
 
-  /* =======================================================
-     LOADING
-  ======================================================= */
+
+  // =========================================================
+
+  // GET PROFILES
+
+  // =========================================================
+
+
+
+  const getProfiles = async () => {
+
+    try {
+
+      setLoading(true);
+
+      setError("");
+
+
+
+      const response = await fetch(
+
+        "/api/chatgptroute",
+
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type": "application/json",
+
+          },
+
+          credentials: "include",
+
+          body: JSON.stringify({
+
+            action: "discover",
+
+            limit: 10,
+
+          }),
+
+        }
+
+      );
+
+
+
+      const data = await response.json();
+
+
+
+      console.log("DISCOVERY RESPONSE:", data);
+
+
+
+      if (!response.ok || !data.success) {
+
+        if (response.status === 401 || data.redirect) {
+
+          window.location.href =
+
+            data.url || "/login";
+
+          return;
+
+        }
+
+
+
+        throw new Error(
+
+          data.message ||
+
+            data.error ||
+
+            "Failed to load profiles."
+
+        );
+
+      }
+
+
+
+      // Only keep profiles compatible with new schema
+
+      const validProfiles = (data.users || [])
+
+        .map((profile) => ({
+
+          ...profile,
+
+          images: getImages(profile),
+
+          prompts: getPrompts(profile),
+
+          interests: Array.isArray(profile.interests)
+
+            ? profile.interests
+
+            : [],
+
+        }))
+
+        .filter(
+
+          (profile) =>
+
+            profile.images.length >= 3 &&
+
+            profile.images.length <= 6 &&
+
+            profile.prompts.length >= 3 &&
+
+            profile.prompts.length <= 6
+
+        );
+
+
+
+      setProfiles(validProfiles);
+
+      setCurrentIndex(0);
+
+      setPhotoIndex(0);
+
+    } catch (error) {
+
+      console.error(
+
+        "DISCOVERY ERROR:",
+
+        error
+
+      );
+
+
+
+      setError(
+
+        error.message ||
+
+          "Could not load profiles."
+
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+
+
+  // =========================================================
+
+  // INITIAL LOAD
+
+  // =========================================================
+
+
+
+  useEffect(() => {
+
+    getProfiles();
+
+  }, []);
+
+
+
+  // =========================================================
+
+  // NEXT PROFILE
+
+  // =========================================================
+
+
+
+  const nextProfile = () => {
+
+    setPhotoIndex(0);
+
+    setShowMenu(false);
+
+    setShowReport(false);
+
+    setShowComment(false);
+
+    setComment("");
+
+
+
+    setCurrentIndex(
+
+      (current) => current + 1
+
+    );
+
+  };
+
+
+
+  // =========================================================
+
+  // REMOVE CURRENT PROFILE
+
+  // =========================================================
+
+
+
+  const removeCurrentProfile = () => {
+
+    setProfiles((currentProfiles) =>
+
+      currentProfiles.filter(
+
+        (_, index) =>
+
+          index !== currentIndex
+
+      )
+
+    );
+
+
+
+    setPhotoIndex(0);
+
+  };
+
+
+
+  // =========================================================
+
+  // SKIP
+
+  // =========================================================
+
+
+
+  const skipProfile = async () => {
+
+    if (!currentProfile || processing) {
+
+      return;
+
+    }
+
+
+
+    try {
+
+      setProcessing(true);
+
+
+
+      const response = await fetch(
+
+        "/api/",
+
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+
+              "application/json",
+
+          },
+
+          body: JSON.stringify({
+
+            action: "skip",
+
+            profileId:
+
+              currentProfile._id,
+
+          }),
+
+        }
+
+      );
+
+
+
+      // Keep existing behavior.
+
+      // If your skip route returns an error,
+
+      // uncomment validation below.
+
+
+
+      /*
+
+      const data = await response.json();
+
+
+
+      if (!response.ok || !data.success) {
+
+        throw new Error(
+
+          data.message ||
+
+            "Could not skip profile."
+
+        );
+
+      }
+
+      */
+
+
+
+      setLastSkipped({
+
+        profile: currentProfile,
+
+        index: currentIndex,
+
+      });
+
+
+
+      removeCurrentProfile();
+
+    } catch (error) {
+
+      console.error(error);
+
+
+
+      alert(
+
+        error.message ||
+
+          "Could not skip this profile."
+
+      );
+
+    } finally {
+
+      setProcessing(false);
+
+    }
+
+  };
+
+
+
+  // =========================================================
+
+  // UNDO SKIP
+
+  // =========================================================
+
+
+
+  const undoSkip = async () => {
+
+    if (!lastSkipped || processing) {
+
+      return;
+
+    }
+
+
+
+    try {
+
+      setProcessing(true);
+
+
+
+      const response = await fetch(
+
+        "/api/",
+
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+
+              "application/json",
+
+          },
+
+          body: JSON.stringify({
+
+            action: "undo",
+
+            profileId:
+
+              lastSkipped.profile._id,
+
+          }),
+
+        }
+
+      );
+
+
+
+      const data =
+
+        await response.json();
+
+
+
+      if (!response.ok || !data.success) {
+
+        throw new Error(
+
+          data.message ||
+
+            "Could not undo skip."
+
+        );
+
+      }
+
+
+
+      setProfiles((currentProfiles) => {
+
+        const updated = [
+
+          ...currentProfiles,
+
+        ];
+
+
+
+        updated.splice(
+
+          Math.min(
+
+            lastSkipped.index,
+
+            updated.length
+
+          ),
+
+          0,
+
+          lastSkipped.profile
+
+        );
+
+
+
+        return updated;
+
+      });
+
+
+
+      setCurrentIndex(
+
+        Math.min(
+
+          lastSkipped.index,
+
+          profiles.length
+
+        )
+
+      );
+
+
+
+      setLastSkipped(null);
+
+    } catch (error) {
+
+      console.error(error);
+
+
+
+      alert(
+
+        error.message ||
+
+          "Could not undo."
+
+      );
+
+    } finally {
+
+      setProcessing(false);
+
+    }
+
+  };
+
+
+
+  // =========================================================
+
+  // LIKE PROFILE
+
+  // =========================================================
+
+
+
+  const likeProfile = () => {
+
+    if (!currentProfile || processing) {
+
+      return;
+
+    }
+
+
+
+    setLikeTarget({
+
+      type: "profile",
+
+      id: String(currentProfile._id),
+
+      photoIndex: null,
+
+      promptId: null,
+
+    });
+
+
+
+    setShowComment(true);
+
+  };
+
+
+
+  // =========================================================
+
+  // LIKE PHOTO
+
+  // =========================================================
+
+
+
+  const likePhoto = (index) => {
+
+    if (!currentProfile || processing) {
+
+      return;
+
+    }
+
+
+
+    const photos =
+
+      getImages(currentProfile);
+
+
+
+    if (!photos[index]) {
+
+      return;
+
+    }
+
+
+
+    setLikeTarget({
+
+      type: "photo",
+
+      id: String(currentProfile._id),
+
+      photoIndex: index,
+
+      promptId: null,
+
+    });
+
+
+
+    setShowComment(true);
+
+  };
+
+
+
+  // =========================================================
+
+  // LIKE PROMPT
+
+  // =========================================================
+
+
+
+  const likePrompt = (prompt, index) => {
+
+    if (!currentProfile || processing) {
+
+      return;
+
+    }
+
+
+
+    setLikeTarget({
+
+      type: "prompt",
+
+      id: String(currentProfile._id),
+
+      photoIndex: null,
+
+      promptId:
+
+        prompt?._id ||
+
+        String(index),
+
+    });
+
+
+
+    setShowComment(true);
+
+  };
+
+
+
+  // =========================================================
+
+  // SUBMIT LIKE
+
+  // =========================================================
+
+
+
+  const submitLike = async () => {
+
+    if (
+
+      !currentProfile ||
+
+      processing
+
+    ) {
+
+      return;
+
+    }
+
+
+
+    try {
+
+      setProcessing(true);
+
+
+
+      const photos =
+
+        getImages(currentProfile);
+
+
+
+      const response = await fetch(
+
+        "/api/discoverFunctions/likes",
+
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+
+              "application/json",
+
+          },
+
+          credentials: "include",
+
+
+
+          body: JSON.stringify({
+
+            action: "like",
+
+
+
+            targetType:
+
+              likeTarget.type,
+
+
+
+            targetId:
+
+              String(currentProfile._id),
+
+
+
+            targetIdphoto:
+
+              likeTarget.type === "photo"
+
+                ? photos[
+
+                    likeTarget.photoIndex
+
+                  ] || null
+
+                : photos[0] || null,
+
+
+
+            targetIdName:
+
+              currentProfile.username,
+
+
+
+            comment:
+
+              comment.trim(),
+
+          }),
+
+        }
+
+      );
+
+
+
+      const data =
+
+        await response.json();
+
+
+
+      console.log(
+
+        "LIKE RESPONSE:",
+
+        data
+
+      );
+
+
+
+      if (
+
+        data.message ===
+
+        "You already Liked this profile"
+
+      ) {
+
+        setError(
+
+          "You already liked this profile."
+
+        );
+
+
+
+        setShowComment(false);
+
+
+
+        setTimeout(() => {
+
+          setError("");
+
+          nextProfile();
+
+        }, 1500);
+
+
+
+        return;
+
+      }
+
+
+
+      if (
+
+        !response.ok ||
+
+        !data.success
+
+      ) {
+
+        throw new Error(
+
+          data.message ||
+
+            data.error ||
+
+            "Could not send like."
+
+        );
+
+      }
+
+
+
+      setShowComment(false);
+
+      setComment("");
+
+
+
+      nextProfile();
+
+    } catch (error) {
+
+      console.error(
+
+        "LIKE ERROR:",
+
+        error
+
+      );
+
+
+
+      setError(
+
+        error.message ||
+
+          "Could not send like."
+
+      );
+
+
+
+      setTimeout(() => {
+
+        setError("");
+
+      }, 3000);
+
+    } finally {
+
+      setProcessing(false);
+
+    }
+
+  };
+
+
+
+  // =========================================================
+
+  // BLOCK
+
+  // =========================================================
+
+
+
+  const blockProfile = async () => {
+
+    if (!currentProfile || processing) {
+
+      return;
+
+    }
+
+
+
+    const confirmed = window.confirm(
+
+      "Block this profile? You won't see them again."
+
+    );
+
+
+
+    if (!confirmed) {
+
+      return;
+
+    }
+
+
+
+    try {
+
+      setProcessing(true);
+
+
+
+      const response = await fetch(
+
+        "/api/discoverFunctions/blocked",
+
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+
+              "application/json",
+
+          },
+
+          body: JSON.stringify({
+
+            profileId:
+
+              currentProfile._id,
+
+          }),
+
+        }
+
+      );
+
+
+
+      const data =
+
+        await response.json();
+
+
+
+      if (
+
+        !response.ok ||
+
+        !data.success
+
+      ) {
+
+        throw new Error(
+
+          data.message ||
+
+            "Could not block profile."
+
+        );
+
+      }
+
+
+
+      setShowMenu(false);
+
+
+
+      removeCurrentProfile();
+
+    } catch (error) {
+
+      console.error(
+
+        "BLOCK ERROR:",
+
+        error
+
+      );
+
+
+
+      alert(
+
+        error.message ||
+
+          "Could not block profile."
+
+      );
+
+    } finally {
+
+      setProcessing(false);
+
+    }
+
+  };
+
+
+
+  // =========================================================
+
+  // REPORT
+
+  // =========================================================
+
+
+
+  const reportProfile = async (reason) => {
+
+    if (!currentProfile || processing) {
+
+      return;
+
+    }
+
+
+
+    try {
+
+      setProcessing(true);
+
+
+
+      const response = await fetch(
+
+        "/api/",
+
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+
+              "application/json",
+
+          },
+
+          body: JSON.stringify({
+
+            action: "report",
+
+            profileId:
+
+              currentProfile._id,
+
+            reason,
+
+          }),
+
+        }
+
+      );
+
+
+
+      const data =
+
+        await response.json();
+
+
+
+      if (
+
+        !response.ok ||
+
+        !data.success
+
+      ) {
+
+        throw new Error(
+
+          data.message ||
+
+            "Could not report profile."
+
+        );
+
+      }
+
+
+
+      setShowReport(false);
+
+      setShowMenu(false);
+
+
+
+      removeCurrentProfile();
+
+
+
+      alert(
+
+        "Thank you. This profile has been reported."
+
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+
+
+      alert(
+
+        error.message ||
+
+          "Could not report profile."
+
+      );
+
+    } finally {
+
+      setProcessing(false);
+
+    }
+
+  };
+
+
+
+  // =========================================================
+
+  // PHOTO NAVIGATION
+
+  // =========================================================
+
+
+
+  const nextPhoto = () => {
+
+    if (!currentProfile) {
+
+      return;
+
+    }
+
+
+
+    const photos =
+
+      getImages(currentProfile);
+
+
+
+    if (!photos.length) {
+
+      return;
+
+    }
+
+
+
+    setPhotoIndex(
+
+      (current) =>
+
+        (current + 1) %
+
+        photos.length
+
+    );
+
+  };
+
+
+
+  const previousPhoto = () => {
+
+    if (!currentProfile) {
+
+      return;
+
+    }
+
+
+
+    const photos =
+
+      getImages(currentProfile);
+
+
+
+    if (!photos.length) {
+
+      return;
+
+    }
+
+
+
+    setPhotoIndex(
+
+      (current) =>
+
+        (current - 1 + photos.length) %
+
+        photos.length
+
+    );
+
+  };
+
+
+
+  // =========================================================
+
+  // LOADING
+
+  // =========================================================
+
+
 
   if (loading) {
+
     return (
-      <main className="min-h-screen inset-0 z-60 fixed bg-[#fffaf2] flex items-center justify-center">
+
+      <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center">
+
         <div className="text-center">
-          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#741337]/20 border-t-[#741337]" />
 
-          <p className="text-sm text-[#741337]/60">
-            Loading your profile...
-=======
-  // --------------------------------------------------
-  // SAVE BASIC PROFILE
-  // --------------------------------------------------
+          <div className="w-10 h-10 border-4 border-[#4a1525]/20 border-t-[#4a1525] rounded-full animate-spin mx-auto" />
 
-  const saveBasicProfile = () => {
-    updateProfile({
-      username,
-      branch,
-      semester,
-      intro,
-    });
-  };
 
-  // --------------------------------------------------
-  // SAVE INTERESTS
-  // --------------------------------------------------
 
-  const saveInterests = () => {
-    updateProfile({
-      interests,
-    });
-  };
+          <p className="mt-4 text-gray-600">
 
-  // --------------------------------------------------
-  // SAVE PROMPT
-  // --------------------------------------------------
+            Finding people for you...
 
-  const savePrompt = (index, question, answer) => {
-    const updatedPrompts = [...prompts];
-
-    updatedPrompts[index] = {
-      ...updatedPrompts[index],
-      question,
-      answer,
-    };
-
-    setPrompts(updatedPrompts);
-
-    updateProfile({
-      prompts: updatedPrompts,
-    });
-  };
-
-  // --------------------------------------------------
-  // REMOVE INTEREST
-  // --------------------------------------------------
-
-  const removeInterest = (interest) => {
-    const updated = interests.filter(
-      (item) => item !== interest
-    );
-
-    setInterests(updated);
-
-    updateProfile({
-      interests: updated,
-    });
-  };
-
-  if (loading) {
-    return (
-      <main className="h-dvh overflow-hidden bg-[#fffaf2]">
-        <div className="fixed inset-0 z-10">
-          <Background />
-        </div>
-
-        <div className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[500px] items-center justify-center bg-white">
-          <p className="text-sm text-[#741337]">
-            Loading profile...
->>>>>>> Stashed changes
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-<<<<<<< Updated upstream
-  /* =======================================================
-     PAGE
-  ======================================================= */
-// text-[#741337]
-  return (
-    <main className="min-h-screen inset-0 z-50 fixed overflow-y-auto  [&::-webkit-scrollbar]:hidden px-4 py-8 text-white sm:px-6 lg:px-8">
-      
-      <div className="mx-auto max-w-2xl">
-
-        {/* =================================================
-            HEADER
-        ================================================= */}
-        
-        <div className="mb-8">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-red-400">
-            Your profile
           </p>
 
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Edit Profile
-          </h1>
-
-          <p className="mt-2 max-w-xl text-sm leading-6 text-red-400">
-            {/* Make your profile feel more like you.
-            Changes will only be saved when you
-            press Update Profile. */}
-          </p>
         </div>
 
-        {/* =================================================
-            ERROR
-        ================================================= */}
-
-        {error && (
-          <div className="mb-5 rounded-2xl  border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-
-        {/* =================================================
-            SUCCESS
-        ================================================= */}
-
-        {success && (
-          <div className="mb-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {success}
-          </div>
-        )}
-
-        {/* =================================================
-            PROFILE CARD
-        ================================================= */}
-
-        <section className="rounded-[28px] border border-[#741337]/8 bg-white text-[#741337] p-5 shadow-[0_10px_40px_rgba(116,19,55,0.06)] sm:p-7">
-          <div className="flex "><div><button onClick={()=>router.push("/testroute")}><ArrowLeft/></button></div><div className="mx-2"><h1><a href="/testroute">Get Back to explore Page</a></h1></div></div>
-          {/* ===============================================
-              PHOTOS
-          =============================================== */}
-
-          <ProfileSection 
-          
-            number="01"
-            title="Photos"
-            description="Choose the photos people will see on your profile."
-          >
-
-            <div className="grid grid-cols-3  gap-3 sm:grid-cols-6">
-
-              {Array.from({
-                length: 6,
-              }).map((_, index) => {
-                const image =
-                  profileData.images[
-                    index
-                  ];
-
-                return (
-                  <div
-                    key={index}
-                    className="relative aspect-[3/4]"
-                  >
-                    {image ? (
-                      <div className="group relative h-full w-full overflow-hidden rounded-2xl bg-[#f7efe8]">
-
-                        <img
-                          src={image}
-                          alt={`Profile photo ${
-                            index + 1
-                          }`}
-                          className="h-full w-full object-cover"
-                        />
-
-                        <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition group-hover:opacity-100">
-                          <div className="mb-2 flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                openImagePicker(
-                                  index
-                                )
-                              }
-                              className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#741337] "
-                            >
-                              Change
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                removeImage(
-                                  index
-                                )
-                              }
-                              className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-red-600"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openImagePicker(
-                            index
-                          )
-                        }
-                        className="flex h-full w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#741337]/15 bg-[#fffaf2] text-[#741337]/50 transition hover:border-[#741337]/35 hover:bg-[#fdf3e9]"
-                      >
-                        <span className="text-2xl">
-                          +
-                        </span>
-
-                        <span className="mt-1 text-[11px]">
-                          Add
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-
-            </div>
-
-            <p className="mt-3 text-xs text-[#741337]/40">
-              Maximum 5MB per image.
-            </p>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-          </ProfileSection>
-
-          {/* ===============================================
-              BASIC INFORMATION
-          =============================================== */}
-
-          <ProfileSection
-            number="02"
-            title="Basic Information"
-            description="Some account information is fixed and cannot be edited here."
-          >
-
-            <div className="grid gap-4 sm:grid-cols-2">
-
-              {/* Username */}
-
-              <LockedField
-                label="Username"
-                value={
-                  user.username
-                }
-              />
-
-              {/* Branch */}
-
-              <LockedField
-                label="Branch"
-                value={
-                  user.branch
-                }
-              />
-
-              {/* Semester */}
-
-              <LockedField
-                label="Year / Semester"
-                value={
-                  user.semester
-                }
-              />
-
-              {/* College */}
-
-              <LockedField
-                label="College"
-                value={
-                  user.college
-                }
-              />
-
-            </div>
-          </ProfileSection>
-
-          {/* ===============================================
-              AGE / DOB
-          =============================================== */}
-
-          <ProfileSection
-            number="03"
-            title="Age"
-            description="Your date of birth is used to calculate your age."
-          >
-
-            <div className="grid gap-4 sm:grid-cols-2">
-
-              <div>
-                <label className="mb-2 block text-sm font-medium">
-                  Date of Birth
-                </label>
-
-                <input
-                  type="date"
-                  value={
-                    profileData.dateOfBirth
-                  }
-                  onChange={(e) =>
-                    handleDateChange(
-                      e.target.value
-                    )
-                  }
-                  className="w-full rounded-2xl border border-[#741337]/10 bg-[#fffaf2] px-4 py-3 text-sm outline-none transition focus:border-[#741337]/30"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium">
-                  Age
-                </label>
-
-                <div className="flex h-[46px] items-center rounded-2xl border border-[#741337]/10 bg-[#f7efe8] px-4 text-sm">
-                  {age !== null
-                    ? `${age} years`
-                    : "Select your date of birth"}
-                </div>
-              </div>
-=======
-  return (
-    <main className="h-dvh overflow-hidden bg-[#fffaf2]">
-      <div className="fixed inset-0 z-10">
-        <Background />
       </div>
 
-      <div className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[500px] flex-col bg-white">
+    );
 
-        {/* ================= HEADER ================= */}
+  }
 
-        <div className="flex shrink-0 items-center justify-between border-b border-[#741337]/10 px-4 py-3">
 
-          <a href="/testroute">
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[#741337] hover:bg-[#fff0df]"
-            >
-              <ArrowLeft size={20} />
-            </button>
-          </a>
 
-          <h1 className="font-serif text-xl font-bold text-[#24151a]">
-            My Profile
-          </h1>
+  // =========================================================
 
-          <div className="w-9" />
+  // ERROR
+
+  // =========================================================
+
+
+
+  if (error && !currentProfile) {
+
+    return (
+
+      <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center px-6">
+
+        <div className="text-center">
+
+          <h2 className="text-xl font-bold text-[#4a1525]">
+
+            {error}
+
+          </h2>
+
+
+
+          <button
+
+            onClick={getProfiles}
+
+            className="mt-5 px-6 py-3 rounded-full bg-[#4a1525] text-white font-semibold"
+
+          >
+
+            Try Again
+
+          </button>
 
         </div>
 
-        {/* ================= SCROLL AREA ================= */}
+      </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-8">
+    );
 
-          {/* ================= ERROR ================= */}
+  }
 
-          {error && (
-            <div className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-center text-xs text-red-500">
-              {error}
+
+
+  // =========================================================
+
+  // NO MORE PROFILES
+
+  // =========================================================
+
+
+
+  if (!currentProfile) {
+
+    return (
+
+      <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
+
+        <div className="flex-1 flex items-center justify-center px-6">
+
+          <div className="text-center max-w-sm">
+
+            <div className="text-6xl mb-5">
+
+              💜
+
             </div>
-          )}
 
-          {/* ================= PHOTOS ================= */}
 
-          <section className="mt-5">
 
-            <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-2xl font-extrabold text-[#4a1525]">
 
-              <div>
-                <h2 className="font-serif text-lg font-bold text-[#741337]">
-                  Your Photos
-                </h2>
+              You've reached the end
 
-                <p className="text-[10px] text-[#24151a]/45">
-                  Show your best moments
-                </p>
-              </div>
+            </h2>
 
-              <Camera
-                size={18}
-                className="text-[#741337]"
+
+
+            <p className="mt-3 text-gray-600">
+
+              You've seen everyone
+
+              available right now.
+
+              Check back later for
+
+              new people.
+
+            </p>
+
+
+
+            <button
+
+              onClick={getProfiles}
+
+              className="mt-6 px-7 py-3 rounded-full bg-[#4a1525] text-white font-semibold"
+
+            >
+
+              Refresh
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+
+        <Navbar />
+
+      </div>
+
+    );
+
+  }
+
+
+
+  // =========================================================
+
+  // CURRENT DATA
+
+  // =========================================================
+
+
+
+  const photos =
+
+    getImages(currentProfile);
+
+
+
+  const prompts =
+
+    getPrompts(currentProfile);
+
+
+
+  const interests =
+
+    Array.isArray(currentProfile.interests)
+
+      ? currentProfile.interests
+
+      : [];
+
+
+
+  const age =
+
+    currentProfile.age ??
+
+    calculateAge(
+
+      currentProfile.dateOfBirth
+
+    );
+
+
+
+  const currentImage =
+
+    photos[photoIndex] ||
+
+    photos[0] ||
+
+    "/default-profile.jpg";
+
+
+
+  // =========================================================
+
+  // MAIN UI
+
+  // =========================================================
+
+
+
+  return (
+
+    <div className="flex justify-center bg-[#fdfbf7]">
+
+      <div className="min-h-screen w-full max-w-md bg-[#fdfbf7]">
+
+        <div className="max-w-md mx-auto min-h-screen">
+
+
+
+          {/* =================================================
+
+              HEADER
+
+          ================================================= */}
+
+
+
+          <div className="flex items-center justify-between px-5 pt-7 pb-4">
+
+            <div>
+
+              <h1 className="text-2xl font-black text-[#4a1525]">
+
+                Raas Mitra
+
+              </h1>
+
+
+
+              <p className="text-xs text-gray-500 mt-1">
+
+                Discover people
+
+              </p>
+
+            </div>
+
+
+
+            <button
+
+              onClick={() =>
+
+                setShowMenu(
+
+                  (current) => !current
+
+                )
+
+              }
+
+              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5"
+
+            >
+
+              <FiMoreHorizontal
+
+                size={25}
+
               />
 
-            </div>
+            </button>
 
-            <div className="grid grid-cols-3 gap-2">
+          </div>
 
-              {Array.from({
-                length: 6,
-              }).map((_, index) => {
 
-                const photo =
-                  user?.images?.[index];
 
-                return (
-                  <div
-                    key={index}
-                    className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-[#741337]/10 bg-[#fffaf2]"
+          {/* =================================================
+
+              PROFILE CARD
+
+          ================================================= */}
+
+
+
+          <div className="px-4 pb-32">
+
+            <div
+
+              key={currentProfile._id}
+
+              className="bg-white rounded-[28px] overflow-hidden shadow-lg border border-gray-100"
+
+            >
+
+
+
+              {/* =================================================
+
+                  PROFILE HEADER
+
+              ================================================= */}
+
+
+
+              <div className="px-5 pt-5 pb-4">
+
+                <div className="flex items-start justify-between">
+
+
+
+                  <div>
+
+                    <div className="flex items-center gap-2">
+
+                      <h2 className="text-3xl font-black text-gray-900">
+
+                        {currentProfile.username}
+
+                      </h2>
+
+
+
+                      {age !== null && (
+
+                        <span className="text-2xl font-medium text-gray-500">
+
+                          {age}
+
+                        </span>
+
+                      )}
+
+                    </div>
+
+
+
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-500">
+
+                      {currentProfile.branch && (
+
+                        <span>
+
+                          {currentProfile.branch}
+
+                        </span>
+
+                      )}
+
+
+
+                      {currentProfile.semester && (
+
+                        <>
+
+                          <span>•</span>
+
+                          <span>
+
+                            {currentProfile.semester}
+
+                          </span>
+
+                        </>
+
+                      )}
+
+                    </div>
+
+                  </div>
+
+
+
+                  <button
+
+                    onClick={() =>
+
+                      setShowMenu(
+
+                        (current) =>
+
+                          !current
+
+                      )
+
+                    }
+
+                    className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center shrink-0"
+
                   >
 
-                    {photo ? (
-                      <>
-                        <img
-                          src={photo}
-                          alt={`Profile ${index + 1}`}
-                          className="h-full w-full object-cover"
-                        />
+                    <FiMoreHorizontal />
 
-                        <button
-                          type="button"
-                          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white"
+                  </button>
+
+                </div>
+
+              </div>
+
+
+
+              {/* =================================================
+                  DYNAMIC PHOTO → PROMPT TIMELINE
+
+                  Photo 1
+                  Prompt 1
+                  Photo 2
+                  Prompt 2
+                  Photo 3
+                  Prompt 3
+                  Photo 4
+                  Prompt 4
+                  Photo 5
+                  Prompt 5
+                  Photo 6
+                  Prompt 6
+              ================================================= */}
+
+              <div className="px-5">
+                {Array.from({
+                  length: Math.max(photos.length, prompts.length),
+                }).map((_, index) => (
+                  <React.Fragment key={`timeline-${index}`}>
+                    {photos[index] && (
+                      <PhotoCard
+                        image={photos[index]}
+                        username={currentProfile.username}
+                        photoIndex={index}
+                        totalPhotos={photos.length}
+                        onPrevious={() => {}}
+                        onNext={() => {}}
+                        onLike={() => likePhoto(index)}
+                        showNavigation={false}
+                      />
+                    )}
+
+                    {prompts[index] && (
+                      <PromptCard
+                        prompt={prompts[index]}
+                        index={index}
+                        onLike={() =>
+                          likePrompt(prompts[index], index)
+                        }
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              {/* =================================================
+
+                  INTRO
+
+              ================================================= */}
+
+
+
+              {currentProfile.intro && (
+
+                <div className="px-5 pt-7">
+
+                  <SectionTitle>
+
+                    About
+
+                  </SectionTitle>
+
+
+
+                  <div className="rounded-2xl bg-[#fdfbf7] border border-gray-100 p-5">
+
+                    <p className="text-[15px] leading-7 text-gray-700">
+
+                      {currentProfile.intro}
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              )}
+
+
+
+              {/* =================================================
+
+                  INTERESTS
+
+              ================================================= */}
+
+
+
+              {interests.length > 0 && (
+
+                <div className="px-5 pt-7">
+
+                  <SectionTitle>
+
+                    Interests
+
+                  </SectionTitle>
+
+
+
+                  <div className="flex flex-wrap gap-2">
+
+                    {interests.map(
+
+                      (interest) => (
+
+                        <span
+
+                          key={interest}
+
+                          className="rounded-full border border-[#741337]/10 bg-[#fffaf2] px-4 py-2 text-sm text-[#741337]"
+
                         >
-                          <Pencil size={12} />
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        className="flex h-full w-full flex-col items-center justify-center text-[#741337]/50"
-                      >
-                        <Plus size={23} />
 
-                        <span className="mt-1 text-[9px]">
-                          Add photo
+                          {interest}
+
                         </span>
-                      </button>
+
+                      )
+
                     )}
 
                   </div>
-                );
-              })}
+
+                </div>
+
+              )}
+
+
+
+              {/* =================================================
+
+                  BASIC DETAILS
+
+              ================================================= */}
+
+
+
+              <div className="px-5 pt-7 pb-7">
+
+                <SectionTitle>
+
+                  Details
+
+                </SectionTitle>
+
+
+
+                <div className="grid grid-cols-2 gap-3">
+
+
+
+                  {currentProfile.college && (
+
+                    <InfoBox
+
+                      label="College"
+
+                      value={
+
+                        currentProfile.college
+
+                      }
+
+                    />
+
+                  )}
+
+
+
+                  {currentProfile.branch && (
+
+                    <InfoBox
+
+                      label="Branch"
+
+                      value={
+
+                        currentProfile.branch
+
+                      }
+
+                    />
+
+                  )}
+
+
+
+                  {currentProfile.semester && (
+
+                    <InfoBox
+
+                      label="Semester"
+
+                      value={
+
+                        currentProfile.semester
+
+                      }
+
+                    />
+
+                  )}
+
+
+
+                  {currentProfile.gender && (
+
+                    <InfoBox
+
+                      label="Gender"
+
+                      value={
+
+                        currentProfile.gender
+
+                      }
+
+                    />
+
+                  )}
+
+
+
+                  {currentProfile.height && (
+
+                    <InfoBox
+
+                      label="Height"
+
+                      value={`${currentProfile.height} cm`}
+
+                    />
+
+                  )}
+
+
+
+                  {age !== null && (
+
+                    <InfoBox
+
+                      label="Age"
+
+                      value={`${age} years`}
+
+                    />
+
+                  )}
+
+                </div>
+
+              </div>
+
+
+
+              {/* =================================================
+
+                  PROFILE LIKE
+
+              ================================================= */}
+
+
+
+              <div className="px-5 pb-7">
+
+                <button
+
+                  onClick={
+
+                    likeProfile
+
+                  }
+
+                  disabled={processing}
+
+                  className="w-full rounded-2xl bg-[#741337] py-4 text-white font-semibold shadow-lg hover:bg-[#62102e] transition disabled:opacity-50"
+
+                >
+
+                  <span className="flex items-center justify-center gap-2">
+
+                    <FiHeart
+
+                      size={20}
+
+                    />
+
+                    Like this profile
+
+                  </span>
+
+                </button>
+
+              </div>
+
+
 
             </div>
 
-          </section>
+          </div>
 
-          {/* ================= BASIC INFO ================= */}
+        </div>
 
-          <section className="mt-6">
 
-            <div className="mb-2 flex items-center justify-between">
 
-              <h2 className="font-serif text-lg font-bold text-[#741337]">
-                About You
-              </h2>
+        {/* =====================================================
+
+            MORE MENU
+
+        ===================================================== */}
+
+
+
+        {showMenu && (
+
+          <div className="fixed inset-0 z-50">
+
+            <div
+
+              className="absolute inset-0 bg-black/20"
+
+              onClick={() =>
+
+                setShowMenu(false)
+
+              }
+
+            />
+
+
+
+            <div className="absolute right-4 top-20 w-64 rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden">
+
+
 
               <button
-                type="button"
-                onClick={() =>
-                  setEditing("basic")
-                }
-                className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
+
+                onClick={() => {
+
+                  setShowMenu(false);
+
+                  skipProfile();
+
+                }}
+
+                disabled={processing}
+
+                className="w-full px-5 py-4 flex items-center gap-3 text-left hover:bg-gray-50"
+
               >
-                <Pencil size={13} />
-                Edit
-              </button>
->>>>>>> Stashed changes
 
-            </div>
-          </ProfileSection>
+                <FiChevronRight />
 
-<<<<<<< Updated upstream
-          {/* ===============================================
-              INTRO
-          =============================================== */}
+                <span>
 
-          <ProfileSection
-            number="04"
-            title="About You"
-            description="Give people a small idea of who you are."
-          >
+                  Skip profile
 
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                Intro
-              </label>
-
-              <textarea
-                value={
-                  profileData.intro
-                }
-                onChange={(e) =>
-                  handleIntroChange(
-                    e.target.value
-                  )
-                }
-                maxLength={500}
-                rows={5}
-                placeholder="Tell people something about yourself..."
-                className="w-full resize-none rounded-2xl border border-[#741337]/10 bg-[#fffaf2] px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[#741337]/30 focus:border-[#741337]/30"
-              />
-
-              <div className="mt-2 text-right text-xs text-[#741337]/35">
-                {
-                  profileData.intro
-                    .length
-                }
-                /500
-=======
-            <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
-
-              <h3 className="font-serif text-[23px] font-bold text-[#741337]">
-                {username || "Your name"}
-              </h3>
-
-              <p className="mt-1 text-xs text-[#24151a]/55">
-                {semester || "Semester"}
-
-                <span className="mx-1.5 text-[#ed7137]">
-                  •
                 </span>
 
-                {branch || "Branch"}
+              </button>
+
+
+
+              {lastSkipped && (
+
+                <button
+
+                  onClick={() => {
+
+                    setShowMenu(false);
+
+                    undoSkip();
+
+                  }}
+
+                  disabled={processing}
+
+                  className="w-full px-5 py-4 flex items-center gap-3 text-left hover:bg-gray-50"
+
+                >
+
+                  <FiChevronLeft />
+
+                  <span>
+
+                    Undo last skip
+
+                  </span>
+
+                </button>
+
+              )}
+
+
+
+              <button
+
+                onClick={() => {
+
+                  setShowReport(true);
+
+                }}
+
+                disabled={processing}
+
+                className="w-full px-5 py-4 flex items-center gap-3 text-left hover:bg-gray-50"
+
+              >
+
+                <FiFlag />
+
+                <span>
+
+                  Report profile
+
+                </span>
+
+              </button>
+
+
+
+              <button
+
+                onClick={blockProfile}
+
+                disabled={processing}
+
+                className="w-full px-5 py-4 flex items-center gap-3 text-left text-red-600 hover:bg-red-50"
+
+              >
+
+                <FiSlash />
+
+                <span>
+
+                  Block profile
+
+                </span>
+
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+
+
+        {/* =====================================================
+
+            REPORT MODAL
+
+        ===================================================== */}
+
+
+
+        {showReport && (
+
+          <div className="fixed inset-0 z-[60] bg-black/40 flex items-end sm:items-center justify-center p-4">
+
+            <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl">
+
+
+
+              <div className="flex items-center justify-between mb-5">
+
+                <h3 className="text-xl font-bold text-[#4a1525]">
+
+                  Report profile
+
+                </h3>
+
+
+
+                <button
+
+                  onClick={() =>
+
+                    setShowReport(false)
+
+                  }
+
+                  className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"
+
+                >
+
+                  <FiX />
+
+                </button>
+
+              </div>
+
+
+
+              <p className="text-sm text-gray-500 mb-5">
+
+                Why are you reporting
+
+                this profile?
+
               </p>
 
-              {intro && (
-                <div className="mt-3 rounded-xl bg-[#fffaf2] px-3 py-3">
 
-                  <p className="text-xs italic leading-5 text-[#24151a]/65">
-                    {intro}
+
+              {[
+
+                "Fake profile",
+
+                "Harassment",
+
+                "Inappropriate content",
+
+                "Spam",
+
+                "Something else",
+
+              ].map((reason) => (
+
+                <button
+
+                  key={reason}
+
+                  onClick={() =>
+
+                    reportProfile(
+
+                      reason
+
+                    )
+
+                  }
+
+                  disabled={processing}
+
+                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-50 text-sm border-b border-gray-100 last:border-0"
+
+                >
+
+                  {reason}
+
+                </button>
+
+              ))}
+
+            </div>
+
+          </div>
+
+        )}
+
+
+
+        {/* =====================================================
+
+            COMMENT / LIKE MODAL
+
+        ===================================================== */}
+
+
+
+        {showComment && (
+
+          <div className="fixed inset-0 z-[70] bg-black/40 flex items-end sm:items-center justify-center p-4">
+
+            <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl">
+
+
+
+              <div className="flex items-center justify-between mb-5">
+
+                <div>
+
+                  <h3 className="text-xl font-bold text-[#4a1525]">
+
+                    Send a like
+
+                  </h3>
+
+
+
+                  <p className="text-xs text-gray-500 mt-1">
+
+                    Add a message if you
+
+                    want.
+
                   </p>
 
                 </div>
-              )}
 
-            </div>
 
-          </section>
 
-          {/* ================= BASIC EDITOR ================= */}
+                <button
 
-          {editing === "basic" && (
-            <div className="mt-3 rounded-2xl border border-[#741337]/10 bg-[#fffaf2] p-4">
+                  onClick={() => {
 
-              <input
-                value={username}
-                onChange={(e) =>
-                  setUsername(e.target.value)
-                }
-                placeholder="Username"
-                className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
-              />
+                    setShowComment(false);
 
-              <input
-                value={semester}
-                onChange={(e) =>
-                  setSemester(e.target.value)
-                }
-                placeholder="Semester"
-                className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
-              />
+                    setComment("");
 
-              <input
-                value={branch}
-                onChange={(e) =>
-                  setBranch(e.target.value)
-                }
-                placeholder="Branch"
-                className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
-              />
+                  }}
+
+                  className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"
+
+                >
+
+                  <FiX />
+
+                </button>
+
+              </div>
+
+
 
               <textarea
-                value={intro}
+
+                value={comment}
+
                 onChange={(e) =>
-                  setIntro(e.target.value)
+
+                  setComment(
+
+                    e.target.value
+
+                  )
+
                 }
-                placeholder="Tell people a little about yourself..."
-                rows={3}
-                className="w-full resize-none rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
+
+                maxLength={500}
+
+                rows={4}
+
+                placeholder="Write something nice..."
+
+                className="w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#741337]"
+
               />
 
-              <div className="mt-3 flex gap-2">
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEditing(null)
-                  }
-                  className="flex-1 rounded-xl border border-[#741337]/15 bg-white py-2.5 text-xs font-semibold text-[#741337]"
-                >
-                  Cancel
-                </button>
 
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={saveBasicProfile}
-                  className="flex-1 rounded-xl bg-[#741337] py-2.5 text-xs font-semibold text-white disabled:opacity-50"
-                >
-                  {saving
-                    ? "Saving..."
-                    : "Save"}
-                </button>
+              <div className="mt-2 text-right text-xs text-gray-400">
 
->>>>>>> Stashed changes
-              </div>
-            </div>
-          </ProfileSection>
+                {comment.length}/500
 
-          {/* ===============================================
-              INTERESTS
-          =============================================== */}
-
-          <ProfileSection
-            number="05"
-            title="Interests & Personality"
-            description="Tap interests to select or remove them."
-          >
-
-            <div className="flex items-center justify-between gap-3">
-
-              <p className="text-xs text-[#741337]/45">
-                {
-                  profileData.interests
-                    .length
-                }{" "}
-                selected
-              </p>
-
-              {profileData.interests
-                .length > 0 && (
-                <button
-                  type="button"
-                  onClick={
-                    clearAllInterests
-                  }
-                  className="text-xs font-medium text-[#741337]/55 underline underline-offset-4"
-                >
-                  Clear all
-                </button>
-              )}
-
-            </div>
-          )}
-
-<<<<<<< Updated upstream
-            <div className="mt-4 flex flex-wrap gap-2">
-
-              {visibleInterests.map(
-                (interest) => {
-                  const selected =
-                    profileData.interests.includes(
-                      interest
-                    );
-
-                  return (
-                    <button
-                      key={interest}
-                      type="button"
-                      onClick={() =>
-                        toggleInterest(
-                          interest
-                        )
-                      }
-                      className={`rounded-full border px-4 py-2 text-sm transition ${
-                        selected
-                          ? "border-[#741337] bg-[#741337] text-white shadow-sm"
-                          : "border-[#741337]/8 bg-[#fffaf2] text-[#741337]/55 hover:border-[#741337]/20 hover:text-[#741337]"
-                      }`}
-                    >
-                      {interest}
-                    </button>
-                  );
-                }
-              )}
-
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                setShowMoreInterests(
-                  (prev) => !prev
-                )
-              }
-              className="mt-5 text-sm font-semibold underline underline-offset-4"
-            >
-              {showMoreInterests
-                ? "Show less"
-                : "More interests"}
-            </button>
-
-          </ProfileSection>
-
-          {/* ===============================================
-              PROMPTS
-          =============================================== */}
-
-          <ProfileSection
-            number="06"
-            title="Prompts"
-            description="Add up to 6 prompts to show more personality."
-          >
-
-            <div className="space-y-5">
-
-              {profileData.prompts.map(
-                (prompt, index) => (
-                  <PromptCard
-                    key={
-                      prompt._id ||
-                      index
-                    }
-                    prompt={prompt}
-                    index={index}
-                    onChange={
-                      updatePrompt
-                    }
-                    onRemove={
-                      removePrompt
-                    }
-                  />
-                )
-              )}
-
-            </div>
-
-            {profileData.prompts
-              .length < 6 && (
-              <button
-                type="button"
-                onClick={addPrompt}
-                className="mt-5 w-full rounded-2xl border border-dashed border-[#741337]/15 bg-[#fffaf2] py-4 text-sm font-semibold transition hover:border-[#741337]/30 hover:bg-[#fdf3e9]"
-              >
-                + Add another prompt
-              </button>
-            )}
-
-            <p className="mt-3 text-xs text-[#741337]/40">
-              {
-                profileData.prompts
-                  .length
-              }{" "}
-              / 6 prompts
-            </p>
-
-          </ProfileSection>
-
-          {/* ===============================================
-              UPDATE + LOGOUT
-          =============================================== */}
-
-          <div className="mt-8 border-t border-[#741337]/8 pt-7">
-
-            <button
-              type="button"
-              onClick={
-                handleUpdateProfile
-              }
-              disabled={
-                saving ||
-                loggingOut
-              }
-              className="w-full rounded-full bg-[#741337] py-4 text-sm font-semibold text-white shadow-[0_8px_25px_rgba(116,19,55,0.18)] transition hover:bg-[#62102e] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {saving
-                ? "Updating Profile..."
-                : "Update Profile"}
-            </button>
-
-            <button
-              type="button"
-              onClick={
-                handleLogout
-              }
-              disabled={
-                saving ||
-                loggingOut
-              }
-              className="mt-4 w-full rounded-full border border-red-200 bg-white py-4 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loggingOut
-                ? "Logging out..."
-                : "Logout"}
-            </button>
-
-          </div>
-
-        </section>
-
-      </div>
-    </main>
-  );
-}
-
-/* =========================================================
-   PROFILE SECTION
-========================================================= */
-
-function ProfileSection({
-  number,
-  title,
-  description,
-  children,
-}) {
-  return (
-    <section className="border-b border-[#741337]/8 py-7 first:pt-0 last:border-b-0">
-
-      <div className="mb-5 flex gap-4">
-
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#741337]/8 text-xs font-semibold">
-          {number}
-=======
-          {/* ================= PROMPTS ================= */}
-
-          <section className="mt-7">
-
-            <div className="mb-2 flex items-center justify-between">
-
-              <div>
-                <h2 className="font-serif text-lg font-bold text-[#741337]">
-                  Your Prompts
-                </h2>
-
-                <p className="text-[10px] text-[#24151a]/45">
-                  Let people know what makes you, you
-                </p>
               </div>
 
+
+
               <button
-                type="button"
-                onClick={() =>
-                  setEditing("newPrompt")
-                }
-                className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
+
+                onClick={submitLike}
+
+                disabled={processing}
+
+                className="mt-4 w-full rounded-2xl bg-[#741337] py-4 text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+
               >
-                <Plus size={14} />
-                Add
+
+                <FiSend size={18} />
+
+
+
+                {processing
+
+                  ? "Sending..."
+
+                  : "Send Like"}
+
               </button>
 
             </div>
 
-            <div className="space-y-3">
-
-              {prompts.length === 0 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEditing("newPrompt")
-                  }
-                  className="flex w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#741337]/20 bg-[#fffaf2] py-8 text-[#741337]"
-                >
-                  <Plus size={24} />
-
-                  <span className="mt-2 text-xs font-semibold">
-                    Add your first prompt
-                  </span>
-                </button>
-              )}
-
-              {prompts.map(
-                (prompt, index) => (
-                  <PromptCard
-                    key={index}
-                    prompt={prompt}
-                    index={index}
-                    editing={editing}
-                    setEditing={setEditing}
-                    savePrompt={savePrompt}
-                    saving={saving}
-                  />
-                )
-              )}
-
-            </div>
-
-          </section>
-
-          {/* ================= INTERESTS ================= */}
-
-          <section className="mt-7">
-
-            <div className="mb-2 flex items-center justify-between">
-
-              <div>
-                <h2 className="font-serif text-lg font-bold text-[#741337]">
-                  Interests
-                </h2>
-
-                <p className="text-[10px] text-[#24151a]/45">
-                  Things you enjoy
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setEditing("interests")
-                }
-                className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
-              >
-                <Pencil size={13} />
-                Edit
-              </button>
-
-            </div>
-
-            <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
-
-              <div className="flex flex-wrap gap-2">
-
-                {interests.length === 0 ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setEditing("interests")
-                    }
-                    className="flex items-center gap-1 rounded-full border border-dashed border-[#741337]/20 px-3 py-2 text-xs text-[#741337]"
-                  >
-                    <Plus size={13} />
-                    Add interests
-                  </button>
-                ) : (
-                  interests.map(
-                    (interest, index) => (
-                      <span
-                        key={index}
-                        className="rounded-full bg-[#fff0df] px-3 py-2 text-xs font-medium text-[#741337]"
-                      >
-                        {interest}
-                      </span>
-                    )
-                  )
-                )}
-
-              </div>
-
-            </div>
-
-          </section>
-
-          {/* ================= INTEREST EDITOR ================= */}
-
-          {editing === "interests" && (
-            <InterestEditor
-              interests={interests}
-              setInterests={setInterests}
-              saveInterests={saveInterests}
-              saving={saving}
-            />
-          )}
-
-          {/* ================= FOOTER ================= */}
-
-          <p className="pb-3 pt-8 text-center text-[9px] text-[#24151a]/30">
-            Made for the Garba community ✨
-          </p>
-
->>>>>>> Stashed changes
-        </div>
-
-        <div>
-          <h2 className="text-lg font-semibold">
-            {title}
-          </h2>
-
-          {description && (
-            <p className="mt-1 text-sm leading-5 text-[#741337]/45">
-              {description}
-            </p>
-          )}
-        </div>
-
-      </div>
-    </main>
-  );
-}
-
-// ==================================================
-// PROMPT CARD
-// ==================================================
-
-function PromptCard({
-  prompt,
-  index,
-  editing,
-  setEditing,
-  savePrompt,
-  saving,
-}) {
-  const [question, setQuestion] =
-    useState(prompt?.question || "");
-
-  const [answer, setAnswer] =
-    useState(prompt?.answer || "");
-
-  const isEditing =
-    editing === `prompt-${index}`;
-
-  return (
-    <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
-
-      {isEditing ? (
-        <>
-          <input
-            value={question}
-            onChange={(e) =>
-              setQuestion(e.target.value)
-            }
-            placeholder="Prompt question"
-            className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-3 text-xs font-semibold outline-none focus:border-[#741337]"
-          />
-
-          <textarea
-            value={answer}
-            onChange={(e) =>
-              setAnswer(e.target.value)
-            }
-            placeholder="Your answer..."
-            rows={4}
-            className="w-full resize-none rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-3 text-sm outline-none focus:border-[#741337]"
-          />
-
-          <div className="mt-3 flex gap-2">
-
-            <button
-              type="button"
-              onClick={() =>
-                setEditing(null)
-              }
-              className="flex-1 rounded-xl border border-[#741337]/15 py-2.5 text-xs font-semibold text-[#741337]"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() =>
-                savePrompt(
-                  index,
-                  question,
-                  answer
-                )
-              }
-              className="flex-1 rounded-xl bg-[#741337] py-2.5 text-xs font-semibold text-white disabled:opacity-50"
-            >
-              {saving
-                ? "Saving..."
-                : "Save"}
-            </button>
-
           </div>
-        </>
-      ) : (
-        <>
-          <div className="flex items-start justify-between gap-3">
 
-            <div className="flex-1">
-
-              <p className="text-[11px] font-semibold text-[#741337]">
-                {prompt?.question ||
-                  "Prompt"}
-              </p>
-
-              <p className="mt-2 text-sm leading-6 text-[#24151a]">
-                {prompt?.answer ||
-                  "Add your answer"}
-              </p>
-
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                setEditing(
-                  `prompt-${index}`
-                )
-              }
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff0df] text-[#741337]"
-            >
-              <Pencil size={13} />
-            </button>
-
-          </div>
-        </>
-      )}
-
-<<<<<<< Updated upstream
-      {children}
-
-    </section>
-  );
-}
-
-/* =========================================================
-   LOCKED FIELD
-========================================================= */
-
-function LockedField({
-  label,
-  value,
-}) {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-medium">
-        {label}
-      </label>
-
-      <div className="flex min-h-[46px] items-center justify-between rounded-2xl border border-[#741337]/8 bg-[#f7efe8] px-4">
-
-        <span className="text-sm text-[#741337]/65">
-          {value || "—"}
-        </span>
-
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#741337]/30">
-          Locked
-        </span>
-
-      </div>
-=======
->>>>>>> Stashed changes
-    </div>
-  );
-}
-
-<<<<<<< Updated upstream
-/* =========================================================
-   PROMPT CARD
-========================================================= */
-
-function PromptCard({
-  prompt,
-  index,
-  onChange,
-  onRemove,
-}) {
-  return (
-    <div className="rounded-3xl border border-[#741337]/8 bg-[#fffaf2] p-4 sm:p-5">
-
-      {/* HEADER */}
-
-      <div className="mb-4 flex items-center justify-between">
-
-        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#741337]/40">
-          Prompt {index + 1}
-        </span>
-
-        <button
-          type="button"
-          onClick={() =>
-            onRemove(index)
-          }
-          className="text-xs font-medium text-red-500"
-        >
-          Remove
-=======
-// ==================================================
-// INTEREST EDITOR
-// ==================================================
-
-function InterestEditor({
-  interests,
-  setInterests,
-  saveInterests,
-  saving,
-}) {
-  const [value, setValue] =
-    useState("");
-
-  const addInterest = () => {
-    const cleanValue =
-      value.trim();
-
-    if (!cleanValue) return;
-
-    if (
-      interests.includes(
-        cleanValue
-      )
-    ) {
-      setValue("");
-      return;
-    }
-
-    setInterests([
-      ...interests,
-      cleanValue,
-    ]);
-
-    setValue("");
-  };
-
-  const removeInterest = (
-    interest
-  ) => {
-    setInterests(
-      interests.filter(
-        (item) =>
-          item !== interest
-      )
-    );
-  };
-
-  return (
-    <div className="mt-3 rounded-2xl border border-[#741337]/10 bg-[#fffaf2] p-4">
-
-      <div className="flex gap-2">
-
-        <input
-          value={value}
-          onChange={(e) =>
-            setValue(e.target.value)
-          }
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              addInterest();
-            }
-          }}
-          placeholder="Add an interest"
-          className="flex-1 rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-xs outline-none focus:border-[#741337]"
-        />
-
-        <button
-          type="button"
-          onClick={addInterest}
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#741337] text-white"
-        >
-          <Plus size={17} />
->>>>>>> Stashed changes
-        </button>
-
-      </div>
-
-<<<<<<< Updated upstream
-      {/* QUESTION */}
-
-      <div>
-        <label className="mb-2 block text-sm font-medium">
-          Question
-        </label>
-
-        <input
-          type="text"
-          value={
-            prompt.question
-          }
-          onChange={(e) =>
-            onChange(
-              index,
-              "question",
-              e.target.value
-            )
-          }
-          placeholder="e.g. My ideal Sunday is..."
-          className="w-full rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-[#741337]/25 focus:border-[#741337]/30"
-        />
-      </div>
-
-      {/* TYPE */}
-
-      <div className="mt-4">
-
-        <label className="mb-2 block text-sm font-medium">
-          Response type
-        </label>
-
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-
-          {PROMPT_TYPES.map(
-            (type) => {
-              const selected =
-                prompt.type ===
-                type.value;
-
-              return (
-                <button
-                  key={
-                    type.value
-                  }
-                  type="button"
-                  onClick={() =>
-                    onChange(
-                      index,
-                      "type",
-                      type.value
-                    )
-                  }
-                  className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
-                    selected
-                      ? "border-[#741337] bg-[#741337] text-white"
-                      : "border-[#741337]/8 bg-white text-[#741337]/50 hover:border-[#741337]/20"
-                  }`}
-                >
-                  {type.label}
-                </button>
-              );
-            }
-          )}
-
-        </div>
-
-      </div>
-
-      {/* ANSWER */}
-
-      <div className="mt-4">
-
-        <label className="mb-2 block text-sm font-medium">
-          Answer
-        </label>
-
-        {prompt.type ===
-        "text" ? (
-          <textarea
-            value={
-              prompt.answer
-            }
-            onChange={(e) =>
-              onChange(
-                index,
-                "answer",
-                e.target.value
-              )
-            }
-            rows={4}
-            placeholder="Write your answer..."
-            className="w-full resize-none rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[#741337]/25 focus:border-[#741337]/30"
-          />
-        ) : prompt.type ===
-          "voice" ? (
-          <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
-
-            <div className="text-2xl">
-              🎙️
-            </div>
-
-            <p className="mt-2 text-sm font-medium">
-              Voice answer
-            </p>
-
-            <p className="mt-1 text-xs text-[#741337]/40">
-              Voice upload can be connected
-              to your media upload API.
-            </p>
-
-          </div>
-        ) : prompt.type ===
-          "video" ? (
-          <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
-
-            <div className="text-2xl">
-              🎥
-            </div>
-
-            <p className="mt-2 text-sm font-medium">
-              Video answer
-            </p>
-
-            <p className="mt-1 text-xs text-[#741337]/40">
-              Video upload can be connected
-              to your media upload API.
-            </p>
-
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
-
-            <div className="text-2xl">
-              📊
-            </div>
-
-            <p className="mt-2 text-sm font-medium">
-              Poll
-            </p>
-
-            <p className="mt-1 text-xs text-[#741337]/40">
-              Poll options can be added
-              when the poll system is connected.
-            </p>
-
-          </div>
-=======
-      <div className="mt-3 flex flex-wrap gap-2">
-
-        {interests.map(
-          (interest, index) => (
-            <button
-              type="button"
-              key={index}
-              onClick={() =>
-                removeInterest(
-                  interest
-                )
-              }
-              className="flex items-center gap-1 rounded-full bg-[#fff0df] px-3 py-2 text-xs font-medium text-[#741337]"
-            >
-              {interest}
-
-              <X size={12} />
-            </button>
-          )
->>>>>>> Stashed changes
         )}
 
+
+
+        {/* =====================================================
+
+            NAVBAR
+
+        ===================================================== */}
+
+
+
+        <Navbar />
+
       </div>
 
-<<<<<<< Updated upstream
-=======
-      <button
-        type="button"
-        disabled={saving}
-        onClick={saveInterests}
-        className="mt-4 w-full rounded-xl bg-[#741337] py-3 text-xs font-semibold text-white disabled:opacity-50"
-      >
-        {saving
-          ? "Saving..."
-          : "Save Interests"}
-      </button>
-
->>>>>>> Stashed changes
     </div>
+
   );
+
 }
 
 
 
-<<<<<<< Updated upstream
+// =============================================================
 
-=======
->>>>>>> Stashed changes
+// PHOTO CARD
+
+// =============================================================
+
+
+
+function PhotoCard({
+
+  image,
+
+  username,
+
+  photoIndex,
+
+  totalPhotos,
+
+  onPrevious,
+
+  onNext,
+
+  onLike,
+
+  showNavigation,
+
+}) {
+
+  return (
+
+    <div className="relative">
+
+
+
+      <img
+
+        src={image}
+
+        alt={
+
+          username || "Profile"
+
+        }
+
+        className="w-full h-[58vh] object-cover"
+
+      />
+
+
+
+      {/* Progress indicators */}
+
+
+
+      {totalPhotos > 1 && (
+
+        <div className="absolute top-4 left-4 right-4 flex gap-1">
+
+          {Array.from({
+
+            length: totalPhotos,
+
+          }).map((_, index) => (
+
+            <div
+
+              key={index}
+
+              className={`h-1 flex-1 rounded-full ${
+
+                index === photoIndex
+
+                  ? "bg-white"
+
+                  : "bg-white/40"
+
+              }`}
+
+            />
+
+          ))}
+
+        </div>
+
+      )}
+
+
+
+      {/* Previous */}
+
+
+
+      {showNavigation &&
+
+        totalPhotos > 1 && (
+
+          <button
+
+            onClick={onPrevious}
+
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 text-white flex items-center justify-center backdrop-blur-sm"
+
+          >
+
+            <FiChevronLeft
+
+              size={24}
+
+            />
+
+          </button>
+
+        )}
+
+
+
+      {/* Next */}
+
+
+
+      {showNavigation &&
+
+        totalPhotos > 1 && (
+
+          <button
+
+            onClick={onNext}
+
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 text-white flex items-center justify-center backdrop-blur-sm"
+
+          >
+
+            <FiChevronRight
+
+              size={24}
+
+            />
+
+          </button>
+
+        )}
+
+
+
+      {/* Like */}
+
+
+
+      <button
+
+        onClick={onLike}
+
+        className="absolute bottom-5 right-5 w-14 h-14 rounded-full bg-white shadow-xl flex items-center justify-center hover:scale-105 transition-transform"
+
+      >
+
+        <FiHeart
+
+          size={28}
+
+          className="text-red-500"
+
+        />
+
+      </button>
+
+
+
+      {/* Photo number */}
+
+
+
+      <div className="absolute bottom-5 left-5 rounded-full bg-black/40 backdrop-blur-sm px-3 py-1.5 text-xs text-white">
+
+        {photoIndex + 1} /{" "}
+
+        {totalPhotos}
+
+      </div>
+
+    </div>
+
+  );
+
+}
+
+
+
+// =============================================================
+
+// PROMPT CARD
+
+// =============================================================
+
+
+
+function PromptCard({
+
+  prompt,
+
+  index,
+
+  onLike,
+
+}) {
+
+  return (
+
+    <div className="py-7">
+
+
+
+      <button
+
+        onClick={onLike}
+
+        className="w-full text-left rounded-3xl border border-[#741337]/10 bg-[#fffaf2] p-5 hover:border-[#741337]/30 transition"
+
+      >
+
+
+
+        <div className="flex items-center justify-between">
+
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#741337]/45">
+
+            Prompt {index + 1}
+
+          </span>
+
+
+
+          <div className="w-9 h-9 rounded-full bg-white border border-[#741337]/10 flex items-center justify-center">
+
+            <FiHeart
+
+              size={17}
+
+              className="text-red-400"
+
+            />
+
+          </div>
+
+        </div>
+
+
+
+        <p className="mt-4 text-base font-semibold text-[#4a1525] leading-6">
+
+          {prompt.question}
+
+        </p>
+
+
+
+        <p className="mt-3 text-[15px] leading-7 text-gray-700">
+
+          {prompt.answer}
+
+        </p>
+
+
+
+      </button>
+
+    </div>
+
+  );
+
+}
+
+
+
+// =============================================================
+
+// SECTION TITLE
+
+// =============================================================
+
+
+
+function SectionTitle({
+
+  children,
+
+}) {
+
+  return (
+
+    <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-[#741337]/45">
+
+      {children}
+
+    </h3>
+
+  );
+
+}
+
+
+
+// =============================================================
+
+// INFO BOX
+
+// =============================================================
+
+
+
+function InfoBox({
+
+  label,
+
+  value,
+
+}) {
+
+  return (
+
+    <div className="rounded-2xl border border-gray-100 bg-[#fdfbf7] p-4">
+
+      <p className="text-[10px] uppercase tracking-wider text-gray-400">
+
+        {label}
+
+      </p>
+
+
+
+      <p className="mt-1 text-sm font-medium text-gray-800 break-words">
+
+        {value}
+
+      </p>
+
+    </div>
+
+  );
+
+}
+
+
+
+
+
 // "use client";
 
-// import {
-//   ArrowLeft,
-<<<<<<< Updated upstream
-//   Camera,
-//   ChevronRight,
-//   Pencil,
-//   Plus,
-//   X,
-// } from "lucide-react";
+// import React, { useEffect, useRef, useState } from "react";
+// import Navbar from '@/components/Navbar'
+// import { ArrowLeft } from "lucide-react";
+// import { useRouter } from "next/navigation";
+// /* =========================================================
+//    INTERESTS
+// ========================================================= */
 
-// import Background from "@/components/matchingpage/backgroundblur";
-// import { useEffect, useState } from "react";
+// const INTERESTS = [
+//   "Music",
+//   "Movies",
+//   "TV",
+//   "Books",
+//   "Travel",
+//   "Food",
+//   "Sports",
+//   "Gaming",
+//   "Photography",
+//   "Art",
+//   "Fitness",
+//   "Cooking",
+//   "Dancing",
+//   "Hiking",
+//   "Pets",
+//   "Fashion",
+//   "Technology",
+//   "Business",
+//   "Cars",
+//   "Nature",
+//   "Nightlife",
+//   "Coffee",
+//   "Volunteering",
+//   "Reading",
+//   "Writing",
+//   "Cricket",
+//   "Football",
+//   "Badminton",
+//   "Basketball",
+//   "Trekking",
+//   "Road Trips",
+//   "Beaches",
+//   "Mountains",
+//   "Anime",
+//   "Podcasts",
+//   "Memes",
+//   "Startups",
+//   "Coding",
+//   "Design",
+//   "Content Creation",
+//   "Fitness Training",
+//   "Yoga",
+//   "Meditation",
+//   "Dance",
+//   "Fashion Design",
+//   "Concerts",
+//   "Festivals",
+//   "Garba",
+//   "Dandiya",
+// ];
 
-// export default function MyProfile() {
-//   const [user, setUser] = useState(null);
+// /* =========================================================
+//    PROMPT TYPES
+// ========================================================= */
+
+// const PROMPT_TYPES = [
+//   {
+//     value: "text",
+//     label: "Text",
+//   },
+//   {
+//     value: "voice",
+//     label: "Voice",
+//   },
+//   {
+//     value: "video",
+//     label: "Video",
+//   },
+//   {
+//     value: "poll",
+//     label: "Poll",
+//   },
+// ];
+
+// /* =========================================================
+//    DEFAULT PROMPT
+// ========================================================= */
+
+// const createEmptyPrompt = () => ({
+//   question: "",
+//   answer: "",
+//   type: "text",
+// });
+
+// /* =========================================================
+//    HELPERS
+// ========================================================= */
+
+// const normalizeProfile = (profile) => {
+//   if (!profile) return null;
+
+//   return {
+//     username: profile.username || "",
+//     branch: profile.branch || "",
+//     semester: profile.semester || "",
+//     college: profile.college || "",
+//     gender: profile.gender || "",
+
+//     dateOfBirth: profile.dateOfBirth
+//       ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
+//       : "",
+
+//     intro: profile.intro || "",
+
+//     interests: Array.isArray(profile.interests)
+//       ? profile.interests
+//       : [],
+
+//     prompts: Array.isArray(profile.prompts)
+//       ? profile.prompts.map((prompt) => ({
+//           _id: prompt._id,
+//           question: prompt.question || "",
+//           answer: prompt.answer || "",
+//           type: ["text", "voice", "video", "poll"].includes(prompt.type)
+//             ? prompt.type
+//             : "text",
+//         }))
+//       : [],
+
+//     images: Array.isArray(profile.images)
+//       ? profile.images
+//       : [],
+//   };
+// };
+
+// /* =========================================================
+//    MAIN PAGE
+// ========================================================= */
+
+// export default function MyProfilePage() {
+//   /* -------------------------------------------------------
+//      PROFILE / ACCOUNT DATA
+//   ------------------------------------------------------- */
+
+//   const [user, setUser] = useState({
+//     username: "",
+//     branch: "",
+//     semester: "",
+//     college: "",
+//     gender: "",
+//   });
+
+//   /* -------------------------------------------------------
+//      EDITABLE PROFILE STATE
+//   ------------------------------------------------------- */
+
+//   const [profileData, setProfileData] = useState({
+//     dateOfBirth: "",
+//     intro: "",
+//     interests: [],
+//     prompts: [],
+//     images: [],
+//   });
+
+//   /* -------------------------------------------------------
+//      UI STATES
+//   ------------------------------------------------------- */
+
 //   const [loading, setLoading] = useState(true);
 //   const [saving, setSaving] = useState(false);
+//   const [loggingOut, setLoggingOut] = useState(false);
+
 //   const [error, setError] = useState("");
+//   const [success, setSuccess] = useState("");
 
-//   const [editing, setEditing] = useState(null);
+//   const [showMoreInterests, setShowMoreInterests] =
+//     useState(false);
 
-//   const [username, setUsername] = useState("");
-//   const [branch, setBranch] = useState("");
-//   const [semester, setSemester] = useState("");
-//   const [intro, setIntro] = useState("");
+//   const [activePhotoIndex, setActivePhotoIndex] =
+//     useState(null);
 
-//   const [interests, setInterests] = useState([]);
-//   const [prompts, setPrompts] = useState([]);
+//   const fileInputRef = useRef(null);
+//   const router = useRouter();
+//   /* =======================================================
+//      GET PROFILE
+//   ======================================================= */
 
 //   useEffect(() => {
 //     getProfile();
@@ -2348,1092 +3069,2758 @@ function InterestEditor({
 //       setLoading(true);
 //       setError("");
 
-//       const response = await fetch("/api/myprofile");
+//       const res = await fetch("/api/myprofile", {
+//         method: "GET",
+//         credentials: "include",
+//         cache: "no-store",
+//       });
 
-//       const data = await response.json();
-
-//       if (!response.ok || !data.success) {
+//       const data = await res.json();
+//       console.log(data);
+//       if (!res.ok) {
 //         throw new Error(
-//           data.error || "Could not load your profile."
+//           data.error || "Failed to load profile."
 //         );
 //       }
 
-//       const profile = data.users;
+//       const profile =
+//         data.user ||
+//         data.profile ||
+//         data.users;
 
-//       setUser(profile);
+//       if (!profile) {
+//         throw new Error("Profile data not found.");
+//       }
 
-//       setUsername(profile?.username || "");
-//       setBranch(profile?.branch || "");
-//       setSemester(profile?.semester || "");
-//       setIntro(profile?.intro || "");
+//       const normalized = normalizeProfile(profile);
 
-//       setInterests(
-//         Array.isArray(profile?.interests)
-//           ? profile.interests
-//           : []
-//       );
+//       /* -----------------------------------------------
+//          LOCKED USER INFORMATION
+//       ------------------------------------------------ */
 
-//       setPrompts(
-//         Array.isArray(profile?.prompts)
-//           ? profile.prompts
-//           : []
-//       );
+//       setUser({
+//         username: normalized.username,
+//         branch: normalized.branch,
+//         semester: normalized.semester,
+//         college: normalized.college,
+//         gender: normalized.gender,
+//       });
+
+//       /* -----------------------------------------------
+//          EDITABLE PROFILE INFORMATION
+//       ------------------------------------------------ */
+
+//       setProfileData({
+//         dateOfBirth: normalized.dateOfBirth,
+//         intro: normalized.intro,
+//         interests: normalized.interests,
+//         prompts: normalized.prompts,
+//         images: normalized.images,
+//       });
 //     } catch (err) {
-//       console.error(err);
+//       console.error("Get profile error:", err);
+
 //       setError(
-//         err.message ||
-//           "Could not connect to the profile server."
+//         err.message || "Unable to load your profile."
 //       );
 //     } finally {
 //       setLoading(false);
 //     }
 //   };
 
-//   // --------------------------------------------------
-//   // UPDATE PROFILE
-//   // --------------------------------------------------
+//   /* =======================================================
+//      GENERIC STATE UPDATE
+//   ======================================================= */
 
-//   const updateProfile = async (updates) => {
+//   const updateProfileState = (updates) => {
+//     setProfileData((prev) => ({
+//       ...prev,
+//       ...updates,
+//     }));
+
+//     // Clear old messages when user starts editing
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   /* =======================================================
+//      DATE OF BIRTH
+//   ======================================================= */
+
+//   const handleDateChange = (value) => {
+//     updateProfileState({
+//       dateOfBirth: value,
+//     });
+//   };
+
+//   /* =======================================================
+//      INTRO
+//   ======================================================= */
+
+//   const handleIntroChange = (value) => {
+//     if (value.length > 500) return;
+
+//     updateProfileState({
+//       intro: value,
+//     });
+//   };
+
+//   /* =======================================================
+//      INTERESTS
+//   ======================================================= */
+
+//   const toggleInterest = (interest) => {
+//     setProfileData((prev) => {
+//       const exists = prev.interests.includes(interest);
+
+//       const updatedInterests = exists
+//         ? prev.interests.filter(
+//             (item) => item !== interest
+//           )
+//         : [...prev.interests, interest];
+
+//       return {
+//         ...prev,
+//         interests: updatedInterests,
+//       };
+//     });
+
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   const clearAllInterests = () => {
+//     updateProfileState({
+//       interests: [],
+//     });
+//   };
+
+//   const visibleInterests = showMoreInterests
+//     ? INTERESTS
+//     : INTERESTS.slice(0, 16);
+
+//   /* =======================================================
+//      PROMPTS
+//   ======================================================= */
+
+//   const addPrompt = () => {
+//     if (profileData.prompts.length >= 6) {
+//       return;
+//     }
+
+//     updateProfileState({
+//       prompts: [
+//         ...profileData.prompts,
+//         createEmptyPrompt(),
+//       ],
+//     });
+//   };
+
+//   const updatePrompt = (
+//     index,
+//     field,
+//     value
+//   ) => {
+//     setProfileData((prev) => {
+//       const prompts = [...prev.prompts];
+
+//       prompts[index] = {
+//         ...prompts[index],
+//         [field]: value,
+//       };
+
+//       return {
+//         ...prev,
+//         prompts,
+//       };
+//     });
+
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   const removePrompt = (index) => {
+//     setProfileData((prev) => ({
+//       ...prev,
+//       prompts: prev.prompts.filter(
+//         (_, i) => i !== index
+//       ),
+//     }));
+
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   /* =======================================================
+//      IMAGE HANDLING
+     
+//      NOTE:
+//      This stores image as base64 in React state.
+//      Your backend can later receive it with Update Profile.
+//   ======================================================= */
+
+//   const openImagePicker = (index) => {
+//     setActivePhotoIndex(index);
+
+//     if (fileInputRef.current) {
+//       fileInputRef.current.value = "";
+//       fileInputRef.current.click();
+//     }
+//   };
+
+//   const handleImageChange = (event) => {
+//     const file = event.target.files?.[0];
+
+//     if (!file) return;
+
+//     if (!file.type.startsWith("image/")) {
+//       setError("Please select a valid image.");
+//       return;
+//     }
+
+//     if (file.size > 5 * 1024 * 1024) {
+//       setError("Image must be smaller than 5MB.");
+//       return;
+//     }
+
+//     const reader = new FileReader();
+
+//     reader.onload = () => {
+//       const imageData = reader.result;
+
+//       setProfileData((prev) => {
+//         const images = [...prev.images];
+
+//         images[activePhotoIndex] = imageData;
+
+//         return {
+//           ...prev,
+//           images,
+//         };
+//       });
+
+//       setSuccess("");
+//       setError("");
+//     };
+
+//     reader.onerror = () => {
+//       setError("Failed to read image.");
+//     };
+
+//     reader.readAsDataURL(file);
+//   };
+
+//   const removeImage = (index) => {
+//     setProfileData((prev) => {
+//       const images = [...prev.images];
+
+//       images.splice(index, 1);
+
+//       return {
+//         ...prev,
+//         images,
+//       };
+//     });
+
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   /* =======================================================
+//      UPDATE PROFILE
+     
+//      THIS IS THE ONLY PLACE WHERE PROFILE DATA IS SENT
+//      TO THE BACKEND.
+//   ======================================================= */
+
+//   const handleUpdateProfile = async () => {
 //     try {
 //       setSaving(true);
 //       setError("");
+//       setSuccess("");
 
-//       const response = await fetch(
+//       /* -----------------------------------------------
+//          CLEAN PROMPTS BEFORE SENDING
+//       ------------------------------------------------ */
+
+//       const cleanedPrompts =
+//         profileData.prompts
+//           .slice(0, 6)
+//           .map((prompt) => ({
+//             ...(prompt._id
+//               ? { _id: prompt._id }
+//               : {}),
+//             question:
+//               String(
+//                 prompt.question || ""
+//               ).trim(),
+
+//             answer:
+//               String(
+//                 prompt.answer || ""
+//               ).trim(),
+
+//             type: [
+//               "text",
+//               "voice",
+//               "video",
+//               "poll",
+//             ].includes(prompt.type)
+//               ? prompt.type
+//               : "text",
+//           }))
+//           .filter(
+//             (prompt) =>
+//               prompt.question ||
+//               prompt.answer
+//           );
+
+//       /* -----------------------------------------------
+//          PAYLOAD
+         
+//          Username / branch / semester / college are
+//          intentionally NOT included.
+//       ------------------------------------------------ */
+
+//       const payload = {
+//         dateOfBirth:
+//           profileData.dateOfBirth || null,
+
+//         intro:
+//           profileData.intro.trim(),
+
+//         interests:
+//           profileData.interests,
+
+//         prompts:
+//           cleanedPrompts,
+
+//         images:
+//           profileData.images,
+//       };
+
+//       console.log(
+//         "Updating profile:",
+//         payload
+//       );
+
+//       const res = await fetch(
 //         "/api/updateprofile",
 //         {
 //           method: "PATCH",
 //           headers: {
-//             "Content-Type": "application/json",
+//             "Content-Type":
+//               "application/json",
 //           },
-//           body: JSON.stringify(updates),
+//           credentials: "include",
+//           body: JSON.stringify(payload),
 //         }
 //       );
 
-//       const data = await response.json();
+//       const data = await res.json();
 
-//       if (!response.ok || !data.success) {
+//       if (!res.ok) {
 //         throw new Error(
-//           data.error || "Could not update profile."
+//           data.error ||
+//             "Failed to update profile."
 //         );
 //       }
 
-//       const updatedUser =
-//         data.users || data.user || data.profile;
+//       /* -----------------------------------------------
+//          UPDATE STATE WITH BACKEND RESPONSE
+//       ------------------------------------------------ */
 
-//       if (updatedUser) {
-//         setUser(updatedUser);
+//       const updatedProfile =
+//         data.user ||
+//         data.profile ||
+//         data.users;
 
-//         setUsername(
-//           updatedUser.username || ""
-//         );
+//       if (updatedProfile) {
+//         const normalized =
+//           normalizeProfile(
+//             updatedProfile
+//           );
 
-//         setBranch(
-//           updatedUser.branch || ""
-//         );
+//         setUser({
+//           username:
+//             normalized.username,
 
-//         setSemester(
-//           updatedUser.semester || ""
-//         );
+//           branch:
+//             normalized.branch,
 
-//         setIntro(
-//           updatedUser.intro || ""
-//         );
+//           semester:
+//             normalized.semester,
 
-//         setInterests(
-//           Array.isArray(updatedUser.interests)
-//             ? updatedUser.interests
-//             : []
-//         );
+//           college:
+//             normalized.college,
 
-//         setPrompts(
-//           Array.isArray(updatedUser.prompts)
-//             ? updatedUser.prompts
-//             : []
-//         );
+//           gender:
+//             normalized.gender,
+//         });
+
+//         setProfileData({
+//           dateOfBirth:
+//             normalized.dateOfBirth,
+
+//           intro:
+//             normalized.intro,
+
+//           interests:
+//             normalized.interests,
+
+//           prompts:
+//             normalized.prompts,
+
+//           images:
+//             normalized.images,
+//         });
 //       } else {
-//         await getProfile();
+//         /* ---------------------------------------------
+//            If backend doesn't return profile,
+//            keep our current state but normalize prompts.
+//         --------------------------------------------- */
+
+//         setProfileData((prev) => ({
+//           ...prev,
+//           prompts: cleanedPrompts,
+//         }));
 //       }
 
-//       setEditing(null);
+//       setSuccess(
+//         "Profile updated successfully."
+//       );
 //     } catch (err) {
-//       console.error(err);
+//       console.error(
+//         "Update profile error:",
+//         err
+//       );
 
 //       setError(
 //         err.message ||
-//           "Could not update your profile."
+//           "Something went wrong while updating your profile."
 //       );
 //     } finally {
 //       setSaving(false);
 //     }
 //   };
 
-//   // --------------------------------------------------
-//   // SAVE BASIC PROFILE
-//   // --------------------------------------------------
+//   /* =======================================================
+//      LOGOUT
+//   ======================================================= */
 
-//   const saveBasicProfile = () => {
-//     updateProfile({
-//       username,
-//       branch,
-//       semester,
-//       intro,
-//     });
+//   const handleLogout = async () => {
+//     try {
+//       setLoggingOut(true);
+//       setError("");
+
+//       const res = await fetch(
+//         "/api/logout",
+//         {
+//           method: "POST",
+//           credentials: "include",
+//         }
+//       );
+
+//       const data = await res.json();
+
+//       if (!res.ok) {
+//         throw new Error(
+//           data.error ||
+//             "Logout failed."
+//         );
+//       }
+
+//       window.location.href = "/login";
+//     } catch (err) {
+//       console.error(
+//         "Logout error:",
+//         err
+//       );
+
+//       setError(
+//         err.message ||
+//           "Unable to logout."
+//       );
+
+//       setLoggingOut(false);
+//     }
 //   };
 
-//   // --------------------------------------------------
-//   // SAVE INTERESTS
-//   // --------------------------------------------------
+//   /* =======================================================
+//      AGE CALCULATOR
+//   ======================================================= */
 
-//   const saveInterests = () => {
-//     updateProfile({
-//       interests,
-//     });
+//   const calculateAge = (dob) => {
+//     if (!dob) return null;
+
+//     const birthDate =
+//       new Date(dob);
+
+//     if (Number.isNaN(
+//       birthDate.getTime()
+//     )) {
+//       return null;
+//     }
+
+//     const today =
+//       new Date();
+
+//     let age =
+//       today.getFullYear() -
+//       birthDate.getFullYear();
+
+//     const monthDifference =
+//       today.getMonth() -
+//       birthDate.getMonth();
+
+//     if (
+//       monthDifference < 0 ||
+//       (monthDifference === 0 &&
+//         today.getDate() <
+//           birthDate.getDate())
+//     ) {
+//       age--;
+//     }
+
+//     return age;
 //   };
 
-//   // --------------------------------------------------
-//   // SAVE PROMPT
-//   // --------------------------------------------------
+//   const age = calculateAge(
+//     profileData.dateOfBirth
+//   );
 
-//   const savePrompt = (index, question, answer) => {
-//     const updatedPrompts = [...prompts];
-
-//     updatedPrompts[index] = {
-//       ...updatedPrompts[index],
-//       question,
-//       answer,
-//     };
-
-//     setPrompts(updatedPrompts);
-
-//     updateProfile({
-//       prompts: updatedPrompts,
-//     });
-//   };
-
-//   // --------------------------------------------------
-//   // REMOVE INTEREST
-//   // --------------------------------------------------
-
-//   const removeInterest = (interest) => {
-//     const updated = interests.filter(
-//       (item) => item !== interest
-//     );
-
-//     setInterests(updated);
-
-//     updateProfile({
-//       interests: updated,
-//     });
-//   };
+//   /* =======================================================
+//      LOADING
+//   ======================================================= */
 
 //   if (loading) {
 //     return (
-//       <main className="h-dvh overflow-hidden bg-[#fffaf2]">
-//         <div className="fixed inset-0 z-10">
-//           <Background />
-//         </div>
+//       <main className="min-h-screen inset-0 z-60 fixed bg-[#fffaf2] flex items-center justify-center">
+//         <div className="text-center">
+//           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#741337]/20 border-t-[#741337]" />
 
-//         <div className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[500px] items-center justify-center bg-white">
-//           <p className="text-sm text-[#741337]">
-//             Loading profile...
+//           <p className="text-sm text-[#741337]/60">
+//             Loading your profile...
 //           </p>
 //         </div>
 //       </main>
 //     );
 //   }
 
+//   /* =======================================================
+//      PAGE
+//   ======================================================= */
+// // text-[#741337]
 //   return (
-//     <main className="h-dvh overflow-hidden bg-[#fffaf2]">
-//       <div className="fixed inset-0 z-10">
-//         <Background />
-//       </div>
+//     <main className="min-h-screen inset-0 z-50 fixed overflow-y-auto  [&::-webkit-scrollbar]:hidden px-4 py-8 text-white sm:px-6 lg:px-8">
+      
+//       <div className="mx-auto max-w-2xl">
 
-//       <div className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[500px] flex-col bg-white">
+//         {/* =================================================
+//             HEADER
+//         ================================================= */}
+        
+//         <div className="mb-8">
+//           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-red-400">
+//             Your profile
+//           </p>
 
-//         {/* ================= HEADER ================= */}
-
-//         <div className="flex shrink-0 items-center justify-between border-b border-[#741337]/10 px-4 py-3">
-
-//           <a href="/testroute">
-//             <button
-//               type="button"
-//               className="flex h-9 w-9 items-center justify-center rounded-full text-[#741337] hover:bg-[#fff0df]"
-//             >
-//               <ArrowLeft size={20} />
-//             </button>
-//           </a>
-=======
-//   ChevronRight,
-//   CircleHelp,
-//   LogOut,
-//   Pencil,
-//   Settings,
-// } from "lucide-react";
-
-// import Background from "@/components/matchingpage/backgroundblur";
-// import { useEffect, useRef, useState } from "react";
-
-// export default function MyProfile() {
-//      const [error,setError] = useState('');
-//     const [user, setuser] = useState();
-//     const [image,setimage] = useState('');
-//     const [name,setname] = useState('');
-//      const [branch,setbranch] = useState('');
-//       const [year,setyear] = useState('');
- 
-  
- 
-//   useEffect(()=>{
-//    const getprofile = async()=>{
-//      try{
-//     const response = await fetch("api/myprofile");
-//    const data = await response.json();
-//    const users = data.users;
-//    console.log(users);
-//    if(response.ok){
-//     setname(users.username)
-//     setimage(users.images[0])
-//     setbranch(users.branch)
-//     setyear(users.semester)
-    
-//    }
-//  }    catch (err) {
-//          console.error(err);
-//          setError("Could not connect to the profile directory server.");
-//        } }
-//        getprofile();
-     
-//     },[]);
-   
-
-//   return (
-//     <main className="h-dvh overflow-hidden bg-[#fffaf2]">
-//         <div className="inset-0 z-10 fixed">
-//           <Background />
-//         </div>
-
-//       <div className="mx-auto flex h-full w-full bg-white inset-0 z-50 fixed max-w-[500px] flex-col px-4 py-3 sm:px-6">
-
-//         {/* ================= HEADER ================= */}
-
-//         <div className="flex shrink-0 items-center justify-between">
-//           <a href="/testroute">
-//           <button
-//             type="button"
-//             className="flex h-9 w-9 items-center justify-center rounded-full text-[#741337] hover:bg-[#fff0df]"
-//           >
-//             <ArrowLeft size={20} />
-//           </button></a>
->>>>>>> Stashed changes
-
-//           <h1 className="font-serif text-xl font-bold text-[#24151a]">
-//             My Profile
+//           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+//             Edit Profile
 //           </h1>
 
-//           <div className="w-9" />
-
+//           <p className="mt-2 max-w-xl text-sm leading-6 text-red-400">
+//             {/* Make your profile feel more like you.
+//             Changes will only be saved when you
+//             press Update Profile. */}
+//           </p>
 //         </div>
 
-<<<<<<< Updated upstream
-//         {/* ================= SCROLL AREA ================= */}
+//         {/* =================================================
+//             ERROR
+//         ================================================= */}
 
-//         <div className="flex-1 overflow-y-auto px-4 pb-8">
+//         {error && (
+//           <div className="mb-5 rounded-2xl  border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+//             {error}
+//           </div>
+//         )}
 
-//           {/* ================= ERROR ================= */}
+//         {/* =================================================
+//             SUCCESS
+//         ================================================= */}
 
-//           {error && (
-//             <div className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-center text-xs text-red-500">
-//               {error}
-//             </div>
-//           )}
+//         {success && (
+//           <div className="mb-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+//             {success}
+//           </div>
+//         )}
 
-//           {/* ================= PHOTOS ================= */}
+//         {/* =================================================
+//             PROFILE CARD
+//         ================================================= */}
 
-//           <section className="mt-5">
+//         <section className="rounded-[28px] border border-[#741337]/8 bg-white text-[#741337] p-5 shadow-[0_10px_40px_rgba(116,19,55,0.06)] sm:p-7">
+//           <div className="flex "><div><button onClick={()=>router.push("/testroute")}><ArrowLeft/></button></div><div className="mx-2"><h1><a href="/testroute">Get Back to explore Page</a></h1></div></div>
+//           {/* ===============================================
+//               PHOTOS
+//           =============================================== */}
 
-//             <div className="mb-2 flex items-center justify-between">
+//           <ProfileSection 
+          
+//             number="01"
+//             title="Photos"
+//             description="Choose the photos people will see on your profile."
+//           >
 
-//               <div>
-//                 <h2 className="font-serif text-lg font-bold text-[#741337]">
-//                   Your Photos
-//                 </h2>
-
-//                 <p className="text-[10px] text-[#24151a]/45">
-//                   Show your best moments
-//                 </p>
-//               </div>
-
-//               <Camera
-//                 size={18}
-//                 className="text-[#741337]"
-//               />
-
-//             </div>
-
-//             <div className="grid grid-cols-3 gap-2">
+//             <div className="grid grid-cols-3  gap-3 sm:grid-cols-6">
 
 //               {Array.from({
 //                 length: 6,
 //               }).map((_, index) => {
-
-//                 const photo =
-//                   user?.images?.[index];
+//                 const image =
+//                   profileData.images[
+//                     index
+//                   ];
 
 //                 return (
 //                   <div
 //                     key={index}
-//                     className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-[#741337]/10 bg-[#fffaf2]"
+//                     className="relative aspect-[3/4]"
 //                   >
+//                     {image ? (
+//                       <div className="group relative h-full w-full overflow-hidden rounded-2xl bg-[#f7efe8]">
 
-//                     {photo ? (
-//                       <>
 //                         <img
-//                           src={photo}
-//                           alt={`Profile ${index + 1}`}
+//                           src={image}
+//                           alt={`Profile photo ${
+//                             index + 1
+//                           }`}
 //                           className="h-full w-full object-cover"
 //                         />
 
-//                         <button
-//                           type="button"
-//                           className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white"
-//                         >
-//                           <Pencil size={12} />
-//                         </button>
-//                       </>
+//                         <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition group-hover:opacity-100">
+//                           <div className="mb-2 flex gap-1">
+//                             <button
+//                               type="button"
+//                               onClick={() =>
+//                                 openImagePicker(
+//                                   index
+//                                 )
+//                               }
+//                               className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#741337] "
+//                             >
+//                               Change
+//                             </button>
+
+//                             <button
+//                               type="button"
+//                               onClick={() =>
+//                                 removeImage(
+//                                   index
+//                                 )
+//                               }
+//                               className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-red-600"
+//                             >
+//                               Remove
+//                             </button>
+//                           </div>
+//                         </div>
+//                       </div>
 //                     ) : (
 //                       <button
 //                         type="button"
-//                         className="flex h-full w-full flex-col items-center justify-center text-[#741337]/50"
+//                         onClick={() =>
+//                           openImagePicker(
+//                             index
+//                           )
+//                         }
+//                         className="flex h-full w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#741337]/15 bg-[#fffaf2] text-[#741337]/50 transition hover:border-[#741337]/35 hover:bg-[#fdf3e9]"
 //                       >
-//                         <Plus size={23} />
+//                         <span className="text-2xl">
+//                           +
+//                         </span>
 
-//                         <span className="mt-1 text-[9px]">
-//                           Add photo
+//                         <span className="mt-1 text-[11px]">
+//                           Add
 //                         </span>
 //                       </button>
 //                     )}
-
 //                   </div>
 //                 );
 //               })}
 
 //             </div>
 
-//           </section>
+//             <p className="mt-3 text-xs text-[#741337]/40">
+//               Maximum 5MB per image.
+//             </p>
 
-//           {/* ================= BASIC INFO ================= */}
+//             <input
+//               ref={fileInputRef}
+//               type="file"
+//               accept="image/*"
+//               onChange={handleImageChange}
+//               className="hidden"
+//             />
+//           </ProfileSection>
 
-//           <section className="mt-6">
+//           {/* ===============================================
+//               BASIC INFORMATION
+//           =============================================== */}
 
-//             <div className="mb-2 flex items-center justify-between">
+//           <ProfileSection
+//             number="02"
+//             title="Basic Information"
+//             description="Some account information is fixed and cannot be edited here."
+//           >
 
-//               <h2 className="font-serif text-lg font-bold text-[#741337]">
-//                 About You
-//               </h2>
+//             <div className="grid gap-4 sm:grid-cols-2">
 
-//               <button
-//                 type="button"
-//                 onClick={() =>
-//                   setEditing("basic")
+//               {/* Username */}
+
+//               <LockedField
+//                 label="Username"
+//                 value={
+//                   user.username
 //                 }
-//                 className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
-//               >
-//                 <Pencil size={13} />
-//                 Edit
-//               </button>
+//               />
+
+//               {/* Branch */}
+
+//               <LockedField
+//                 label="Branch"
+//                 value={
+//                   user.branch
+//                 }
+//               />
+
+//               {/* Semester */}
+
+//               <LockedField
+//                 label="Year / Semester"
+//                 value={
+//                   user.semester
+//                 }
+//               />
+
+//               {/* College */}
+
+//               <LockedField
+//                 label="College"
+//                 value={
+//                   user.college
+//                 }
+//               />
 
 //             </div>
+//           </ProfileSection>
 
-//             <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
+//           {/* ===============================================
+//               AGE / DOB
+//           =============================================== */}
 
-//               <h3 className="font-serif text-[23px] font-bold text-[#741337]">
-//                 {username || "Your name"}
-//               </h3>
+//           <ProfileSection
+//             number="03"
+//             title="Age"
+//             description="Your date of birth is used to calculate your age."
+//           >
 
-//               <p className="mt-1 text-xs text-[#24151a]/55">
-//                 {semester || "Semester"}
-
-//                 <span className="mx-1.5 text-[#ed7137]">
-//                   •
-//                 </span>
-
-//                 {branch || "Branch"}
-//               </p>
-
-//               {intro && (
-//                 <div className="mt-3 rounded-xl bg-[#fffaf2] px-3 py-3">
-
-//                   <p className="text-xs italic leading-5 text-[#24151a]/65">
-//                     {intro}
-//                   </p>
-
-//                 </div>
-//               )}
-
-//             </div>
-
-//           </section>
-
-//           {/* ================= BASIC EDITOR ================= */}
-
-//           {editing === "basic" && (
-//             <div className="mt-3 rounded-2xl border border-[#741337]/10 bg-[#fffaf2] p-4">
-
-//               <input
-//                 value={username}
-//                 onChange={(e) =>
-//                   setUsername(e.target.value)
-//                 }
-//                 placeholder="Username"
-//                 className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
-//               />
-
-//               <input
-//                 value={semester}
-//                 onChange={(e) =>
-//                   setSemester(e.target.value)
-//                 }
-//                 placeholder="Semester"
-//                 className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
-//               />
-
-//               <input
-//                 value={branch}
-//                 onChange={(e) =>
-//                   setBranch(e.target.value)
-//                 }
-//                 placeholder="Branch"
-//                 className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
-//               />
-
-//               <textarea
-//                 value={intro}
-//                 onChange={(e) =>
-//                   setIntro(e.target.value)
-//                 }
-//                 placeholder="Tell people a little about yourself..."
-//                 rows={3}
-//                 className="w-full resize-none rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-sm outline-none focus:border-[#741337]"
-//               />
-
-//               <div className="mt-3 flex gap-2">
-
-//                 <button
-//                   type="button"
-//                   onClick={() =>
-//                     setEditing(null)
-//                   }
-//                   className="flex-1 rounded-xl border border-[#741337]/15 bg-white py-2.5 text-xs font-semibold text-[#741337]"
-//                 >
-//                   Cancel
-//                 </button>
-
-//                 <button
-//                   type="button"
-//                   disabled={saving}
-//                   onClick={saveBasicProfile}
-//                   className="flex-1 rounded-xl bg-[#741337] py-2.5 text-xs font-semibold text-white disabled:opacity-50"
-//                 >
-//                   {saving
-//                     ? "Saving..."
-//                     : "Save"}
-//                 </button>
-
-//               </div>
-
-//             </div>
-//           )}
-
-//           {/* ================= PROMPTS ================= */}
-
-//           <section className="mt-7">
-
-//             <div className="mb-2 flex items-center justify-between">
+//             <div className="grid gap-4 sm:grid-cols-2">
 
 //               <div>
-//                 <h2 className="font-serif text-lg font-bold text-[#741337]">
-//                   Your Prompts
-//                 </h2>
+//                 <label className="mb-2 block text-sm font-medium">
+//                   Date of Birth
+//                 </label>
 
-//                 <p className="text-[10px] text-[#24151a]/45">
-//                   Let people know what makes you, you
-//                 </p>
+//                 <input
+//                   type="date"
+//                   value={
+//                     profileData.dateOfBirth
+//                   }
+//                   onChange={(e) =>
+//                     handleDateChange(
+//                       e.target.value
+//                     )
+//                   }
+//                   className="w-full rounded-2xl border border-[#741337]/10 bg-[#fffaf2] px-4 py-3 text-sm outline-none transition focus:border-[#741337]/30"
+//                 />
 //               </div>
 
-//               <button
-//                 type="button"
-//                 onClick={() =>
-//                   setEditing("newPrompt")
-//                 }
-//                 className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
-//               >
-//                 <Plus size={14} />
-//                 Add
-//               </button>
+//               <div>
+//                 <label className="mb-2 block text-sm font-medium">
+//                   Age
+//                 </label>
+
+//                 <div className="flex h-[46px] items-center rounded-2xl border border-[#741337]/10 bg-[#f7efe8] px-4 text-sm">
+//                   {age !== null
+//                     ? `${age} years`
+//                     : "Select your date of birth"}
+//                 </div>
+//               </div>
 
 //             </div>
+//           </ProfileSection>
 
-//             <div className="space-y-3">
+//           {/* ===============================================
+//               INTRO
+//           =============================================== */}
 
-//               {prompts.length === 0 && (
+//           <ProfileSection
+//             number="04"
+//             title="About You"
+//             description="Give people a small idea of who you are."
+//           >
+
+//             <div>
+//               <label className="mb-2 block text-sm font-medium">
+//                 Intro
+//               </label>
+
+//               <textarea
+//                 value={
+//                   profileData.intro
+//                 }
+//                 onChange={(e) =>
+//                   handleIntroChange(
+//                     e.target.value
+//                   )
+//                 }
+//                 maxLength={500}
+//                 rows={5}
+//                 placeholder="Tell people something about yourself..."
+//                 className="w-full resize-none rounded-2xl border border-[#741337]/10 bg-[#fffaf2] px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[#741337]/30 focus:border-[#741337]/30"
+//               />
+
+//               <div className="mt-2 text-right text-xs text-[#741337]/35">
+//                 {
+//                   profileData.intro
+//                     .length
+//                 }
+//                 /500
+//               </div>
+//             </div>
+//           </ProfileSection>
+
+//           {/* ===============================================
+//               INTERESTS
+//           =============================================== */}
+
+//           <ProfileSection
+//             number="05"
+//             title="Interests & Personality"
+//             description="Tap interests to select or remove them."
+//           >
+
+//             <div className="flex items-center justify-between gap-3">
+
+//               <p className="text-xs text-[#741337]/45">
+//                 {
+//                   profileData.interests
+//                     .length
+//                 }{" "}
+//                 selected
+//               </p>
+
+//               {profileData.interests
+//                 .length > 0 && (
 //                 <button
 //                   type="button"
-//                   onClick={() =>
-//                     setEditing("newPrompt")
+//                   onClick={
+//                     clearAllInterests
 //                   }
-//                   className="flex w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#741337]/20 bg-[#fffaf2] py-8 text-[#741337]"
+//                   className="text-xs font-medium text-[#741337]/55 underline underline-offset-4"
 //                 >
-//                   <Plus size={24} />
-
-//                   <span className="mt-2 text-xs font-semibold">
-//                     Add your first prompt
-//                   </span>
+//                   Clear all
 //                 </button>
 //               )}
 
-//               {prompts.map(
+//             </div>
+
+//             <div className="mt-4 flex flex-wrap gap-2">
+
+//               {visibleInterests.map(
+//                 (interest) => {
+//                   const selected =
+//                     profileData.interests.includes(
+//                       interest
+//                     );
+
+//                   return (
+//                     <button
+//                       key={interest}
+//                       type="button"
+//                       onClick={() =>
+//                         toggleInterest(
+//                           interest
+//                         )
+//                       }
+//                       className={`rounded-full border px-4 py-2 text-sm transition ${
+//                         selected
+//                           ? "border-[#741337] bg-[#741337] text-white shadow-sm"
+//                           : "border-[#741337]/8 bg-[#fffaf2] text-[#741337]/55 hover:border-[#741337]/20 hover:text-[#741337]"
+//                       }`}
+//                     >
+//                       {interest}
+//                     </button>
+//                   );
+//                 }
+//               )}
+
+//             </div>
+
+//             <button
+//               type="button"
+//               onClick={() =>
+//                 setShowMoreInterests(
+//                   (prev) => !prev
+//                 )
+//               }
+//               className="mt-5 text-sm font-semibold underline underline-offset-4"
+//             >
+//               {showMoreInterests
+//                 ? "Show less"
+//                 : "More interests"}
+//             </button>
+
+//           </ProfileSection>
+
+//           {/* ===============================================
+//               PROMPTS
+//           =============================================== */}
+
+//           <ProfileSection
+//             number="06"
+//             title="Prompts"
+//             description="Add up to 6 prompts to show more personality."
+//           >
+
+//             <div className="space-y-5">
+
+//               {profileData.prompts.map(
 //                 (prompt, index) => (
 //                   <PromptCard
-//                     key={index}
+//                     key={
+//                       prompt._id ||
+//                       index
+//                     }
 //                     prompt={prompt}
 //                     index={index}
-//                     editing={editing}
-//                     setEditing={setEditing}
-//                     savePrompt={savePrompt}
-//                     saving={saving}
+//                     onChange={
+//                       updatePrompt
+//                     }
+//                     onRemove={
+//                       removePrompt
+//                     }
 //                   />
 //                 )
 //               )}
 
 //             </div>
 
-//           </section>
-
-//           {/* ================= INTERESTS ================= */}
-
-//           <section className="mt-7">
-
-//             <div className="mb-2 flex items-center justify-between">
-
-//               <div>
-//                 <h2 className="font-serif text-lg font-bold text-[#741337]">
-//                   Interests
-//                 </h2>
-
-//                 <p className="text-[10px] text-[#24151a]/45">
-//                   Things you enjoy
-//                 </p>
-//               </div>
-
+//             {profileData.prompts
+//               .length < 6 && (
 //               <button
 //                 type="button"
-//                 onClick={() =>
-//                   setEditing("interests")
-//                 }
-//                 className="flex items-center gap-1 text-xs font-semibold text-[#741337]"
+//                 onClick={addPrompt}
+//                 className="mt-5 w-full rounded-2xl border border-dashed border-[#741337]/15 bg-[#fffaf2] py-4 text-sm font-semibold transition hover:border-[#741337]/30 hover:bg-[#fdf3e9]"
 //               >
-//                 <Pencil size={13} />
-//                 Edit
+//                 + Add another prompt
 //               </button>
+//             )}
 
-//             </div>
+//             <p className="mt-3 text-xs text-[#741337]/40">
+//               {
+//                 profileData.prompts
+//                   .length
+//               }{" "}
+//               / 6 prompts
+//             </p>
 
-//             <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
+//           </ProfileSection>
 
-//               <div className="flex flex-wrap gap-2">
+//           {/* ===============================================
+//               UPDATE + LOGOUT
+//           =============================================== */}
 
-//                 {interests.length === 0 ? (
-//                   <button
-//                     type="button"
-//                     onClick={() =>
-//                       setEditing("interests")
-//                     }
-//                     className="flex items-center gap-1 rounded-full border border-dashed border-[#741337]/20 px-3 py-2 text-xs text-[#741337]"
-//                   >
-//                     <Plus size={13} />
-//                     Add interests
-//                   </button>
-//                 ) : (
-//                   interests.map(
-//                     (interest, index) => (
-//                       <span
-//                         key={index}
-//                         className="rounded-full bg-[#fff0df] px-3 py-2 text-xs font-medium text-[#741337]"
-//                       >
-//                         {interest}
-//                       </span>
-//                     )
-//                   )
-//                 )}
+//           <div className="mt-8 border-t border-[#741337]/8 pt-7">
 
-//               </div>
+//             <button
+//               type="button"
+//               onClick={
+//                 handleUpdateProfile
+//               }
+//               disabled={
+//                 saving ||
+//                 loggingOut
+//               }
+//               className="w-full rounded-full bg-[#741337] py-4 text-sm font-semibold text-white shadow-[0_8px_25px_rgba(116,19,55,0.18)] transition hover:bg-[#62102e] disabled:cursor-not-allowed disabled:opacity-60"
+//             >
+//               {saving
+//                 ? "Updating Profile..."
+//                 : "Update Profile"}
+//             </button>
 
-//             </div>
+//             <button
+//               type="button"
+//               onClick={
+//                 handleLogout
+//               }
+//               disabled={
+//                 saving ||
+//                 loggingOut
+//               }
+//               className="mt-4 w-full rounded-full border border-red-200 bg-white py-4 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+//             >
+//               {loggingOut
+//                 ? "Logging out..."
+//                 : "Logout"}
+//             </button>
 
-//           </section>
+//           </div>
 
-//           {/* ================= INTEREST EDITOR ================= */}
+//         </section>
 
-//           {editing === "interests" && (
-//             <InterestEditor
-//               interests={interests}
-//               setInterests={setInterests}
-//               saveInterests={saveInterests}
-//               saving={saving}
-//             />
-//           )}
-
-//           {/* ================= FOOTER ================= */}
-
-//           <p className="pb-3 pt-8 text-center text-[9px] text-[#24151a]/30">
-//             Made for the Garba community ✨
-//           </p>
-
-//         </div>
 //       </div>
 //     </main>
 //   );
 // }
 
-// // ==================================================
-// // PROMPT CARD
-// // ==================================================
+// /* =========================================================
+//    PROFILE SECTION
+// ========================================================= */
+
+// function ProfileSection({
+//   number,
+//   title,
+//   description,
+//   children,
+// }) {
+//   return (
+//     <section className="border-b border-[#741337]/8 py-7 first:pt-0 last:border-b-0">
+
+//       <div className="mb-5 flex gap-4">
+
+//         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#741337]/8 text-xs font-semibold">
+//           {number}
+//         </div>
+
+//         <div>
+//           <h2 className="text-lg font-semibold">
+//             {title}
+//           </h2>
+
+//           {description && (
+//             <p className="mt-1 text-sm leading-5 text-[#741337]/45">
+//               {description}
+//             </p>
+//           )}
+//         </div>
+
+//       </div>
+
+//       {children}
+
+//     </section>
+//   );
+// }
+
+// /* =========================================================
+//    LOCKED FIELD
+// ========================================================= */
+
+// function LockedField({
+//   label,
+//   value,
+// }) {
+//   return (
+//     <div>
+//       <label className="mb-2 block text-sm font-medium">
+//         {label}
+//       </label>
+
+//       <div className="flex min-h-[46px] items-center justify-between rounded-2xl border border-[#741337]/8 bg-[#f7efe8] px-4">
+
+//         <span className="text-sm text-[#741337]/65">
+//           {value || "—"}
+//         </span>
+
+//         <span className="text-[10px] font-semibold uppercase tracking-wider text-[#741337]/30">
+//           Locked
+//         </span>
+
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* =========================================================
+//    PROMPT CARD
+// ========================================================= */
 
 // function PromptCard({
 //   prompt,
 //   index,
-//   editing,
-//   setEditing,
-//   savePrompt,
-//   saving,
+//   onChange,
+//   onRemove,
 // }) {
-//   const [question, setQuestion] =
-//     useState(prompt?.question || "");
-
-//   const [answer, setAnswer] =
-//     useState(prompt?.answer || "");
-
-//   const isEditing =
-//     editing === `prompt-${index}`;
-
 //   return (
-//     <div className="rounded-2xl border border-[#741337]/10 bg-white p-4 shadow-sm">
+//     <div className="rounded-3xl border border-[#741337]/8 bg-[#fffaf2] p-4 sm:p-5">
 
-//       {isEditing ? (
-//         <>
-//           <input
-//             value={question}
-//             onChange={(e) =>
-//               setQuestion(e.target.value)
-//             }
-//             placeholder="Prompt question"
-//             className="mb-2 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-3 text-xs font-semibold outline-none focus:border-[#741337]"
-//           />
+//       {/* HEADER */}
 
-//           <textarea
-//             value={answer}
-//             onChange={(e) =>
-//               setAnswer(e.target.value)
-//             }
-//             placeholder="Your answer..."
-//             rows={4}
-//             className="w-full resize-none rounded-xl border border-[#741337]/10 bg-[#fffaf2] px-3 py-3 text-sm outline-none focus:border-[#741337]"
-//           />
+//       <div className="mb-4 flex items-center justify-between">
 
-//           <div className="mt-3 flex gap-2">
-
-//             <button
-//               type="button"
-//               onClick={() =>
-//                 setEditing(null)
-//               }
-//               className="flex-1 rounded-xl border border-[#741337]/15 py-2.5 text-xs font-semibold text-[#741337]"
-//             >
-//               Cancel
-//             </button>
-
-//             <button
-//               type="button"
-//               disabled={saving}
-//               onClick={() =>
-//                 savePrompt(
-//                   index,
-//                   question,
-//                   answer
-//                 )
-//               }
-//               className="flex-1 rounded-xl bg-[#741337] py-2.5 text-xs font-semibold text-white disabled:opacity-50"
-//             >
-//               {saving
-//                 ? "Saving..."
-//                 : "Save"}
-//             </button>
-
-//           </div>
-//         </>
-//       ) : (
-//         <>
-//           <div className="flex items-start justify-between gap-3">
-
-//             <div className="flex-1">
-
-//               <p className="text-[11px] font-semibold text-[#741337]">
-//                 {prompt?.question ||
-//                   "Prompt"}
-//               </p>
-
-//               <p className="mt-2 text-sm leading-6 text-[#24151a]">
-//                 {prompt?.answer ||
-//                   "Add your answer"}
-=======
-
-//         {/* ================= PROFILE CARD ================= */}
-
-//         <div className="mt-3 shrink-0 rounded-[24px] border border-[#741337]/10 bg-white px-5 py-4 text-center shadow-sm">
-
-//           {/* IMAGE */}
-
-//           <div className="relative mx-auto mb-2 h-[88px] w-[88px]">
-
-//             <div className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-[#fff0df]" />
-
-//             <img
-//               src={image? image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS73OboNq8YpolvhWur1kpvkaggtHmHEzhY7RPohICuOA&s=10"}
-//               alt={name}
-//               className="relative h-full w-full rounded-full border-[3px] border-white object-cover shadow"
-//             />
-
-//           </div>
-
-
-//           {/* NAME */}
-
-//           <h2 className={name?"font-serif text-[23px] font-bold leading-tight text-[#741337]":"font-serif text-[23px] font-bold leading-tight text-[#741337] text-green-400"}>
-//             {name?name:"Loading..."}
-            
-//           </h2>
-
-
-//           {/* DETAILS */}
-
-//           <p className="mt-0.5 text-xs text-[#24151a]/55">
-//          {year}
-//             <span className="mx-1.5 text-[#ed7137]">
-//               •
-//             </span>
-//             {branch}
-//           </p>
-
-
-//           {/* INTRO */}
-
-//           <div className="mx-auto mt-2.5 max-w-[330px] rounded-xl bg-[#fffaf2] px-3 py-2">
-
-//             <p className="text-xs italic text-[#24151a]/65">
-//               intro
-//             </p>
-
-//           </div>
-
-//         </div>
-
-
-//         {/* ================= CONNECTIONS ================= */}
-
-//         <div className="mt-3 flex shrink-0 items-center justify-between rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 shadow-sm">
-
-//           <div>
-
-//             <p className="text-xs font-semibold text-[#24151a]">
-//               Your Connections
-//             </p>
-
-//             <p className="text-[11px] text-[#24151a]/40">
-//               People you've connected with
-//             </p>
-
-//           </div>
-
-//           <div className="flex h-9 min-w-[45px] items-center justify-center rounded-xl bg-[#fff0df]">
-
-//             <span className="text-base font-bold text-[#741337]">
-//               connections
-//             </span>
-
-//           </div>
-
-//         </div>
-
-
-//         {/* ================= MENU ================= */}
-
-//         <div className="mt-3 shrink-0 overflow-hidden rounded-[20px] border border-[#741337]/10 bg-white shadow-sm">
-
-//           {/* EDIT PROFILE */}
-
-//           <button
-//             type="button"
-//             className="group flex h-[58px] w-full items-center gap-3 border-b border-[#741337]/8 px-4 text-left hover:bg-[#fffaf2]"
-//           >
-
-//             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fff0df]">
-//               <Pencil
-//                 size={15}
-//                 className="text-[#741337]"
-//               />
-//             </div>
-
-//             <div className="flex-1">
-
-//               <p className="text-xs font-medium text-[#24151a]">
-//                 Edit Profile
-//               </p>
-
-//               <p className="text-[9px] text-[#24151a]/40">
-//                 Photos, interests & Garba vibe
->>>>>>> Stashed changes
-//               </p>
-
-//             </div>
-
-<<<<<<< Updated upstream
-//             <button
-//               type="button"
-//               onClick={() =>
-//                 setEditing(
-//                   `prompt-${index}`
-//                 )
-//               }
-//               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff0df] text-[#741337]"
-//             >
-//               <Pencil size={13} />
-//             </button>
-
-//           </div>
-//         </>
-//       )}
-
-//     </div>
-//   );
-// }
-
-// // ==================================================
-// // INTEREST EDITOR
-// // ==================================================
-
-// function InterestEditor({
-//   interests,
-//   setInterests,
-//   saveInterests,
-//   saving,
-// }) {
-//   const [value, setValue] =
-//     useState("");
-
-//   const addInterest = () => {
-//     const cleanValue =
-//       value.trim();
-
-//     if (!cleanValue) return;
-
-//     if (
-//       interests.includes(
-//         cleanValue
-//       )
-//     ) {
-//       setValue("");
-//       return;
-//     }
-
-//     setInterests([
-//       ...interests,
-//       cleanValue,
-//     ]);
-
-//     setValue("");
-//   };
-
-//   const removeInterest = (
-//     interest
-//   ) => {
-//     setInterests(
-//       interests.filter(
-//         (item) =>
-//           item !== interest
-//       )
-//     );
-//   };
-
-//   return (
-//     <div className="mt-3 rounded-2xl border border-[#741337]/10 bg-[#fffaf2] p-4">
-
-//       <div className="flex gap-2">
-
-//         <input
-//           value={value}
-//           onChange={(e) =>
-//             setValue(e.target.value)
-//           }
-//           onKeyDown={(e) => {
-//             if (e.key === "Enter") {
-//               e.preventDefault();
-//               addInterest();
-//             }
-//           }}
-//           placeholder="Add an interest"
-//           className="flex-1 rounded-xl border border-[#741337]/10 bg-white px-3 py-3 text-xs outline-none focus:border-[#741337]"
-//         />
+//         <span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#741337]/40">
+//           Prompt {index + 1}
+//         </span>
 
 //         <button
 //           type="button"
-//           onClick={addInterest}
-//           className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#741337] text-white"
+//           onClick={() =>
+//             onRemove(index)
+//           }
+//           className="text-xs font-medium text-red-500"
 //         >
-//           <Plus size={17} />
+//           Remove
 //         </button>
 
 //       </div>
 
-//       <div className="mt-3 flex flex-wrap gap-2">
+//       {/* QUESTION */}
 
-//         {interests.map(
-//           (interest, index) => (
-//             <button
-//               type="button"
-//               key={index}
-//               onClick={() =>
-//                 removeInterest(
-//                   interest
-//                 )
-//               }
-//               className="flex items-center gap-1 rounded-full bg-[#fff0df] px-3 py-2 text-xs font-medium text-[#741337]"
-//             >
-//               {interest}
+//       <div>
+//         <label className="mb-2 block text-sm font-medium">
+//           Question
+//         </label>
 
-//               <X size={12} />
-//             </button>
-//           )
+//         <input
+//           type="text"
+//           value={
+//             prompt.question
+//           }
+//           onChange={(e) =>
+//             onChange(
+//               index,
+//               "question",
+//               e.target.value
+//             )
+//           }
+//           placeholder="e.g. My ideal Sunday is..."
+//           className="w-full rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-[#741337]/25 focus:border-[#741337]/30"
+//         />
+//       </div>
+
+//       {/* TYPE */}
+
+//       <div className="mt-4">
+
+//         <label className="mb-2 block text-sm font-medium">
+//           Response type
+//         </label>
+
+//         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+
+//           {PROMPT_TYPES.map(
+//             (type) => {
+//               const selected =
+//                 prompt.type ===
+//                 type.value;
+
+//               return (
+//                 <button
+//                   key={
+//                     type.value
+//                   }
+//                   type="button"
+//                   onClick={() =>
+//                     onChange(
+//                       index,
+//                       "type",
+//                       type.value
+//                     )
+//                   }
+//                   className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
+//                     selected
+//                       ? "border-[#741337] bg-[#741337] text-white"
+//                       : "border-[#741337]/8 bg-white text-[#741337]/50 hover:border-[#741337]/20"
+//                   }`}
+//                 >
+//                   {type.label}
+//                 </button>
+//               );
+//             }
+//           )}
+
+//         </div>
+
+//       </div>
+
+//       {/* ANSWER */}
+
+//       <div className="mt-4">
+
+//         <label className="mb-2 block text-sm font-medium">
+//           Answer
+//         </label>
+
+//         {prompt.type ===
+//         "text" ? (
+//           <textarea
+//             value={
+//               prompt.answer
+//             }
+//             onChange={(e) =>
+//               onChange(
+//                 index,
+//                 "answer",
+//                 e.target.value
+//               )
+//             }
+//             rows={4}
+//             placeholder="Write your answer..."
+//             className="w-full resize-none rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[#741337]/25 focus:border-[#741337]/30"
+//           />
+//         ) : prompt.type ===
+//           "voice" ? (
+//           <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+//             <div className="text-2xl">
+//               🎙️
+//             </div>
+
+//             <p className="mt-2 text-sm font-medium">
+//               Voice answer
+//             </p>
+
+//             <p className="mt-1 text-xs text-[#741337]/40">
+//               Voice upload can be connected
+//               to your media upload API.
+//             </p>
+
+//           </div>
+//         ) : prompt.type ===
+//           "video" ? (
+//           <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+//             <div className="text-2xl">
+//               🎥
+//             </div>
+
+//             <p className="mt-2 text-sm font-medium">
+//               Video answer
+//             </p>
+
+//             <p className="mt-1 text-xs text-[#741337]/40">
+//               Video upload can be connected
+//               to your media upload API.
+//             </p>
+
+//           </div>
+//         ) : (
+//           <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+//             <div className="text-2xl">
+//               📊
+//             </div>
+
+//             <p className="mt-2 text-sm font-medium">
+//               Poll
+//             </p>
+
+//             <p className="mt-1 text-xs text-[#741337]/40">
+//               Poll options can be added
+//               when the poll system is connected.
+//             </p>
+
+//           </div>
 //         )}
 
 //       </div>
 
-//       <button
-//         type="button"
-//         disabled={saving}
-//         onClick={saveInterests}
-//         className="mt-4 w-full rounded-xl bg-[#741337] py-3 text-xs font-semibold text-white disabled:opacity-50"
-//       >
-//         {saving
-//           ? "Saving..."
-//           : "Save Interests"}
-//       </button>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+// "use client";
+
+// import React, { useEffect, useRef, useState } from "react";
+// import Navbar from '@/components/Navbar'
+// import { ArrowLeft } from "lucide-react";
+// import { useRouter } from "next/navigation";
+// /* =========================================================
+//    INTERESTS
+// ========================================================= */
+
+// const INTERESTS = [
+//   "Music",
+//   "Movies",
+//   "TV",
+//   "Books",
+//   "Travel",
+//   "Food",
+//   "Sports",
+//   "Gaming",
+//   "Photography",
+//   "Art",
+//   "Fitness",
+//   "Cooking",
+//   "Dancing",
+//   "Hiking",
+//   "Pets",
+//   "Fashion",
+//   "Technology",
+//   "Business",
+//   "Cars",
+//   "Nature",
+//   "Nightlife",
+//   "Coffee",
+//   "Volunteering",
+//   "Reading",
+//   "Writing",
+//   "Cricket",
+//   "Football",
+//   "Badminton",
+//   "Basketball",
+//   "Trekking",
+//   "Road Trips",
+//   "Beaches",
+//   "Mountains",
+//   "Anime",
+//   "Podcasts",
+//   "Memes",
+//   "Startups",
+//   "Coding",
+//   "Design",
+//   "Content Creation",
+//   "Fitness Training",
+//   "Yoga",
+//   "Meditation",
+//   "Dance",
+//   "Fashion Design",
+//   "Concerts",
+//   "Festivals",
+//   "Garba",
+//   "Dandiya",
+// ];
+
+// /* =========================================================
+//    PROMPT TYPES
+// ========================================================= */
+
+// const PROMPT_TYPES = [
+//   {
+//     value: "text",
+//     label: "Text",
+//   },
+//   {
+//     value: "voice",
+//     label: "Voice",
+//   },
+//   {
+//     value: "video",
+//     label: "Video",
+//   },
+//   {
+//     value: "poll",
+//     label: "Poll",
+//   },
+// ];
+
+// /* =========================================================
+//    DEFAULT PROMPT
+// ========================================================= */
+
+// const createEmptyPrompt = () => ({
+//   question: "",
+//   answer: "",
+//   type: "text",
+// });
+
+// /* =========================================================
+//    HELPERS
+// ========================================================= */
+
+// const normalizeProfile = (profile) => {
+//   if (!profile) return null;
+
+//   return {
+//     username: profile.username || "",
+//     branch: profile.branch || "",
+//     semester: profile.semester || "",
+//     college: profile.college || "",
+//     gender: profile.gender || "",
+
+//     dateOfBirth: profile.dateOfBirth
+//       ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
+//       : "",
+
+//     intro: profile.intro || "",
+
+//     interests: Array.isArray(profile.interests)
+//       ? profile.interests
+//       : [],
+
+//     prompts: Array.isArray(profile.prompts)
+//       ? profile.prompts.map((prompt) => ({
+//           _id: prompt._id,
+//           question: prompt.question || "",
+//           answer: prompt.answer || "",
+//           type: ["text", "voice", "video", "poll"].includes(prompt.type)
+//             ? prompt.type
+//             : "text",
+//         }))
+//       : [],
+
+//     images: Array.isArray(profile.images)
+//       ? profile.images
+//       : [],
+//   };
+// };
+
+// /* =========================================================
+//    MAIN PAGE
+// ========================================================= */
+
+// export default function MyProfilePage() {
+//   /* -------------------------------------------------------
+//      PROFILE / ACCOUNT DATA
+//   ------------------------------------------------------- */
+
+//   const [user, setUser] = useState({
+//     username: "",
+//     branch: "",
+//     semester: "",
+//     college: "",
+//     gender: "",
+//   });
+
+//   /* -------------------------------------------------------
+//      EDITABLE PROFILE STATE
+//   ------------------------------------------------------- */
+
+//   const [profileData, setProfileData] = useState({
+//     dateOfBirth: "",
+//     intro: "",
+//     interests: [],
+//     prompts: [],
+//     images: [],
+//   });
+
+//   /* -------------------------------------------------------
+//      UI STATES
+//   ------------------------------------------------------- */
+
+//   const [loading, setLoading] = useState(true);
+//   const [saving, setSaving] = useState(false);
+//   const [loggingOut, setLoggingOut] = useState(false);
+
+//   const [error, setError] = useState("");
+//   const [success, setSuccess] = useState("");
+
+//   const [showMoreInterests, setShowMoreInterests] =
+//     useState(false);
+
+//   const [activePhotoIndex, setActivePhotoIndex] =
+//     useState(null);
+
+//   const fileInputRef = useRef(null);
+//   const router = useRouter();
+//   /* =======================================================
+//      GET PROFILE
+//   ======================================================= */
+
+//   useEffect(() => {
+//     getProfile();
+//   }, []);
+
+//   const getProfile = async () => {
+//     try {
+//       setLoading(true);
+//       setError("");
+
+//       const res = await fetch("/api/myprofile", {
+//         method: "GET",
+//         credentials: "include",
+//         cache: "no-store",
+//       });
+
+//       const data = await res.json();
+//       console.log(data);
+//       if (!res.ok) {
+//         throw new Error(
+//           data.error || "Failed to load profile."
+//         );
+//       }
+
+//       const profile =
+//         data.user ||
+//         data.profile ||
+//         data.users;
+
+//       if (!profile) {
+//         throw new Error("Profile data not found.");
+//       }
+
+//       const normalized = normalizeProfile(profile);
+
+//       /* -----------------------------------------------
+//          LOCKED USER INFORMATION
+//       ------------------------------------------------ */
+
+//       setUser({
+//         username: normalized.username,
+//         branch: normalized.branch,
+//         semester: normalized.semester,
+//         college: normalized.college,
+//         gender: normalized.gender,
+//       });
+
+//       /* -----------------------------------------------
+//          EDITABLE PROFILE INFORMATION
+//       ------------------------------------------------ */
+
+//       setProfileData({
+//         dateOfBirth: normalized.dateOfBirth,
+//         intro: normalized.intro,
+//         interests: normalized.interests,
+//         prompts: normalized.prompts,
+//         images: normalized.images,
+//       });
+//     } catch (err) {
+//       console.error("Get profile error:", err);
+
+//       setError(
+//         err.message || "Unable to load your profile."
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   /* =======================================================
+//      GENERIC STATE UPDATE
+//   ======================================================= */
+
+//   const updateProfileState = (updates) => {
+//     setProfileData((prev) => ({
+//       ...prev,
+//       ...updates,
+//     }));
+
+//     // Clear old messages when user starts editing
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   /* =======================================================
+//      DATE OF BIRTH
+//   ======================================================= */
+
+//   const handleDateChange = (value) => {
+//     updateProfileState({
+//       dateOfBirth: value,
+//     });
+//   };
+
+//   /* =======================================================
+//      INTRO
+//   ======================================================= */
+
+//   const handleIntroChange = (value) => {
+//     if (value.length > 500) return;
+
+//     updateProfileState({
+//       intro: value,
+//     });
+//   };
+
+//   /* =======================================================
+//      INTERESTS
+//   ======================================================= */
+
+//   const toggleInterest = (interest) => {
+//     setProfileData((prev) => {
+//       const exists = prev.interests.includes(interest);
+
+//       const updatedInterests = exists
+//         ? prev.interests.filter(
+//             (item) => item !== interest
+//           )
+//         : [...prev.interests, interest];
+
+//       return {
+//         ...prev,
+//         interests: updatedInterests,
+//       };
+//     });
+
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   const clearAllInterests = () => {
+//     updateProfileState({
+//       interests: [],
+//     });
+//   };
+
+//   const visibleInterests = showMoreInterests
+//     ? INTERESTS
+//     : INTERESTS.slice(0, 16);
+
+//   /* =======================================================
+//      PROMPTS
+//   ======================================================= */
+
+//   const addPrompt = () => {
+//     if (profileData.prompts.length >= 6) {
+//       return;
+//     }
+
+//     updateProfileState({
+//       prompts: [
+//         ...profileData.prompts,
+//         createEmptyPrompt(),
+//       ],
+//     });
+//   };
+
+//   const updatePrompt = (
+//     index,
+//     field,
+//     value
+//   ) => {
+//     setProfileData((prev) => {
+//       const prompts = [...prev.prompts];
+
+//       prompts[index] = {
+//         ...prompts[index],
+//         [field]: value,
+//       };
+
+//       return {
+//         ...prev,
+//         prompts,
+//       };
+//     });
+
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   const removePrompt = (index) => {
+//     setProfileData((prev) => ({
+//       ...prev,
+//       prompts: prev.prompts.filter(
+//         (_, i) => i !== index
+//       ),
+//     }));
+
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   /* =======================================================
+//      IMAGE HANDLING
+     
+//      NOTE:
+//      This stores image as base64 in React state.
+//      Your backend can later receive it with Update Profile.
+//   ======================================================= */
+
+//   const openImagePicker = (index) => {
+//     setActivePhotoIndex(index);
+
+//     if (fileInputRef.current) {
+//       fileInputRef.current.value = "";
+//       fileInputRef.current.click();
+//     }
+//   };
+
+//   const handleImageChange = (event) => {
+//     const file = event.target.files?.[0];
+
+//     if (!file) return;
+
+//     if (!file.type.startsWith("image/")) {
+//       setError("Please select a valid image.");
+//       return;
+//     }
+
+//     if (file.size > 5 * 1024 * 1024) {
+//       setError("Image must be smaller than 5MB.");
+//       return;
+//     }
+
+//     const reader = new FileReader();
+
+//     reader.onload = () => {
+//       const imageData = reader.result;
+
+//       setProfileData((prev) => {
+//         const images = [...prev.images];
+
+//         images[activePhotoIndex] = imageData;
+
+//         return {
+//           ...prev,
+//           images,
+//         };
+//       });
+
+//       setSuccess("");
+//       setError("");
+//     };
+
+//     reader.onerror = () => {
+//       setError("Failed to read image.");
+//     };
+
+//     reader.readAsDataURL(file);
+//   };
+
+//   const removeImage = (index) => {
+//     setProfileData((prev) => {
+//       const images = [...prev.images];
+
+//       images.splice(index, 1);
+
+//       return {
+//         ...prev,
+//         images,
+//       };
+//     });
+
+//     setSuccess("");
+//     setError("");
+//   };
+
+//   /* =======================================================
+//      UPDATE PROFILE
+     
+//      THIS IS THE ONLY PLACE WHERE PROFILE DATA IS SENT
+//      TO THE BACKEND.
+//   ======================================================= */
+
+//   const handleUpdateProfile = async () => {
+//     try {
+//       setSaving(true);
+//       setError("");
+//       setSuccess("");
+
+//       /* -----------------------------------------------
+//          CLEAN PROMPTS BEFORE SENDING
+//       ------------------------------------------------ */
+
+//       const cleanedPrompts =
+//         profileData.prompts
+//           .slice(0, 6)
+//           .map((prompt) => ({
+//             ...(prompt._id
+//               ? { _id: prompt._id }
+//               : {}),
+//             question:
+//               String(
+//                 prompt.question || ""
+//               ).trim(),
+
+//             answer:
+//               String(
+//                 prompt.answer || ""
+//               ).trim(),
+
+//             type: [
+//               "text",
+//               "voice",
+//               "video",
+//               "poll",
+//             ].includes(prompt.type)
+//               ? prompt.type
+//               : "text",
+//           }))
+//           .filter(
+//             (prompt) =>
+//               prompt.question ||
+//               prompt.answer
+//           );
+
+//       /* -----------------------------------------------
+//          PAYLOAD
+         
+//          Username / branch / semester / college are
+//          intentionally NOT included.
+//       ------------------------------------------------ */
+
+//       const payload = {
+//         dateOfBirth:
+//           profileData.dateOfBirth || null,
+
+//         intro:
+//           profileData.intro.trim(),
+
+//         interests:
+//           profileData.interests,
+
+//         prompts:
+//           cleanedPrompts,
+
+//         images:
+//           profileData.images,
+//       };
+
+//       console.log(
+//         "Updating profile:",
+//         payload
+//       );
+
+//       const res = await fetch(
+//         "/api/updateprofile",
+//         {
+//           method: "PATCH",
+//           headers: {
+//             "Content-Type":
+//               "application/json",
+//           },
+//           credentials: "include",
+//           body: JSON.stringify(payload),
+//         }
+//       );
+
+//       const data = await res.json();
+
+//       if (!res.ok) {
+//         throw new Error(
+//           data.error ||
+//             "Failed to update profile."
+//         );
+//       }
+
+//       /* -----------------------------------------------
+//          UPDATE STATE WITH BACKEND RESPONSE
+//       ------------------------------------------------ */
+
+//       const updatedProfile =
+//         data.user ||
+//         data.profile ||
+//         data.users;
+
+//       if (updatedProfile) {
+//         const normalized =
+//           normalizeProfile(
+//             updatedProfile
+//           );
+
+//         setUser({
+//           username:
+//             normalized.username,
+
+//           branch:
+//             normalized.branch,
+
+//           semester:
+//             normalized.semester,
+
+//           college:
+//             normalized.college,
+
+//           gender:
+//             normalized.gender,
+//         });
+
+//         setProfileData({
+//           dateOfBirth:
+//             normalized.dateOfBirth,
+
+//           intro:
+//             normalized.intro,
+
+//           interests:
+//             normalized.interests,
+
+//           prompts:
+//             normalized.prompts,
+
+//           images:
+//             normalized.images,
+//         });
+//       } else {
+//         /* ---------------------------------------------
+//            If backend doesn't return profile,
+//            keep our current state but normalize prompts.
+//         --------------------------------------------- */
+
+//         setProfileData((prev) => ({
+//           ...prev,
+//           prompts: cleanedPrompts,
+//         }));
+//       }
+
+//       setSuccess(
+//         "Profile updated successfully."
+//       );
+//     } catch (err) {
+//       console.error(
+//         "Update profile error:",
+//         err
+//       );
+
+//       setError(
+//         err.message ||
+//           "Something went wrong while updating your profile."
+//       );
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   /* =======================================================
+//      LOGOUT
+//   ======================================================= */
+
+//   const handleLogout = async () => {
+//     try {
+//       setLoggingOut(true);
+//       setError("");
+
+//       const res = await fetch(
+//         "/api/logout",
+//         {
+//           method: "POST",
+//           credentials: "include",
+//         }
+//       );
+
+//       const data = await res.json();
+
+//       if (!res.ok) {
+//         throw new Error(
+//           data.error ||
+//             "Logout failed."
+//         );
+//       }
+
+//       window.location.href = "/login";
+//     } catch (err) {
+//       console.error(
+//         "Logout error:",
+//         err
+//       );
+
+//       setError(
+//         err.message ||
+//           "Unable to logout."
+//       );
+
+//       setLoggingOut(false);
+//     }
+//   };
+
+//   /* =======================================================
+//      AGE CALCULATOR
+//   ======================================================= */
+
+//   const calculateAge = (dob) => {
+//     if (!dob) return null;
+
+//     const birthDate =
+//       new Date(dob);
+
+//     if (Number.isNaN(
+//       birthDate.getTime()
+//     )) {
+//       return null;
+//     }
+
+//     const today =
+//       new Date();
+
+//     let age =
+//       today.getFullYear() -
+//       birthDate.getFullYear();
+
+//     const monthDifference =
+//       today.getMonth() -
+//       birthDate.getMonth();
+
+//     if (
+//       monthDifference < 0 ||
+//       (monthDifference === 0 &&
+//         today.getDate() <
+//           birthDate.getDate())
+//     ) {
+//       age--;
+//     }
+
+//     return age;
+//   };
+
+//   const age = calculateAge(
+//     profileData.dateOfBirth
+//   );
+
+//   /* =======================================================
+//      LOADING
+//   ======================================================= */
+
+//   if (loading) {
+//     return (
+//       <main className="min-h-screen inset-0 z-60 fixed bg-[#fffaf2] flex items-center justify-center">
+//         <div className="text-center">
+//           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#741337]/20 border-t-[#741337]" />
+
+//           <p className="text-sm text-[#741337]/60">
+//             Loading your profile...
+//           </p>
+//         </div>
+//       </main>
+//     );
+//   }
+
+//   /* =======================================================
+//      PAGE
+//   ======================================================= */
+// // text-[#741337]
+//   return (
+//     <main className="min-h-screen inset-0 z-50 fixed overflow-y-auto  [&::-webkit-scrollbar]:hidden px-4 py-8 text-white sm:px-6 lg:px-8">
+      
+//       <div className="mx-auto max-w-2xl">
+
+//         {/* =================================================
+//             HEADER
+//         ================================================= */}
+        
+//         <div className="mb-8">
+//           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-red-400">
+//             Your profile
+//           </p>
+
+//           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+//             Edit Profile
+//           </h1>
+
+//           <p className="mt-2 max-w-xl text-sm leading-6 text-red-400">
+//             {/* Make your profile feel more like you.
+//             Changes will only be saved when you
+//             press Update Profile. */}
+//           </p>
+//         </div>
+
+//         {/* =================================================
+//             ERROR
+//         ================================================= */}
+
+//         {error && (
+//           <div className="mb-5 rounded-2xl  border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+//             {error}
+//           </div>
+//         )}
+
+//         {/* =================================================
+//             SUCCESS
+//         ================================================= */}
+
+//         {success && (
+//           <div className="mb-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+//             {success}
+//           </div>
+//         )}
+
+//         {/* =================================================
+//             PROFILE CARD
+//         ================================================= */}
+
+//         <section className="rounded-[28px] border border-[#741337]/8 bg-white text-[#741337] p-5 shadow-[0_10px_40px_rgba(116,19,55,0.06)] sm:p-7">
+//           <div className="flex "><div><button onClick={()=>router.push("/testroute")}><ArrowLeft/></button></div><div className="mx-2"><h1><a href="/testroute">Get Back to explore Page</a></h1></div></div>
+//           {/* ===============================================
+//               PHOTOS
+//           =============================================== */}
+
+//           <ProfileSection 
+          
+//             number="01"
+//             title="Photos"
+//             description="Choose the photos people will see on your profile."
+//           >
+
+//             <div className="grid grid-cols-3  gap-3 sm:grid-cols-6">
+
+//               {Array.from({
+//                 length: 6,
+//               }).map((_, index) => {
+//                 const image =
+//                   profileData.images[
+//                     index
+//                   ];
+
+//                 return (
+//                   <div
+//                     key={index}
+//                     className="relative aspect-[3/4]"
+//                   >
+//                     {image ? (
+//                       <div className="group relative h-full w-full overflow-hidden rounded-2xl bg-[#f7efe8]">
+
+//                         <img
+//                           src={image}
+//                           alt={`Profile photo ${
+//                             index + 1
+//                           }`}
+//                           className="h-full w-full object-cover"
+//                         />
+
+//                         <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition group-hover:opacity-100">
+//                           <div className="mb-2 flex gap-1">
+//                             <button
+//                               type="button"
+//                               onClick={() =>
+//                                 openImagePicker(
+//                                   index
+//                                 )
+//                               }
+//                               className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#741337] "
+//                             >
+//                               Change
+//                             </button>
+
+//                             <button
+//                               type="button"
+//                               onClick={() =>
+//                                 removeImage(
+//                                   index
+//                                 )
+//                               }
+//                               className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-red-600"
+//                             >
+//                               Remove
+//                             </button>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     ) : (
+//                       <button
+//                         type="button"
+//                         onClick={() =>
+//                           openImagePicker(
+//                             index
+//                           )
+//                         }
+//                         className="flex h-full w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#741337]/15 bg-[#fffaf2] text-[#741337]/50 transition hover:border-[#741337]/35 hover:bg-[#fdf3e9]"
+//                       >
+//                         <span className="text-2xl">
+//                           +
+//                         </span>
+
+//                         <span className="mt-1 text-[11px]">
+//                           Add
+//                         </span>
+//                       </button>
+//                     )}
+//                   </div>
+//                 );
+//               })}
+
+//             </div>
+
+//             <p className="mt-3 text-xs text-[#741337]/40">
+//               Maximum 5MB per image.
+//             </p>
+
+//             <input
+//               ref={fileInputRef}
+//               type="file"
+//               accept="image/*"
+//               onChange={handleImageChange}
+//               className="hidden"
+//             />
+//           </ProfileSection>
+
+//           {/* ===============================================
+//               BASIC INFORMATION
+//           =============================================== */}
+
+//           <ProfileSection
+//             number="02"
+//             title="Basic Information"
+//             description="Some account information is fixed and cannot be edited here."
+//           >
+
+//             <div className="grid gap-4 sm:grid-cols-2">
+
+//               {/* Username */}
+
+//               <LockedField
+//                 label="Username"
+//                 value={
+//                   user.username
+//                 }
+//               />
+
+//               {/* Branch */}
+
+//               <LockedField
+//                 label="Branch"
+//                 value={
+//                   user.branch
+//                 }
+//               />
+
+//               {/* Semester */}
+
+//               <LockedField
+//                 label="Year / Semester"
+//                 value={
+//                   user.semester
+//                 }
+//               />
+
+//               {/* College */}
+
+//               <LockedField
+//                 label="College"
+//                 value={
+//                   user.college
+//                 }
+//               />
+
+//             </div>
+//           </ProfileSection>
+
+//           {/* ===============================================
+//               AGE / DOB
+//           =============================================== */}
+
+//           <ProfileSection
+//             number="03"
+//             title="Age"
+//             description="Your date of birth is used to calculate your age."
+//           >
+
+//             <div className="grid gap-4 sm:grid-cols-2">
+
+//               <div>
+//                 <label className="mb-2 block text-sm font-medium">
+//                   Date of Birth
+//                 </label>
+
+//                 <input
+//                   type="date"
+//                   value={
+//                     profileData.dateOfBirth
+//                   }
+//                   onChange={(e) =>
+//                     handleDateChange(
+//                       e.target.value
+//                     )
+//                   }
+//                   className="w-full rounded-2xl border border-[#741337]/10 bg-[#fffaf2] px-4 py-3 text-sm outline-none transition focus:border-[#741337]/30"
+//                 />
+//               </div>
+
+//               <div>
+//                 <label className="mb-2 block text-sm font-medium">
+//                   Age
+//                 </label>
+
+//                 <div className="flex h-[46px] items-center rounded-2xl border border-[#741337]/10 bg-[#f7efe8] px-4 text-sm">
+//                   {age !== null
+//                     ? `${age} years`
+//                     : "Select your date of birth"}
+//                 </div>
+//               </div>
+
+//             </div>
+//           </ProfileSection>
+
+//           {/* ===============================================
+//               INTRO
+//           =============================================== */}
+
+//           <ProfileSection
+//             number="04"
+//             title="About You"
+//             description="Give people a small idea of who you are."
+//           >
+
+//             <div>
+//               <label className="mb-2 block text-sm font-medium">
+//                 Intro
+//               </label>
+
+//               <textarea
+//                 value={
+//                   profileData.intro
+//                 }
+//                 onChange={(e) =>
+//                   handleIntroChange(
+//                     e.target.value
+//                   )
+//                 }
+//                 maxLength={500}
+//                 rows={5}
+//                 placeholder="Tell people something about yourself..."
+//                 className="w-full resize-none rounded-2xl border border-[#741337]/10 bg-[#fffaf2] px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[#741337]/30 focus:border-[#741337]/30"
+//               />
+
+//               <div className="mt-2 text-right text-xs text-[#741337]/35">
+//                 {
+//                   profileData.intro
+//                     .length
+//                 }
+//                 /500
+//               </div>
+//             </div>
+//           </ProfileSection>
+
+//           {/* ===============================================
+//               INTERESTS
+//           =============================================== */}
+
+//           <ProfileSection
+//             number="05"
+//             title="Interests & Personality"
+//             description="Tap interests to select or remove them."
+//           >
+
+//             <div className="flex items-center justify-between gap-3">
+
+//               <p className="text-xs text-[#741337]/45">
+//                 {
+//                   profileData.interests
+//                     .length
+//                 }{" "}
+//                 selected
+//               </p>
+
+//               {profileData.interests
+//                 .length > 0 && (
+//                 <button
+//                   type="button"
+//                   onClick={
+//                     clearAllInterests
+//                   }
+//                   className="text-xs font-medium text-[#741337]/55 underline underline-offset-4"
+//                 >
+//                   Clear all
+//                 </button>
+//               )}
+
+//             </div>
+
+//             <div className="mt-4 flex flex-wrap gap-2">
+
+//               {visibleInterests.map(
+//                 (interest) => {
+//                   const selected =
+//                     profileData.interests.includes(
+//                       interest
+//                     );
+
+//                   return (
+//                     <button
+//                       key={interest}
+//                       type="button"
+//                       onClick={() =>
+//                         toggleInterest(
+//                           interest
+//                         )
+//                       }
+//                       className={`rounded-full border px-4 py-2 text-sm transition ${
+//                         selected
+//                           ? "border-[#741337] bg-[#741337] text-white shadow-sm"
+//                           : "border-[#741337]/8 bg-[#fffaf2] text-[#741337]/55 hover:border-[#741337]/20 hover:text-[#741337]"
+//                       }`}
+//                     >
+//                       {interest}
+//                     </button>
+//                   );
+//                 }
+//               )}
+
+//             </div>
+
+//             <button
+//               type="button"
+//               onClick={() =>
+//                 setShowMoreInterests(
+//                   (prev) => !prev
+//                 )
+//               }
+//               className="mt-5 text-sm font-semibold underline underline-offset-4"
+//             >
+//               {showMoreInterests
+//                 ? "Show less"
+//                 : "More interests"}
+//             </button>
+
+//           </ProfileSection>
+
+//           {/* ===============================================
+//               PROMPTS
+//           =============================================== */}
+
+//           <ProfileSection
+//             number="06"
+//             title="Prompts"
+//             description="Add up to 6 prompts to show more personality."
+//           >
+
+//             <div className="space-y-5">
+
+//               {profileData.prompts.map(
+//                 (prompt, index) => (
+//                   <PromptCard
+//                     key={
+//                       prompt._id ||
+//                       index
+//                     }
+//                     prompt={prompt}
+//                     index={index}
+//                     onChange={
+//                       updatePrompt
+//                     }
+//                     onRemove={
+//                       removePrompt
+//                     }
+//                   />
+//                 )
+//               )}
+
+//             </div>
+
+//             {profileData.prompts
+//               .length < 6 && (
+//               <button
+//                 type="button"
+//                 onClick={addPrompt}
+//                 className="mt-5 w-full rounded-2xl border border-dashed border-[#741337]/15 bg-[#fffaf2] py-4 text-sm font-semibold transition hover:border-[#741337]/30 hover:bg-[#fdf3e9]"
+//               >
+//                 + Add another prompt
+//               </button>
+//             )}
+
+//             <p className="mt-3 text-xs text-[#741337]/40">
+//               {
+//                 profileData.prompts
+//                   .length
+//               }{" "}
+//               / 6 prompts
+//             </p>
+
+//           </ProfileSection>
+
+//           {/* ===============================================
+//               UPDATE + LOGOUT
+//           =============================================== */}
+
+//           <div className="mt-8 border-t border-[#741337]/8 pt-7">
+
+//             <button
+//               type="button"
+//               onClick={
+//                 handleUpdateProfile
+//               }
+//               disabled={
+//                 saving ||
+//                 loggingOut
+//               }
+//               className="w-full rounded-full bg-[#741337] py-4 text-sm font-semibold text-white shadow-[0_8px_25px_rgba(116,19,55,0.18)] transition hover:bg-[#62102e] disabled:cursor-not-allowed disabled:opacity-60"
+//             >
+//               {saving
+//                 ? "Updating Profile..."
+//                 : "Update Profile"}
+//             </button>
+
+//             <button
+//               type="button"
+//               onClick={
+//                 handleLogout
+//               }
+//               disabled={
+//                 saving ||
+//                 loggingOut
+//               }
+//               className="mt-4 w-full rounded-full border border-red-200 bg-white py-4 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+//             >
+//               {loggingOut
+//                 ? "Logging out..."
+//                 : "Logout"}
+//             </button>
+
+//           </div>
+
+//         </section>
+
+//       </div>
+//     </main>
+//   );
+// }
+
+// /* =========================================================
+//    PROFILE SECTION
+// ========================================================= */
+
+// function ProfileSection({
+//   number,
+//   title,
+//   description,
+//   children,
+// }) {
+//   return (
+//     <section className="border-b border-[#741337]/8 py-7 first:pt-0 last:border-b-0">
+
+//       <div className="mb-5 flex gap-4">
+
+//         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#741337]/8 text-xs font-semibold">
+//           {number}
+//         </div>
+
+//         <div>
+//           <h2 className="text-lg font-semibold">
+//             {title}
+//           </h2>
+
+//           {description && (
+//             <p className="mt-1 text-sm leading-5 text-[#741337]/45">
+//               {description}
+//             </p>
+//           )}
+//         </div>
+
+//       </div>
+
+//       {children}
+
+//     </section>
+//   );
+// }
+
+// /* =========================================================
+//    LOCKED FIELD
+// ========================================================= */
+
+// function LockedField({
+//   label,
+//   value,
+// }) {
+//   return (
+//     <div>
+//       <label className="mb-2 block text-sm font-medium">
+//         {label}
+//       </label>
+
+//       <div className="flex min-h-[46px] items-center justify-between rounded-2xl border border-[#741337]/8 bg-[#f7efe8] px-4">
+
+//         <span className="text-sm text-[#741337]/65">
+//           {value || "—"}
+//         </span>
+
+//         <span className="text-[10px] font-semibold uppercase tracking-wider text-[#741337]/30">
+//           Locked
+//         </span>
+
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* =========================================================
+//    PROMPT CARD
+// ========================================================= */
+
+// function PromptCard({
+//   prompt,
+//   index,
+//   onChange,
+//   onRemove,
+// }) {
+//   return (
+//     <div className="rounded-3xl border border-[#741337]/8 bg-[#fffaf2] p-4 sm:p-5">
+
+//       {/* HEADER */}
+
+//       <div className="mb-4 flex items-center justify-between">
+
+//         <span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#741337]/40">
+//           Prompt {index + 1}
+//         </span>
+
+//         <button
+//           type="button"
+//           onClick={() =>
+//             onRemove(index)
+//           }
+//           className="text-xs font-medium text-red-500"
+//         >
+//           Remove
+//         </button>
+
+//       </div>
+
+//       {/* QUESTION */}
+
+//       <div>
+//         <label className="mb-2 block text-sm font-medium">
+//           Question
+//         </label>
+
+//         <input
+//           type="text"
+//           value={
+//             prompt.question
+//           }
+//           onChange={(e) =>
+//             onChange(
+//               index,
+//               "question",
+//               e.target.value
+//             )
+//           }
+//           placeholder="e.g. My ideal Sunday is..."
+//           className="w-full rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-[#741337]/25 focus:border-[#741337]/30"
+//         />
+//       </div>
+
+//       {/* TYPE */}
+
+//       <div className="mt-4">
+
+//         <label className="mb-2 block text-sm font-medium">
+//           Response type
+//         </label>
+
+//         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+
+//           {PROMPT_TYPES.map(
+//             (type) => {
+//               const selected =
+//                 prompt.type ===
+//                 type.value;
+
+//               return (
+//                 <button
+//                   key={
+//                     type.value
+//                   }
+//                   type="button"
+//                   onClick={() =>
+//                     onChange(
+//                       index,
+//                       "type",
+//                       type.value
+//                     )
+//                   }
+//                   className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
+//                     selected
+//                       ? "border-[#741337] bg-[#741337] text-white"
+//                       : "border-[#741337]/8 bg-white text-[#741337]/50 hover:border-[#741337]/20"
+//                   }`}
+//                 >
+//                   {type.label}
+//                 </button>
+//               );
+//             }
+//           )}
+
+//         </div>
+
+//       </div>
+
+//       {/* ANSWER */}
+
+//       <div className="mt-4">
+
+//         <label className="mb-2 block text-sm font-medium">
+//           Answer
+//         </label>
+
+//         {prompt.type ===
+//         "text" ? (
+//           <textarea
+//             value={
+//               prompt.answer
+//             }
+//             onChange={(e) =>
+//               onChange(
+//                 index,
+//                 "answer",
+//                 e.target.value
+//               )
+//             }
+//             rows={4}
+//             placeholder="Write your answer..."
+//             className="w-full resize-none rounded-2xl border border-[#741337]/10 bg-white px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[#741337]/25 focus:border-[#741337]/30"
+//           />
+//         ) : prompt.type ===
+//           "voice" ? (
+//           <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+//             <div className="text-2xl">
+//               🎙️
+//             </div>
+
+//             <p className="mt-2 text-sm font-medium">
+//               Voice answer
+//             </p>
+
+//             <p className="mt-1 text-xs text-[#741337]/40">
+//               Voice upload can be connected
+//               to your media upload API.
+//             </p>
+
+//           </div>
+//         ) : prompt.type ===
+//           "video" ? (
+//           <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+//             <div className="text-2xl">
+//               🎥
+//             </div>
+
+//             <p className="mt-2 text-sm font-medium">
+//               Video answer
+//             </p>
+
+//             <p className="mt-1 text-xs text-[#741337]/40">
+//               Video upload can be connected
+//               to your media upload API.
+//             </p>
+
+//           </div>
+//         ) : (
+//           <div className="rounded-2xl border border-dashed border-[#741337]/15 bg-white px-4 py-6 text-center">
+
+//             <div className="text-2xl">
+//               📊
+//             </div>
+
+//             <p className="mt-2 text-sm font-medium">
+//               Poll
+//             </p>
+
+//             <p className="mt-1 text-xs text-[#741337]/40">
+//               Poll options can be added
+//               when the poll system is connected.
+//             </p>
+
+//           </div>
+//         )}
+
+//       </div>
 
 //     </div>
 //   );
 // }
 
-=======
-//             <ChevronRight
-//               size={17}
-//               className="text-[#24151a]/25"
-//             />
-
-//           </button>
-
-
-//           {/* SETTINGS */}
-
-//           <button
-//             type="button"
-//             className="group flex h-[58px] w-full items-center gap-3 border-b border-[#741337]/8 px-4 text-left hover:bg-[#fffaf2]"
-//           >
-
-//             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fff0df]">
-//               <Settings
-//                 size={15}
-//                 className="text-[#911542]"
-//               />
-//             </div>
-
-//             <div className="flex-1">
-
-//               <p className="text-xs font-medium text-[#24151a]">
-//                 Settings
-//               </p>
-
-//               <p className="text-[9px] text-[#24151a]/40">
-//                 Account information & preferences
-//               </p>
-
-//             </div>
-
-//             <ChevronRight
-//               size={17}
-//               className="text-[#24151a]/25"
-//             />
-
-//           </button>
-
-
-//           {/* HELP */}
-
-//           <button
-//             type="button"
-//             className="group flex h-[58px] w-full items-center gap-3 px-4 text-left hover:bg-[#fffaf2]"
-//           >
-
-//             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fff0df]">
-//               <CircleHelp
-//                 size={15}
-//                 className="text-[#741337]"
-//               />
-//             </div>
-
-//             <div className="flex-1">
-
-//               <p className="text-xs font-medium text-[#24151a]">
-//                 Help & Support
-//               </p>
-
-//               <p className="text-[9px] text-[#24151a]/40">
-//                 Need help with RaasMitra?
-//               </p>
-
-//             </div>
-
-//             <ChevronRight
-//               size={17}
-//               className="text-[#24151a]/25"
-//             />
-
-//           </button>
-
-//         </div>
-
-
-//         {/* ================= LOGOUT ================= */}
-
-//         <button
-//           type="button"
-//           className="mt-3 flex h-[48px] shrink-0 items-center justify-center gap-2 rounded-2xl border border-red-100 bg-white text-xs font-semibold text-[#b3263e] shadow-sm hover:bg-red-50"
-//         >
-
-//           <LogOut size={15} />
-
-//           Logout
-
-//         </button>
-
-
-//         {/* ================= FOOTER ================= */}
-
-//         <p className="mt-auto shrink-0 pb-1 pt-2 text-center text-[9px] text-[#24151a]/30">
-//           Made for the Garba community ✨
-//         </p>
-
-//       </div>
-
-//     </main>
-//   );
-// }
->>>>>>> Stashed changes

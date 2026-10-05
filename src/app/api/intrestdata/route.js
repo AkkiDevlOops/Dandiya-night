@@ -450,10 +450,7 @@ export async function POST(request) {
 
     await DiscoverySchema.create({
               email:email,
-<<<<<<< Updated upstream
-=======
                 
->>>>>>> Stashed changes
     
               liked: [],
     

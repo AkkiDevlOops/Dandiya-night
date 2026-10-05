@@ -3,7 +3,7 @@ import { jwtVerify } from "jose";
 import { NextResponse } from "next/server";
 
 import connectDB from "@/lib/db";
-import Discovery from "@/models/discovery";
+import DiscoverySchema from "@/models/DiscoverySchema";
 import Profile from "@/models/profile";
 
 
