@@ -3,14 +3,11 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
-
- 
-
   "scripts": {
-  "dev": "node server.mjs",
-  "build": "next build",
-  "start": "node server.mjs"
-},
+    "dev": "node server.mjs",
+    "build": "next build",
+    "start": "node server.mjs"
+  },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
     "@supabase/ssr": "^0.12.7",

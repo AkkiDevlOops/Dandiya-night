@@ -391,24 +391,37 @@ export default function Chat() {
 // ============================================================
 
 useEffect(() => {
-  const socket = io("http://localhost:3000", {
-    withCredentials: true,
-  });
+ const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
+  withCredentials: true,
+  transports: ["websocket"],
+});
 
   socketRef.current = socket;
 
-  socket.on("connect", () => {
-    console.log(
-      "🟢 SOCKET CONNECTED:",
-      socket.id
-    );
-  });
+  // socket.on("connect", () => {
+  //   console.log(
+  //     "🟢 SOCKET CONNECTED:",
+  //     socket.id
+  //   );
+  // });
 
-  socket.on("disconnect", () => {
-    console.log(
-      "🔴 SOCKET DISCONNECTED"
-    );
-  });
+  // socket.on("disconnect", () => {
+  //   console.log(
+  //     "🔴 SOCKET DISCONNECTED"
+  //   );
+  // });
+
+  socket.on("connect", () => {
+  console.log("🟢 SOCKET CONNECTED:", socket.id);
+});
+
+socket.on("connect_error", (error) => {
+  console.error("❌ SOCKET CONNECTION ERROR:", error.message);
+});
+
+socket.on("disconnect", (reason) => {
+  console.log("🔴 SOCKET DISCONNECTED:", reason);
+});
 
   return () => {
     console.log(
