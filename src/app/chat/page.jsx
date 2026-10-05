@@ -148,7 +148,7 @@ export default function Chat() {
 
   const fetchConversations = async () => {
     try {
-      setLoadingConversations(false);
+      setLoadingConversations(true);
       setError("");
 
       const response = await fetch(
@@ -1079,7 +1079,7 @@ useEffect(() => {
           >
             {loadingConversations ? (
               <div
-                {/* className="
+                { className="
                   flex
                   items-center
                   justify-center
@@ -1087,7 +1087,7 @@ useEffect(() => {
                   text-sm
                   text-[#8c7d74]
                 "
-              > */}
+              > }
                 Loading connections...
               </div>
             ) : filteredConversations.length >
