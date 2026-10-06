@@ -674,7 +674,7 @@ setPhotoIndex(0);
 
       const data =
         await response.json();
-      console.log(data);
+      console.log("data from blocked route"+data);
       if (
         !response.ok ||
         !data.success

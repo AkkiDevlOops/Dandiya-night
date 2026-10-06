@@ -1,6 +1,8 @@
 import connectDB from "@/lib/db.js";
 import Profile from "@/models/profile";
 import { userlog } from "@/models/Registration";
+import DiscoverySchema from "@/models/DiscoverySchema";
+
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
@@ -45,7 +47,7 @@ async function getAuthenticatedUser() {
 }
 
 // =========================================================
-// POST
+// POST - BLOCK PROFILE
 // =========================================================
 
 export async function POST(request) {
@@ -146,9 +148,7 @@ export async function POST(request) {
       await Profile.findById(
         targetProfileId
       )
-        .select(
-          "_id email username"
-        )
+        .select("_id email username")
         .lean();
 
     if (!targetProfile) {
@@ -184,91 +184,55 @@ export async function POST(request) {
     }
 
     // =====================================================
-    // READ CURRENT DISCOVERY DATA
+    // FIND / CREATE DISCOVERY DOCUMENT
+    //
+    // DiscoverySchema is now the source of truth.
     // =====================================================
 
-    const rawUser =
-      await userlog.collection.findOne({
-        _id: currentUser._id,
+    let discovery =
+      await DiscoverySchema.findOne({
+        email,
       });
 
-    const discovery =
-      rawUser?.discovery || {};
-
-    // =====================================================
-    // NORMALIZE ARRAYS
-    // =====================================================
-
-    const blocked =
-      Array.isArray(
-        discovery.blocked
-      )
-        ? discovery.blocked
-        : [];
-
-    const skipped =
-      Array.isArray(
-        discovery.skipped
-      )
-        ? discovery.skipped
-        : [];
-
-    const liked =
-      Array.isArray(
-        discovery.liked
-      )
-        ? discovery.liked
-        : [];
+    if (!discovery) {
+      discovery =
+        await DiscoverySchema.create({
+          email,
+          liked: [],
+          skipped: [],
+          blocked: [],
+          reported: [],
+          likedBy: [],
+          matches: [],
+        });
+    }
 
     // =====================================================
     // CHECK IF ALREADY BLOCKED
     // =====================================================
 
     const alreadyBlocked =
-      blocked.some(
-        (item) => {
-          const blockedId =
-            typeof item ===
-            "object"
-              ? item?.profileId
-              : item;
+      discovery.blocked.some((item) => {
+        const blockedId =
+          typeof item === "object"
+            ? item?.profileId
+            : item;
 
-          return (
-            String(blockedId) ===
-            targetProfileId
-          );
-        }
-      );
-
-    // =====================================================
-    // PREPARE BLOCKED ARRAY
-    // =====================================================
-
-    let updatedBlocked =
-      blocked;
-
-    if (!alreadyBlocked) {
-      updatedBlocked = [
-        ...blocked,
-        {
-          profileId:
-            targetProfileId,
-          createdAt:
-            new Date(),
-        },
-      ];
-    }
+        return (
+          String(blockedId) ===
+          targetProfileId
+        );
+      });
 
     // =====================================================
     // REMOVE FROM SKIPPED
     // =====================================================
 
-    const updatedSkipped =
-      skipped.filter(
+    discovery.skipped =
+      discovery.skipped.filter(
         (item) => {
           const skippedId =
-            typeof item ===
-            "object"
+            typeof item === "object"
               ? item?.profileId
               : item;
 
@@ -280,55 +244,62 @@ export async function POST(request) {
       );
 
     // =====================================================
-    // REMOVE OUTGOING LIKE
+    // REMOVE FROM LIKED
     // =====================================================
 
-    const updatedLiked =
-      liked.filter(
-        (item) =>
-          String(
-            item?.targetId
-          ) !==
-          targetProfileId
+    discovery.liked =
+      discovery.liked.filter(
+        (item) => {
+          const likedId =
+            typeof item === "object"
+              ? item?.profileId
+              : item;
+
+          return (
+            String(likedId) !==
+            targetProfileId
+          );
+        }
       );
 
     // =====================================================
-    // SAVE DISCOVERY DATA
+    // ADD TO BLOCKED
     //
-    // IMPORTANT:
-    // chatgptroute also reads
-    // userlog.discovery
+    // Only add if it doesn't already exist.
     // =====================================================
 
-    await userlog.collection.updateOne(
-      {
-        _id:
-          currentUser._id,
-      },
-      {
-        $set: {
-          "discovery.blocked":
-            updatedBlocked,
+    if (!alreadyBlocked) {
+      discovery.blocked.push({
+        profileId:
+          targetProfileId,
 
-          "discovery.skipped":
-            updatedSkipped,
+        createdAt:
+          new Date(),
+      });
+    }
 
-          "discovery.liked":
-            updatedLiked,
-        },
-      }
-    );
+    // =====================================================
+    // SAVE DISCOVERY DOCUMENT
+    // =====================================================
+
+    await discovery.save();
 
     // =====================================================
     // CLEAR REDIS DISCOVERY CACHE
-    //
-    // This must happen AFTER the DB update.
     // =====================================================
+
+    const safeLimit = Math.min(
+      Math.max(
+        Number(limit) || 10,
+        1
+      ),
+      20
+    );
 
     const cacheCleared =
       await clearDiscoveryCache(
         currentUser._id,
-        limit
+        safeLimit
       );
 
     // =====================================================
@@ -345,9 +316,7 @@ export async function POST(request) {
 
     console.log(
       "👤 USER:",
-      String(
-        currentUser._id
-      )
+      email
     );
 
     console.log(
@@ -356,17 +325,17 @@ export async function POST(request) {
     );
 
     console.log(
-      "🗄️ BLOCK STORAGE:",
-      "userlog.discovery.blocked"
+      "🗄️ STORAGE:",
+      "Discovery.blocked"
     );
 
     console.log(
       "📦 BLOCKED COUNT:",
-      updatedBlocked.length
+      discovery.blocked.length
     );
 
     console.log(
-      "🗑️ DISCOVERY CACHE CLEARED:",
+      "🗑️ CACHE CLEARED:",
       cacheCleared
     );
 
@@ -386,6 +355,8 @@ export async function POST(request) {
         profileId:
           targetProfileId,
         cacheCleared,
+        blocked:
+          discovery.blocked,
         message:
           "Profile was already blocked.",
       });
@@ -400,10 +371,16 @@ export async function POST(request) {
       action: "block",
       profileId:
         targetProfileId,
+
       username:
         targetProfile.username ||
         null,
+
       cacheCleared,
+
+      blocked:
+        discovery.blocked,
+
       message:
         "Profile blocked successfully.",
     });
