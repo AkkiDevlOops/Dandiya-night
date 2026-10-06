@@ -454,32 +454,22 @@ export async function POST(request) {
 
     await user.save();
 
-<<<<<<< Updated upstream
-    await DiscoverySchema.create({
-              email:email,
+    // await DiscoverySchema.create({
+    //           email:email,
                 
     
-              liked: [],
+    //           liked: [],
     
-              skipped: [],
+    //           skipped: [],
     
-              blocked: [],
+    //           blocked: [],
     
-              reported: [],
+    //           reported: [],
     
-              likedBy: [],
+    //           likedBy: [],
     
-              matches: [],
-            });
-=======
-    /* =====================================================
-       CREATE DISCOVERY DOCUMENT
-       
-       ONLY CREATE IF IT DOESN'T ALREADY EXIST.
-       
-       This prevents duplicate Discovery documents.
-    ===================================================== */
->>>>>>> Stashed changes
+    //           matches: [],
+    //         });
 
     const existingDiscovery =
       await DiscoverySchema.findOne(
