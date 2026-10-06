@@ -1436,17 +1436,17 @@ setPhotoIndex(0);
 
               {/* UNDO */}
 
-              <button
+               <button
                 onClick={undoSkip}
                 disabled={
                   !lastSkipped ||
                   processing
                 }
-                className="w-14 h-14 rounded-full border border-yellow-200 bg-yellow-50 flex items-center justify-center disabled:opacity-30"
+                className="w-14 h-14 rounded-full border border-yellow-500 bg-yellow-300 flex items-center justify-center disabled:opacity-30"
               >
                 <FiCornerUpLeft
-                  size={24}
-                  className="text-yellow-600"
+                  size={30}
+                  className="text-dark-700"
                 />
               </button>
 
