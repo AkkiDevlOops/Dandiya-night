@@ -5,7 +5,7 @@ import { Home, PlaySquare,Heart, Send, Search, CircleUserRound } from "lucide-re
 
 const NAV_ITEMS = [
   { id: "home", icon: Home , link:"/testroute"},
-  { id: "reels", icon: PlaySquare,link:"" },
+  { id: "reels", icon: PlaySquare,link:"playsongs" },
   { id: "explore", icon: Send,link:"/chat" },
   { id: "Like", icon: Heart,link:"/likes" },    
   { id: "profile", icon: CircleUserRound,link:"/myprofile" },
