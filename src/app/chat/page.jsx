@@ -228,9 +228,9 @@ const [profilePhotoIndex, setProfilePhotoIndex] = useState(0);
 
     return (
 
-      user.profileImage ||
+      // user.profileImage ||
 
-      user.image ||
+      // user.image ||
 
       user.images?.[0] ||
 
