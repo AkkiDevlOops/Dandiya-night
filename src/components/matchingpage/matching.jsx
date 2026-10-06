@@ -188,37 +188,16 @@ export default function RaasMitraProfile() {
       // ONLY NEW SCHEMA PROFILES
       // =================================================
 
-      const validProfiles =
-        Array.isArray(data.users)
-          ? data.users.filter((profile) => {
-              const images =
-                Array.isArray(profile.images)
-                  ? profile.images.filter(Boolean)
-                  : [];
+    
 
-              const prompts =
-                Array.isArray(profile.prompts)
-                  ? profile.prompts.filter(
-                      (prompt) =>
-                        prompt?.question &&
-                        prompt?.answer
-                    )
-                  : [];
+    const users = Array.isArray(data.users)
+  ? data.users
+  : [];
 
-              return (
-                images.length >= 3 &&
-                images.length <= 6 &&
-                prompts.length >= 3 &&
-                prompts.length <= 6
-              );
-            })
-          : [];
+setProfiles(users);
 
-      setProfiles(validProfiles);
-
-      setCurrentIndex(0);
-
-      setPhotoIndex(0);
+setCurrentIndex(0);
+setPhotoIndex(0);
 
     } catch (err) {
       console.error(
@@ -319,8 +298,9 @@ export default function RaasMitraProfile() {
        * change this endpoint.
        */
 
+      // /api/discoverFunctions/skipped
       const response = await fetch(
-        "/api/discoverFunctions/skipped",
+        "/api/discoverFunctions/skip",
         {
           method: "POST",
 
@@ -338,23 +318,7 @@ export default function RaasMitraProfile() {
         }
       );
 
-      let data = {};
-
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
-
-      if (
-        !response.ok ||
-        data.success === false
-      ) {
-        throw new Error(
-          data.message ||
-            "Could not skip profile."
-        );
-      }
+     
 
       removeCurrentProfile();
 
@@ -376,6 +340,7 @@ export default function RaasMitraProfile() {
 
     } finally {
       setProcessing(false);
+      
     }
   };
 
@@ -418,18 +383,8 @@ export default function RaasMitraProfile() {
         }
       );
 
-      const data =
-        await response.json();
-
-      if (
-        !response.ok ||
-        !data.success
-      ) {
-        throw new Error(
-          data.message ||
-            "Could not undo skip."
-        );
-      }
+      
+      
 
       setProfiles(
         (currentProfiles) => {
@@ -719,7 +674,7 @@ export default function RaasMitraProfile() {
 
       const data =
         await response.json();
-
+      console.log(data);
       if (
         !response.ok ||
         !data.success
@@ -976,7 +931,7 @@ export default function RaasMitraProfile() {
 
             <div>
               <h1 className="text-2xl font-black text-[#4a1525]">
-                Raas Mitra
+                Raas Garba
               </h1>
 
               <p className="text-xs text-gray-500 mt-1">

@@ -1,75 +1,120 @@
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 
-export default function SongsPage() {
+export default function UploadSongsPage() {
   const audioRef = useRef(null);
+
+  // =========================
+  // SONGS
+  // =========================
 
   const [songs, setSongs] = useState([]);
   const [currentSong, setCurrentSong] = useState(null);
+
+  // =========================
+  // PLAYER
+  // =========================
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
 
-  const [file, setFile] = useState(null);
+  // =========================
+  // FORM
+  // =========================
+
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
   const [genre, setGenre] = useState("");
 
+  const [audioFile, setAudioFile] = useState(null);
+  const [coverFile, setCoverFile] = useState(null);
+
+  const [coverPreview, setCoverPreview] = useState(null);
+
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
 
-  /*
-   * -------------------------------------------------------
-   * PLAY SONG
-   * -------------------------------------------------------
-   */
+  // =========================
+  // COVER PREVIEW
+  // =========================
+
+  useEffect(() => {
+    if (!coverFile) {
+      setCoverPreview(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(coverFile);
+
+    setCoverPreview(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [coverFile]);
+
+  // =========================
+  // PLAY SONG
+  // =========================
 
   const playSong = async (song) => {
-    if (!audioRef.current) return;
+  if (!audioRef.current) return;
+
+  console.log("PLAYING SONG:", song);
+  console.log("AUDIO URL:", song.audioUrl);
+
+  try {
+    const audio = audioRef.current;
+
+    audio.pause();
+    audio.src = song.audioUrl;
+    audio.load();
 
     setCurrentSong(song);
+    setCurrentTime(0);
+    audio.volume = volume;
 
-    audioRef.current.src = song.audioUrl;
-    audioRef.current.volume = volume;
+    await audio.play();
+
+    setIsPlaying(true);
+  } catch (error) {
+    console.error("Playback error:", error);
+    console.error("Audio URL:", song.audioUrl);
+
+    setIsPlaying(false);
+  }
+};
+  // =========================
+  // PLAY / PAUSE
+  // =========================
+
+  const togglePlay = async () => {
+    if (!audioRef.current || !currentSong) {
+      return;
+    }
 
     try {
-      await audioRef.current.play();
-      setIsPlaying(true);
+      if (isPlaying) {
+        audioRef.current.pause();
+
+        setIsPlaying(false);
+      } else {
+        await audioRef.current.play();
+
+        setIsPlaying(true);
+      }
     } catch (error) {
       console.error("Playback error:", error);
     }
   };
 
-  /*
-   * -------------------------------------------------------
-   * PLAY / PAUSE
-   * -------------------------------------------------------
-   */
-
-  const togglePlay = async () => {
-    if (!audioRef.current || !currentSong) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
-
-  /*
-   * -------------------------------------------------------
-   * NEXT SONG
-   * -------------------------------------------------------
-   */
+  // =========================
+  // NEXT SONG
+  // =========================
 
   const nextSong = () => {
     if (!songs.length) return;
@@ -86,11 +131,9 @@ export default function SongsPage() {
     playSong(songs[nextIndex]);
   };
 
-  /*
-   * -------------------------------------------------------
-   * PREVIOUS SONG
-   * -------------------------------------------------------
-   */
+  // =========================
+  // PREVIOUS SONG
+  // =========================
 
   const previousSong = () => {
     if (!songs.length) return;
@@ -107,11 +150,9 @@ export default function SongsPage() {
     playSong(songs[previousIndex]);
   };
 
-  /*
-   * -------------------------------------------------------
-   * TIME UPDATE
-   * -------------------------------------------------------
-   */
+  // =========================
+  // AUDIO TIME
+  // =========================
 
   const handleTimeUpdate = () => {
     if (!audioRef.current) return;
@@ -119,11 +160,9 @@ export default function SongsPage() {
     setCurrentTime(audioRef.current.currentTime);
   };
 
-  /*
-   * -------------------------------------------------------
-   * AUDIO LOADED
-   * -------------------------------------------------------
-   */
+  // =========================
+  // AUDIO METADATA
+  // =========================
 
   const handleLoadedMetadata = () => {
     if (!audioRef.current) return;
@@ -131,21 +170,17 @@ export default function SongsPage() {
     setDuration(audioRef.current.duration || 0);
   };
 
-  /*
-   * -------------------------------------------------------
-   * SONG ENDED
-   * -------------------------------------------------------
-   */
+  // =========================
+  // SONG ENDED
+  // =========================
 
   const handleEnded = () => {
     nextSong();
   };
 
-  /*
-   * -------------------------------------------------------
-   * SEEK
-   * -------------------------------------------------------
-   */
+  // =========================
+  // SEEK
+  // =========================
 
   const handleSeek = (e) => {
     const value = Number(e.target.value);
@@ -153,14 +188,13 @@ export default function SongsPage() {
     if (!audioRef.current) return;
 
     audioRef.current.currentTime = value;
+
     setCurrentTime(value);
   };
 
-  /*
-   * -------------------------------------------------------
-   * VOLUME
-   * -------------------------------------------------------
-   */
+  // =========================
+  // VOLUME
+  // =========================
 
   const handleVolume = (e) => {
     const value = Number(e.target.value);
@@ -172,33 +206,52 @@ export default function SongsPage() {
     }
   };
 
-  /*
-   * -------------------------------------------------------
-   * FORMAT TIME
-   * -------------------------------------------------------
-   */
+  // =========================
+  // FORMAT TIME
+  // =========================
 
   const formatTime = (seconds) => {
     if (!seconds || Number.isNaN(seconds)) {
       return "0:00";
     }
 
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+    const minutes = Math.floor(seconds / 60);
 
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+    const remainingSeconds = Math.floor(
+      seconds % 60
+    );
+
+    return `${minutes}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
   };
 
-  /*
-   * -------------------------------------------------------
-   * UPLOAD SONG
-   * -------------------------------------------------------
-   */
+  // =========================
+  // REMOVE COVER
+  // =========================
+
+  const removeCover = () => {
+    setCoverFile(null);
+    setCoverPreview(null);
+
+    const input =
+      document.getElementById("cover-file");
+
+    if (input) {
+      input.value = "";
+    }
+  };
+
+  // =========================
+  // UPLOAD SONG
+  // =========================
 
   const uploadSong = async (e) => {
     e.preventDefault();
 
-    if (!file) {
+    setMessage("");
+
+    if (!audioFile) {
       setMessage("Please select an audio file.");
       return;
     }
@@ -210,209 +263,376 @@ export default function SongsPage() {
 
     try {
       setUploading(true);
-      setMessage("");
 
       const formData = new FormData();
 
-      formData.append("file", file);
+      // Audio
+      formData.append("file", audioFile);
+
+      // Cover
+      if (coverFile) {
+        formData.append("cover", coverFile);
+      }
+
+      // Metadata
       formData.append("title", title);
       formData.append("artist", artist);
       formData.append("genre", genre);
 
-      const response = await fetch("/api/songs/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "/api/songs/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
         throw new Error(
-          data.message || "Failed to upload song"
+          data.message || "Upload failed"
         );
       }
 
+      // =========================
+      // CREATE SONG OBJECT
+      // =========================
+
       const newSong = {
         id: Date.now().toString(),
-        ...data.song,
+
+        title: data.song.title,
+
+        artist: data.song.artist,
+
+        genre: data.song.genre,
+
+        audioUrl: data.song.audioUrl,
+
+        coverUrl: data.song.coverUrl,
       };
 
-      setSongs((prev) => [...prev, newSong]);
+      setSongs((prev) => [
+        ...prev,
+        newSong,
+      ]);
+
+      // =========================
+      // RESET FORM
+      // =========================
 
       setTitle("");
       setArtist("");
       setGenre("");
-      setFile(null);
 
-      const fileInput =
-        document.getElementById("song-file");
+      setAudioFile(null);
+      setCoverFile(null);
+      setCoverPreview(null);
 
-      if (fileInput) {
-        fileInput.value = "";
+      const audioInput =
+        document.getElementById(
+          "audio-file"
+        );
+
+      const coverInput =
+        document.getElementById(
+          "cover-file"
+        );
+
+      if (audioInput) {
+        audioInput.value = "";
       }
 
-      setMessage("Song uploaded successfully!");
-
-      /*
-       * Automatically play uploaded song
-       */
-      playSong(newSong);
-    } catch (error) {
-      console.error(error);
+      if (coverInput) {
+        coverInput.value = "";
+      }
 
       setMessage(
-        error.message || "Something went wrong."
+        "Song uploaded successfully!"
+      );
+
+      // =========================
+      // PLAY UPLOADED SONG
+      // =========================
+
+      await playSong(newSong);
+    } catch (error) {
+      console.error(
+        "Upload error:",
+        error
+      );
+
+      setMessage(
+        error.message ||
+          "Something went wrong."
       );
     } finally {
       setUploading(false);
     }
   };
 
-  /*
-   * -------------------------------------------------------
-   * KEYBOARD SPACE = PLAY / PAUSE
-   * -------------------------------------------------------
-   */
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.code === "Space") {
-        const target = e.target;
-
-        if (
-          target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA"
-        ) {
-          return;
-        }
-
-        e.preventDefault();
-
-        togglePlay();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
-    };
-  }, [isPlaying, currentSong]);
-
   return (
     <main className="min-h-screen bg-[#09090b] text-white">
 
-      {/* AUDIO ELEMENT */}
+      {/* ========================= */}
+      {/* AUDIO PLAYER */}
+      {/* ========================= */}
 
       <audio
         ref={audioRef}
         onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
+        onLoadedMetadata={
+          handleLoadedMetadata
+        }
         onEnded={handleEnded}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
+        onPlay={() =>
+          setIsPlaying(true)
+        }
+        onPause={() =>
+          setIsPlaying(false)
+        }
       />
-
-      {/* PAGE */}
 
       <div className="mx-auto max-w-6xl px-5 py-10">
 
+        {/* ========================= */}
         {/* HEADER */}
+        {/* ========================= */}
 
         <div className="mb-10">
 
-          <p className="mb-2 text-sm font-medium text-pink-400">
-            YOUR VIBE
+          <p className="mb-2 text-sm font-medium tracking-widest text-pink-400">
+            DANDIYA NIGHT
           </p>
 
           <h1 className="text-4xl font-bold tracking-tight">
-            Music
+            Music Library
           </h1>
 
           <p className="mt-2 text-zinc-400">
-            Pick a song and let the vibe speak.
+            Upload songs and create your
+            playlist.
           </p>
 
         </div>
 
-        {/* UPLOAD SECTION */}
+        {/* ========================= */}
+        {/* UPLOAD FORM */}
+        {/* ========================= */}
 
         <section className="mb-10 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
 
           <div className="mb-6">
 
             <h2 className="text-xl font-semibold">
-              Add a song
+              Upload a song
             </h2>
 
-            <p className="mt-1 text-sm text-zinc-400">
-              Upload an audio file to your playlist.
+            <p className="mt-1 text-sm text-zinc-500">
+              Add your audio and cover
+              artwork.
             </p>
 
           </div>
 
           <form
             onSubmit={uploadSong}
-            className="grid gap-4 md:grid-cols-2"
+            className="space-y-5"
           >
 
-            {/* TITLE */}
+            {/* ===================== */}
+            {/* SONG TITLE */}
+            {/* ===================== */}
 
-            <input
-              type="text"
-              placeholder="Song title"
-              value={title}
-              onChange={(e) =>
-                setTitle(e.target.value)
-              }
-              className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 outline-none placeholder:text-zinc-600 focus:border-pink-500"
-            />
+            <div>
 
+              <label className="mb-2 block text-sm text-zinc-400">
+                Song title
+              </label>
+
+              <input
+                type="text"
+                value={title}
+                onChange={(e) =>
+                  setTitle(e.target.value)
+                }
+                placeholder="e.g. Dholida"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 outline-none transition focus:border-pink-500"
+              />
+
+            </div>
+
+            {/* ===================== */}
             {/* ARTIST */}
+            {/* ===================== */}
 
-            <input
-              type="text"
-              placeholder="Artist"
-              value={artist}
-              onChange={(e) =>
-                setArtist(e.target.value)
-              }
-              className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 outline-none placeholder:text-zinc-600 focus:border-pink-500"
-            />
+            <div>
 
+              <label className="mb-2 block text-sm text-zinc-400">
+                Artist
+              </label>
+
+              <input
+                type="text"
+                value={artist}
+                onChange={(e) =>
+                  setArtist(e.target.value)
+                }
+                placeholder="e.g. Falguni Pathak"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 outline-none transition focus:border-pink-500"
+              />
+
+            </div>
+
+            {/* ===================== */}
             {/* GENRE */}
+            {/* ===================== */}
 
-            <input
-              type="text"
-              placeholder="Genre (Romantic, Garba, Chill...)"
-              value={genre}
-              onChange={(e) =>
-                setGenre(e.target.value)
-              }
-              className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 outline-none placeholder:text-zinc-600 focus:border-pink-500"
-            />
+            <div>
 
-            {/* FILE */}
+              <label className="mb-2 block text-sm text-zinc-400">
+                Genre
+              </label>
 
-            <input
-              id="song-file"
-              type="file"
-              accept="audio/*"
-              onChange={(e) =>
-                setFile(e.target.files?.[0] || null)
-              }
-              className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-zinc-400 file:mr-4 file:rounded-lg file:border-0 file:bg-pink-500 file:px-4 file:py-2 file:font-medium file:text-white"
-            />
+              <input
+                type="text"
+                value={genre}
+                onChange={(e) =>
+                  setGenre(e.target.value)
+                }
+                placeholder="Garba / Romantic / Chill"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 outline-none transition focus:border-pink-500"
+              />
 
-            {/* BUTTON */}
+            </div>
+
+            {/* ===================== */}
+            {/* AUDIO FILE */}
+            {/* ===================== */}
+
+            <div>
+
+              <label className="mb-2 block text-sm text-zinc-400">
+                Audio file
+              </label>
+
+              <input
+                id="audio-file"
+                type="file"
+                accept=".mp3,audio/mpeg"
+                onChange={(e) =>
+                  setAudioFile(
+                    e.target.files?.[0] ||
+                      null
+                  )
+                }
+                className="w-full rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-zinc-400 file:mr-4 file:rounded-lg file:border-0 file:bg-pink-500 file:px-4 file:py-2 file:font-medium file:text-white"
+              />
+
+              {audioFile && (
+                <p className="mt-2 text-xs text-zinc-500">
+                  Selected:{" "}
+                  {audioFile.name}
+                </p>
+              )}
+
+            </div>
+
+            {/* ===================== */}
+            {/* COVER IMAGE */}
+            {/* ===================== */}
+
+            <div>
+
+              <label className="mb-2 block text-sm text-zinc-400">
+                Cover image
+              </label>
+
+              <div className="flex flex-wrap items-center gap-4">
+
+                {/* COVER PREVIEW */}
+
+                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+
+                  {coverPreview ? (
+
+                    <img
+                      src={coverPreview}
+                      alt="Cover preview"
+                      className="h-full w-full object-cover"
+                    />
+
+                  ) : (
+
+                    <div className="flex h-full w-full items-center justify-center text-3xl">
+                      🖼️
+                    </div>
+
+                  )}
+
+                </div>
+
+                {/* CHOOSE COVER */}
+
+                <label
+                  htmlFor="cover-file"
+                  className="cursor-pointer rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium transition hover:bg-white/10"
+                >
+                  Choose Cover
+
+                  <input
+                    id="cover-file"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(e) => {
+                      const selectedFile =
+                        e.target.files?.[0];
+
+                      if (selectedFile) {
+                        setCoverFile(
+                          selectedFile
+                        );
+                      }
+                    }}
+                    className="hidden"
+                  />
+
+                </label>
+
+                {/* REMOVE */}
+
+                {coverFile && (
+
+                  <button
+                    type="button"
+                    onClick={removeCover}
+                    className="text-sm text-red-400 transition hover:text-red-300"
+                  >
+                    Remove
+                  </button>
+
+                )}
+
+              </div>
+
+              {coverFile && (
+                <p className="mt-2 text-xs text-zinc-500">
+                  Selected:{" "}
+                  {coverFile.name}
+                </p>
+              )}
+
+            </div>
+
+            {/* ===================== */}
+            {/* UPLOAD BUTTON */}
+            {/* ===================== */}
 
             <button
               type="submit"
               disabled={uploading}
-              className="rounded-xl bg-pink-500 px-5 py-3 font-semibold transition hover:bg-pink-400 disabled:cursor-not-allowed disabled:opacity-50 md:col-span-2"
+              className="w-full rounded-xl bg-pink-500 px-5 py-3 font-semibold transition hover:bg-pink-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {uploading
                 ? "Uploading..."
@@ -421,15 +641,23 @@ export default function SongsPage() {
 
           </form>
 
+          {/* ========================= */}
+          {/* MESSAGE */}
+          {/* ========================= */}
+
           {message && (
-            <p className="mt-4 text-sm text-zinc-300">
+
+            <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-300">
               {message}
-            </p>
+            </div>
+
           )}
 
         </section>
 
-        {/* SONG LIST */}
+        {/* ========================= */}
+        {/* PLAYLIST */}
+        {/* ========================= */}
 
         <section>
 
@@ -440,10 +668,15 @@ export default function SongsPage() {
             </h2>
 
             <span className="text-sm text-zinc-500">
-              {songs.length} songs
+              {songs.length}{" "}
+              {songs.length === 1
+                ? "song"
+                : "songs"}
             </span>
 
           </div>
+
+          {/* EMPTY */}
 
           {songs.length === 0 ? (
 
@@ -454,11 +687,12 @@ export default function SongsPage() {
               </div>
 
               <p className="font-medium">
-                Your playlist is empty
+                No songs yet
               </p>
 
               <p className="mt-1 text-sm text-zinc-500">
-                Upload your first song above.
+                Upload your first song
+                above.
               </p>
 
             </div>
@@ -467,77 +701,108 @@ export default function SongsPage() {
 
             <div className="space-y-3">
 
-              {songs.map((song, index) => {
+              {songs.map(
+                (song, index) => {
 
-                const active =
-                  currentSong?.id === song.id;
+                  const active =
+                    currentSong?.id ===
+                    song.id;
 
-                return (
-                  <button
-                    key={song.id}
-                    type="button"
-                    onClick={() => playSong(song)}
-                    className={`group flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition ${
-                      active
-                        ? "border-pink-500/40 bg-pink-500/10"
-                        : "border-white/10 bg-white/[0.03] hover:bg-white/[0.07]"
-                    }`}
-                  >
+                  return (
 
-                    {/* NUMBER */}
+                    <button
+                      key={song.id}
+                      type="button"
+                      onClick={() =>
+                        playSong(song)
+                      }
+                      className={`flex w-full items-center gap-4 rounded-2xl border p-3 text-left transition ${
+                        active
+                          ? "border-pink-500/40 bg-pink-500/10"
+                          : "border-white/10 bg-white/[0.03] hover:bg-white/[0.07]"
+                      }`}
+                    >
 
-                    <div className="w-6 text-center text-sm text-zinc-500">
-                      {active && isPlaying
-                        ? "♫"
-                        : index + 1}
-                    </div>
+                      {/* NUMBER */}
 
-                    {/* COVER */}
+                      <div className="w-6 shrink-0 text-center text-sm text-zinc-500">
 
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 text-xl">
-                      🎵
-                    </div>
+                        {active &&
+                        isPlaying
+                          ? "♫"
+                          : index + 1}
 
-                    {/* INFO */}
+                      </div>
 
-                    <div className="min-w-0 flex-1">
+                      {/* COVER */}
 
-                      <p
-                        className={`truncate font-medium ${
-                          active
-                            ? "text-pink-400"
-                            : "text-white"
-                        }`}
-                      >
-                        {song.title}
-                      </p>
+                      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-zinc-800">
 
-                      <p className="mt-1 truncate text-sm text-zinc-500">
-                        {song.artist || "Unknown artist"}
-                        {song.genre
-                          ? ` • ${song.genre}`
-                          : ""}
-                      </p>
+                        {song.coverUrl ? (
 
-                    </div>
+                          <img
+                            src={
+                              song.coverUrl
+                            }
+                            alt={
+                              song.title
+                            }
+                            className="h-full w-full object-cover"
+                          />
 
-                    {/* PLAY */}
+                        ) : (
 
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10">
+                          <div className="flex h-full w-full items-center justify-center text-xl">
+                            🎵
+                          </div>
 
-                      {active && isPlaying ? (
-                        <span>Ⅱ</span>
-                      ) : (
-                        <span className="ml-0.5">
-                          ▶
-                        </span>
-                      )}
+                        )}
 
-                    </div>
+                      </div>
 
-                  </button>
-                );
-              })}
+                      {/* INFO */}
+
+                      <div className="min-w-0 flex-1">
+
+                        <p
+                          className={`truncate font-medium ${
+                            active
+                              ? "text-pink-400"
+                              : "text-white"
+                          }`}
+                        >
+                          {song.title}
+                        </p>
+
+                        <p className="mt-1 truncate text-sm text-zinc-500">
+
+                          {song.artist ||
+                            "Unknown artist"}
+
+                          {song.genre
+                            ? ` • ${song.genre}`
+                            : ""}
+
+                        </p>
+
+                      </div>
+
+                      {/* PLAY */}
+
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10">
+
+                        {active &&
+                        isPlaying
+                          ? "Ⅱ"
+                          : "▶"}
+
+                      </div>
+
+                    </button>
+
+                  );
+                }
+              )}
 
             </div>
 
@@ -547,7 +812,9 @@ export default function SongsPage() {
 
       </div>
 
+      {/* ========================= */}
       {/* BOTTOM PLAYER */}
+      {/* ========================= */}
 
       {currentSong && (
 
@@ -559,9 +826,33 @@ export default function SongsPage() {
 
             <div className="mb-4 flex items-center gap-4">
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 text-xl">
-                🎵
+              {/* COVER */}
+
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-zinc-800">
+
+                {currentSong.coverUrl ? (
+
+                  <img
+                    src={
+                      currentSong.coverUrl
+                    }
+                    alt={
+                      currentSong.title
+                    }
+                    className="h-full w-full object-cover"
+                  />
+
+                ) : (
+
+                  <div className="flex h-full w-full items-center justify-center text-xl">
+                    🎵
+                  </div>
+
+                )}
+
               </div>
+
+              {/* INFO */}
 
               <div className="min-w-0 flex-1">
 
@@ -583,7 +874,9 @@ export default function SongsPage() {
             <div className="flex items-center gap-3">
 
               <span className="w-10 text-right text-xs text-zinc-500">
-                {formatTime(currentTime)}
+                {formatTime(
+                  currentTime
+                )}
               </span>
 
               <input
@@ -597,47 +890,51 @@ export default function SongsPage() {
               />
 
               <span className="w-10 text-xs text-zinc-500">
-                {formatTime(duration)}
+                {formatTime(
+                  duration
+                )}
               </span>
 
             </div>
 
             {/* CONTROLS */}
 
-            <div className="mt-4 flex items-center justify-center gap-4">
-
-              {/* PREVIOUS */}
+            <div className="mt-4 flex items-center justify-center gap-5">
 
               <button
                 type="button"
-                onClick={previousSong}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
+                onClick={
+                  previousSong
+                }
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
                 aria-label="Previous song"
               >
                 ◀◀
               </button>
 
-              {/* PLAY */}
-
               <button
                 type="button"
-                onClick={togglePlay}
+                onClick={
+                  togglePlay
+                }
                 className="flex h-14 w-14 items-center justify-center rounded-full bg-pink-500 text-xl transition hover:bg-pink-400"
                 aria-label={
                   isPlaying
-                    ? "Pause song"
-                    : "Play song"
+                    ? "Pause"
+                    : "Play"
                 }
               >
-                {isPlaying ? "Ⅱ" : "▶"}
+                {isPlaying
+                  ? "Ⅱ"
+                  : "▶"}
               </button>
-
-              {/* NEXT */}
 
               <button
                 type="button"
-                onClick={nextSong}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
+                onClick={
+                  nextSong
+                }
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
                 aria-label="Next song"
               >
                 ▶▶
@@ -647,22 +944,28 @@ export default function SongsPage() {
 
             {/* VOLUME */}
 
-            <div className="mt-4 flex items-center justify-end gap-3">
+            <div className="mt-4 flex justify-end">
 
-              <span className="text-sm">
-                🔊
-              </span>
+              <div className="flex items-center gap-3">
 
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolume}
-                className="w-28 accent-pink-500"
-                aria-label="Volume"
-              />
+                <span className="text-sm">
+                  🔊
+                </span>
+
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={
+                    handleVolume
+                  }
+                  className="w-28 accent-pink-500"
+                  aria-label="Volume"
+                />
+
+              </div>
 
             </div>
 
