@@ -592,9 +592,9 @@ useEffect(() => {
 
 
 
-  ============================================================
-  FETCH MESSAGES
-  ============================================================
+  // ============================================================
+  // FETCH MESSAGES
+  // ============================================================
 
   const fetchMessages = async (
     conversationId
@@ -1078,18 +1078,18 @@ useEffect(() => {
             "
           >
             {loadingConversations ? (
-              <div
-                { className="
-                  flex
-                  items-center
-                  justify-center
-                  py-10
-                  text-sm
-                  text-[#8c7d74]
-                "
-              > }
-                Loading connections...
-              </div>
+               <div
+    className="
+      flex
+      items-center
+      justify-center
+      py-10
+      text-sm
+      text-[#8c7d74]
+    "
+  >
+    Loading connections...
+  </div>
             ) : filteredConversations.length >
               0 ? (
               filteredConversations.map(

@@ -264,6 +264,7 @@ const matchWithUser = async () => {
     // );
   };
 
+
   return (
     <div className="flex flex-col justify-center items-center min-h-screen">
 
@@ -647,7 +648,7 @@ const matchWithUser = async () => {
 
                 <Image
                   src={
-                    selectedLike.from?.images?.[0] ||
+                    selectedLike.images?.[0] ||
                     "/default-avatar.png"
                   }
                   alt={

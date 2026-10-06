@@ -454,6 +454,7 @@ export async function POST(request) {
 
     await user.save();
 
+<<<<<<< Updated upstream
     await DiscoverySchema.create({
               email:email,
                 
@@ -470,6 +471,15 @@ export async function POST(request) {
     
               matches: [],
             });
+=======
+    /* =====================================================
+       CREATE DISCOVERY DOCUMENT
+       
+       ONLY CREATE IF IT DOESN'T ALREADY EXIST.
+       
+       This prevents duplicate Discovery documents.
+    ===================================================== */
+>>>>>>> Stashed changes
 
     const existingDiscovery =
       await DiscoverySchema.findOne(
