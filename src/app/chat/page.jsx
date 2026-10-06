@@ -2217,7 +2217,7 @@ const previousProfilePhoto = () => {
                 </div>
 
                 {/* ACTIONS */}
-                <button
+                {/* <button
                   type="button"
                   className="w-10 h-10 rounded-full hover:bg-[#f4e9df] flex items-center justify-center text-[#5d514b]"
                 >
@@ -2228,7 +2228,7 @@ const previousProfilePhoto = () => {
                   className="w-10 h-10 rounded-full hover:bg-[#f4e9df] flex items-center justify-center text-[#5d514b]"
                 >
                   <Video size={20} />
-                </button>
+                </button> */}
               </div>
 
               {/* ==================================================
