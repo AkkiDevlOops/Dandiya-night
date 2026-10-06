@@ -747,7 +747,7 @@ export default function MyProfilePage() {
         ================================================= */}
         
         <div className="mb-8">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-red-400">
+          <p className="mb-2 text-2xl font-bold uppercase tracking-[0.25em] text-pink-700">
             Your profile
           </p>
 
