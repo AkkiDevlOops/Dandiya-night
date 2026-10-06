@@ -728,7 +728,7 @@ setPhotoIndex(0);
        */
 
       const response = await fetch(
-        "/api/discoverFunctions/reported",
+        "/api/discoverFunctions/report",
         {
           method: "POST",
 
