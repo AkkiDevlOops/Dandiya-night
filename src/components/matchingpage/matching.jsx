@@ -709,88 +709,74 @@ setPhotoIndex(0);
   // REPORT PROFILE
   // =====================================================
 
-  const reportProfile = async (
-    reason
-  ) => {
-    if (
-      !currentProfile ||
-      processing
-    ) {
-      return;
-    }
+  const reportProfile = async (reason) => {
+  if (!currentProfile || processing) {
+    return;
+  }
 
-    try {
-      setProcessing(true);
+  try {
+    setProcessing(true);
 
-      /*
-       * Change this endpoint if your report
-       * backend uses another route.
-       */
+    const response = await fetch(
+      "/api/discoverFunctions/report",
+      {
+        method: "POST",
 
-      const response = await fetch(
-        "/api/discoverFunctions/report",
-        {
-          method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+        credentials: "include",
 
-          credentials: "include",
-
-          body: JSON.stringify({
-            profileId:
-              currentProfile._id,
-
-            reason,
-          }),
-        }
-      );
-
-      const data =
-        await response.json();
-
-      if (
-        !response.ok ||
-        !data.success
-      ) {
-        throw new Error(
-          data.message ||
-            "Could not report profile."
-        );
+        body: JSON.stringify({
+          profileId: currentProfile._id,
+          reason,
+        }),
       }
+    );
 
-      setShowReport(false);
+    const data = await response.json();
 
-      setShowMenu(false);
-
-      removeCurrentProfile();
-
-      setError(
-        "Thank you. This profile has been reported."
-      );
-
-      setTimeout(() => {
-        setError("");
-      }, 2500);
-
-    } catch (err) {
-      console.error(
-        "REPORT ERROR:",
-        err
-      );
-
-      alert(
-        err?.message ||
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.message ||
           "Could not report profile."
       );
-
-    } finally {
-      setProcessing(false);
     }
-  };
 
+    // Close report modal
+    setShowReport(false);
+
+    // Close menu
+    setShowMenu(false);
+
+    // Remove reported + blocked profile
+    // from current discovery UI
+    removeCurrentProfile();
+
+    setError(
+      "Thank you. This profile has been reported and blocked."
+    );
+
+    setTimeout(() => {
+      setError("");
+    }, 2500);
+
+  } catch (err) {
+    console.error(
+      "REPORT ERROR:",
+      err
+    );
+
+    alert(
+      err?.message ||
+        "Could not report profile."
+    );
+
+  } finally {
+    setProcessing(false);
+  }
+};
   // =====================================================
   // PHOTO NAVIGATION
   // =====================================================
