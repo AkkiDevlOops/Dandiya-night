@@ -2055,12 +2055,12 @@ const previousProfilePhoto = () => {
                 </p>
               </div>
 
-              <button
+              {/* <button
                 type="button"
                 className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#f3e7dc] transition"
               >
                 <MoreVertical size={20} />
-              </button>
+              </button> */}
             </div>
           </div>
 

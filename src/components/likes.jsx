@@ -24,6 +24,8 @@ export default function RaasMitraLikesView() {
   const [selectedLike, setSelectedLike] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
 
+  const [profilePhotoIndex, setProfilePhotoIndex] = useState(0);
+
   // Match loading
   const [matching, setMatching] = useState(false);
   const router = useRouter();
@@ -263,6 +265,33 @@ const matchWithUser = async () => {
     // );
   };
 
+  const previewProfile = selectedLike?.from;
+
+const previewImages =
+  Array.isArray(previewProfile?.images) && previewProfile.images.length > 0
+    ? previewProfile.images
+    : ["/default-avatar.png"];
+
+const currentPreviewImage =
+  previewImages[profilePhotoIndex] || "/default-avatar.png";
+
+const nextPreviewPhoto = () => {
+  if (previewImages.length <= 1) return;
+
+  setProfilePhotoIndex(
+    (current) => (current + 1) % previewImages.length
+  );
+};
+
+const previousPreviewPhoto = () => {
+  if (previewImages.length <= 1) return;
+
+  setProfilePhotoIndex(
+    (current) =>
+      (current - 1 + previewImages.length) %
+      previewImages.length
+  );
+};
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen">
@@ -295,51 +324,51 @@ const matchWithUser = async () => {
         </div>
 
         {/* Share Your Vibe */}
-        <div className="h-[24%] min-h-[150px] px-5 border-b border-[#eae5de] flex flex-col justify-center bg-[#fdfbf7]">
+        {/* <div className="h-[24%] min-h-[150px] px-5 border-b border-[#eae5de] flex flex-col justify-center bg-[#fdfbf7]">
 
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Share Your Vibe
-          </p>
+          </p> */}
 
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
+          {/* <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none"> */}
 
             {/* Add Story */}
             <div className="flex flex-col items-center flex-shrink-0 cursor-pointer group">
 
-              <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#4a1525]/40 flex items-center justify-center bg-white group-hover:border-[#4a1525] transition-colors">
+              {/* <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#4a1525]/40 flex items-center justify-center bg-white group-hover:border-[#4a1525] transition-colors">
 
                 <FiPlus
                   className="text-[#4a1525]"
                   size={22}
                 />
 
-              </div>
+              </div> */}
 
-              <span className="text-[11px] font-medium text-gray-700 mt-1.5">
+              {/* <span className="text-[11px] font-medium text-gray-700 mt-1.5">
                 Add Story
-              </span>
+              </span> */}
 
-            </div>
+            {/* </div> */}
 
             {/* Add Song */}
-            <div className="flex flex-col items-center flex-shrink-0 cursor-pointer group">
+            {/* <div className="flex flex-col items-center flex-shrink-0 cursor-pointer group"> */}
 
-              <div className="w-14 h-14 rounded-full bg-[#4a1525] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+              {/* <div className="w-14 h-14 rounded-full bg-[#4a1525] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
 
                 <FiMusic
                   className="text-white"
                   size={20}
                 />
 
-              </div>
+              </div> */}
 
-              <span className="text-[11px] font-medium text-gray-700 mt-1.5">
+              {/* <span className="text-[11px] font-medium text-gray-700 mt-1.5">
                 Add Song
-              </span>
+              </span> */}
 
-            </div>
+            {/* </div> */}
 
-          </div>
+          {/* </div> */}
         </div>
 
         {/* Likes */}
@@ -521,10 +550,15 @@ const matchWithUser = async () => {
                 return (
                   <div
                     key={String(like.likeId)}
+                    // onClick={() => {
+                    //   setSelectedLike(like);
+                    //   setShowPopup(true);
+                    // }}
                     onClick={() => {
-                      setSelectedLike(like);
-                      setShowPopup(true);
-                    }}
+  setSelectedLike(like);
+  setProfilePhotoIndex(0);
+  setShowPopup(true);
+}}
                     className="bg-white p-3.5 rounded-2xl border border-[#eae5de] shadow-sm flex items-center justify-between hover:border-[#4a1525]/30 transition-all cursor-pointer group"
                   >
 
@@ -606,115 +640,461 @@ const matchWithUser = async () => {
       {/* LIKE POPUP */}
       {/* ================================================= */}
 
-      {showPopup && selectedLike && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-5">
+     {showPopup && selectedLike && previewProfile && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-4">
 
-          {/* Overlay */}
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={closePopup}
+    {/* BACKDROP */}
+    <div
+      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      onClick={closePopup}
+    />
+
+    {/* PROFILE MODAL */}
+    <div className="
+      relative
+      w-full max-w-[400px]
+      max-h-[92vh]
+      bg-[#fdfbf7]
+      rounded-[30px]
+      shadow-2xl
+      overflow-hidden
+      flex flex-col
+    ">
+
+      {/* CLOSE BUTTON */}
+      <button
+        type="button"
+        onClick={closePopup}
+        className="
+          absolute top-4 right-4 z-30
+          w-10 h-10 rounded-full
+          bg-black/40 backdrop-blur-md
+          text-white
+          flex items-center justify-center
+          hover:bg-[#4a1525]
+          transition
+        "
+      >
+        <FiX size={20} />
+      </button>
+
+      {/* SCROLLABLE PROFILE */}
+      <div className="flex-1 overflow-y-auto">
+
+        {/* ================= PHOTO ================= */}
+
+        <div className="relative w-full h-[430px] bg-gray-100">
+
+          <Image
+            src={currentPreviewImage}
+            alt={previewProfile.username || "Profile"}
+            fill
+            className="object-cover"
           />
 
-          {/* Popup */}
-          <div className="relative w-full max-w-[370px] bg-[#fdfbf7] rounded-[30px] p-6 shadow-2xl">
-
-            {/* Close */}
-            <button
-              onClick={closePopup}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-[#f7f3ed] flex items-center justify-center text-gray-600 hover:bg-[#4a1525] hover:text-white transition"
-            >
-              <FiX size={18} />
-            </button>
-
-            {/* Heart */}
-            <div className="flex justify-center mb-4">
-
-              <div className="w-10 h-10 rounded-full bg-[#4a1525]/10 flex items-center justify-center">
-
-                <FiHeart
-                  className="text-[#4a1525] fill-[#4a1525]"
-                  size={20}
-                />
-
-              </div>
-
-            </div>
-
-            {/* Profile image */}
-            <div className="flex justify-center">
-
-              <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg">
-
-                <Image
-                  src={
-                    selectedLike.images?.[0] ||
-                    "/default-avatar.png"
-                  }
-                  alt={
-                    selectedLike.from?.username ||
-                    "Profile"
-                  }
-                  fill
-                  className="object-cover"
-                />
-
-              </div>
-
-            </div>
-
-            {/* Name */}
-            <h2 className="text-xl font-bold text-gray-900 text-center mt-4">
-
-              {selectedLike.from?.username ||
-                "Someone"}
-
-            </h2>
-
-            {/* Like message */}
-            <p className="text-sm text-gray-500 text-center mt-1">
-
-              {selectedLike.from?.username ||
-                "Someone"}{" "}
-              liked your{" "}
-              <span className="font-semibold text-[#4a1525]">
-                {selectedLike.targetType ||
-                  "profile"}
-              </span>
-
-            </p>
-
-            {/* Comment */}
-            {selectedLike.comment && (
-              <p className="text-sm text-gray-600 text-center mt-3 italic">
-                "{selectedLike.comment}"
-              </p>
-            )}
-
-            {/* Visit Profile */}
-            <button
-              onClick={visitProfile}
-              className="w-full mt-6 py-3 rounded-2xl border border-[#4a1525] text-[#4a1525] font-semibold hover:bg-[#4a1525] hover:text-white transition"
-            >
-              Visit Profile
-            </button>
-
-            {/* Match */}
-            <button
-              onClick={matchWithUser}
-              disabled={matching}
-              className="w-full mt-3 py-3 rounded-2xl bg-[#4a1525] text-white font-semibold hover:bg-[#35101b] transition disabled:opacity-60"
-            >
-              {matching
-                ? "Matching..."
-                : `Match with ${
-                    selectedLike.from?.username ||
-                    "them"
+          {/* IMAGE PROGRESS */}
+          {previewImages.length > 1 && (
+            <div className="absolute top-4 left-4 right-16 flex gap-1 z-20">
+              {previewImages.map((_, index) => (
+                <div
+                  key={index}
+                  className={`h-1 flex-1 rounded-full ${
+                    index === profilePhotoIndex
+                      ? "bg-white"
+                      : "bg-white/40"
                   }`}
-            </button>
+                />
+              ))}
+            </div>
+          )}
 
+          {/* PREVIOUS IMAGE */}
+          {previewImages.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                previousPreviewPhoto();
+              }}
+              className="
+                absolute left-3 top-1/2
+                -translate-y-1/2
+                w-9 h-9
+                rounded-full
+                bg-black/30
+                text-white
+                flex items-center justify-center
+                hover:bg-black/50
+                transition
+              "
+            >
+              ←
+            </button>
+          )}
+
+          {/* NEXT IMAGE */}
+          {previewImages.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                nextPreviewPhoto();
+              }}
+              className="
+                absolute right-3 top-1/2
+                -translate-y-1/2
+                w-9 h-9
+                rounded-full
+                bg-black/30
+                text-white
+                flex items-center justify-center
+                hover:bg-black/50
+                transition
+              "
+            >
+              →
+            </button>
+          )}
+
+          {/* NAME GRADIENT */}
+          <div className="
+            absolute bottom-0 left-0 right-0
+            pt-24 pb-5 px-5
+            bg-gradient-to-t
+            from-black/80 via-black/30 to-transparent
+          ">
+            <h1 className="text-3xl font-black text-white">
+              {previewProfile.username || "Unknown"}
+            </h1>
+
+            <p className="text-sm text-white/80 mt-1">
+              {previewProfile.semester &&
+                `Semester ${previewProfile.semester}`}
+
+              {previewProfile.semester &&
+                previewProfile.branch &&
+                " • "}
+
+              {previewProfile.branch}
+            </p>
           </div>
         </div>
-      )}
+
+        {/* ================= PROFILE INFO ================= */}
+
+        <div className="px-5 pt-5 pb-28">
+
+          {/* SOMEONE LIKED YOU */}
+          <div className="
+            flex items-center gap-3
+            bg-[#4a1525]/5
+            border border-[#4a1525]/10
+            rounded-2xl
+            p-4
+          ">
+            <div className="
+              w-10 h-10
+              rounded-full
+              bg-[#4a1525]/10
+              flex items-center justify-center
+            ">
+              <FiHeart
+                size={19}
+                className="text-[#4a1525] fill-[#4a1525]"
+              />
+            </div>
+
+            <div>
+              <p className="text-sm font-bold text-gray-900">
+                {previewProfile.username} liked you
+              </p>
+
+              <p className="text-xs text-gray-500 mt-0.5">
+                Liked your {selectedLike.targetType || "profile"}
+              </p>
+            </div>
+          </div>
+
+          {/* COMMENT */}
+          {selectedLike.comment && (
+            <div className="
+              mt-3
+              bg-white
+              border border-[#eae5de]
+              rounded-2xl
+              p-4
+            ">
+              <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400">
+                Their message
+              </p>
+
+              <p className="text-sm font-medium text-gray-800 mt-2">
+                "{selectedLike.comment}"
+              </p>
+            </div>
+          )}
+
+          {/* ================= BASIC INFO ================= */}
+
+          <div className="mt-6">
+
+            <h3 className="
+              text-[11px]
+              font-bold
+              uppercase
+              tracking-wider
+              text-gray-400
+              mb-3
+            ">
+              About
+            </h3>
+
+            <div className="grid grid-cols-2 gap-2.5">
+
+              <div className="rounded-xl bg-[#f7f3ed] p-3">
+                <p className="text-[11px] text-gray-400">
+                  Height
+                </p>
+
+                <p className="mt-1 text-sm font-bold text-gray-900">
+                  {previewProfile.height
+                    ? `${previewProfile.height} cm`
+                    : "—"}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-[#f7f3ed] p-3">
+                <p className="text-[11px] text-gray-400">
+                  Branch
+                </p>
+
+                <p className="mt-1 text-sm font-bold text-gray-900">
+                  {previewProfile.branch || "—"}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-[#f7f3ed] p-3">
+                <p className="text-[11px] text-gray-400">
+                  Semester
+                </p>
+
+                <p className="mt-1 text-sm font-bold text-gray-900">
+                  {previewProfile.semester || "—"}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-[#f7f3ed] p-3">
+                <p className="text-[11px] text-gray-400">
+                  Gender
+                </p>
+
+                <p className="mt-1 text-sm font-bold text-gray-900">
+                  {previewProfile.gender || "—"}
+                </p>
+              </div>
+
+            </div>
+
+            {/* COLLEGE */}
+            <div className="mt-2.5 rounded-xl bg-[#f7f3ed] p-3">
+
+              <p className="text-[11px] text-gray-400">
+                College
+              </p>
+
+              <p className="mt-1 text-sm font-bold text-gray-900">
+                {previewProfile.college || "—"}
+              </p>
+
+            </div>
+
+          </div>
+
+          {/* ================= INTERESTS ================= */}
+
+          {Array.isArray(previewProfile.interests) &&
+            previewProfile.interests.length > 0 && (
+
+            <div className="mt-6">
+
+              <h3 className="
+                text-[11px]
+                font-bold
+                uppercase
+                tracking-wider
+                text-gray-400
+                mb-3
+              ">
+                Interests
+              </h3>
+
+              <div className="flex flex-wrap gap-2">
+
+                {previewProfile.interests.map(
+                  (interest, index) => (
+
+                    <span
+                      key={`${interest}-${index}`}
+                      className="
+                        px-3 py-1.5
+                        rounded-full
+                        bg-[#4a1525]/10
+                        text-[#4a1525]
+                        text-xs
+                        font-semibold
+                      "
+                    >
+                      {interest}
+                    </span>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+          )}
+
+          {/* ================= PROMPTS ================= */}
+
+          {Array.isArray(previewProfile.prompts) &&
+            previewProfile.prompts.length > 0 && (
+
+            <div className="mt-7">
+
+              <h3 className="
+                text-[11px]
+                font-bold
+                uppercase
+                tracking-wider
+                text-gray-400
+                mb-3
+              ">
+                Get to know {previewProfile.username}
+              </h3>
+
+              <div className="space-y-3">
+
+                {previewProfile.prompts.map(
+                  (prompt, index) => (
+
+                    <div
+                      key={
+                        prompt._id ||
+                        prompt.id ||
+                        index
+                      }
+                      className="
+                        bg-white
+                        border border-[#eae5de]
+                        rounded-2xl
+                        p-4
+                      "
+                    >
+
+                      <p className="
+                        text-[10px]
+                        font-bold
+                        uppercase
+                        tracking-wider
+                        text-gray-400
+                      ">
+                        {prompt.question}
+                      </p>
+
+                      <p className="
+                        text-sm
+                        font-semibold
+                        text-gray-900
+                        leading-relaxed
+                        mt-2
+                      ">
+                        {prompt.answer}
+                      </p>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+          )}
+
+        </div>
+      </div>
+
+      {/* ================= BOTTOM ACTIONS ================= */}
+
+      <div className="
+        absolute
+        bottom-0 left-0 right-0
+        bg-[#fdfbf7]/95
+        backdrop-blur-md
+        border-t border-[#eae5de]
+        px-5 py-4
+        flex gap-3
+      ">
+
+        {/* PASS */}
+        <button
+          type="button"
+          onClick={closePopup}
+          disabled={matching}
+          className="
+            w-14 h-14
+            flex-shrink-0
+            rounded-full
+            border-2 border-gray-200
+            flex items-center justify-center
+            text-gray-500
+            hover:border-gray-400
+            hover:text-gray-800
+            transition
+          "
+        >
+          <FiX size={23} />
+        </button>
+
+        {/* MATCH */}
+        <button
+          type="button"
+          onClick={matchWithUser}
+          disabled={matching}
+          className="
+            flex-1 h-14
+            rounded-full
+            bg-[#4a1525]
+            text-white
+            font-bold
+            flex items-center justify-center
+            gap-2
+            hover:bg-[#35101b]
+            transition
+            disabled:opacity-60
+          "
+        >
+          <FiHeart
+            size={19}
+            className="fill-white"
+          />
+
+          {matching
+            ? "Matching..."
+            : `Match with ${
+                previewProfile.username || "them"
+              }`}
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
 
     </div>
   );
@@ -725,398 +1105,3 @@ const matchWithUser = async () => {
 
 
 
-
-// "use client";
-
-// import React, { useEffect, useState } from "react";
-// import Image from "next/image";
-// import {
-//   FiPlus,
-//   FiMusic,
-//   FiHeart,
-//   FiMessageCircle,
-// } from "react-icons/fi";
-
-// import Background from "@/components/matchingpage/backgroundblur";
-// import Navbar from "@/components/Navbar";
-
-// export default function RaasMitraLikesView() {
-//   const [likes, setLikes] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   const getLikedProfiles = async () => {
-//     try {
-//       setLoading(true);
-
-//      const response = await fetch("/api/discoverFunctions/likes", {
-//   method: "GET",
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// });
-
-// const data = await response.json();
-
-// if (!response.ok || !data.success) {
-//   throw new Error(data.message || "Failed to get likes.");
-// }
-
-// setLikes(data.likes || []);
-//     } catch (error) {
-//       console.error("GET LIKES ERROR:", error);
-//       setLikes([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     getLikedProfiles();
-//   }, []);
-
-//   return (
-//     <div className="flex flex-col justify-center items-center min-h-screen">
-//       {/* Background */}
-//       <div className="fixed min-h-screen inset-0 z-10">
-//         <Background />
-//       </div>
-
-//       {/* Main mobile container */}
-//       <div className="w-full max-w-[412px] pb-2 inset-0 z-50 min-h-screen sm:h-[100vh] sm:rounded-[40px] bg-[#fdfbf7] flex flex-col overflow-hidden shadow-2xl relative">
-
-//         {/* Header */}
-//         <div className="px-5 pt-5 pb-2 flex justify-between items-center bg-[#fdfbf7]">
-//           <div className="flex items-center flex-row-reverse w-full gap-2 rounded-full">
-//             <div className="bg-[#4a1525]/10 flex rounded-2xl px-3 py-1.5">
-//               <FiHeart
-//                 className="text-[#4a1525] fill-[#4a1525]"
-//                 size={16}
-//               />
-
-//               <span className="text-xs ml-2 font-bold text-[#4a1525]">
-//                 {likes.length} Likes
-//               </span>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Share Your Vibe */}
-//         <div className="h-[24%] min-h-[150px] px-5 border-b border-[#eae5de] flex flex-col justify-center bg-[#fdfbf7]">
-//           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-//             Share Your Vibe
-//           </p>
-
-//           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-
-//             {/* Add Story */}
-//             <div className="flex flex-col items-center flex-shrink-0 cursor-pointer group">
-//               <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#4a1525]/40 flex items-center justify-center bg-white group-hover:border-[#4a1525] transition-colors">
-//                 <FiPlus
-//                   className="text-[#4a1525]"
-//                   size={22}
-//                 />
-//               </div>
-
-//               <span className="text-[11px] font-medium text-gray-700 mt-1.5">
-//                 Add Story
-//               </span>
-//             </div>
-
-//             {/* Add Song */}
-//             <div className="flex flex-col items-center flex-shrink-0 cursor-pointer group">
-//               <div className="w-14 h-14 rounded-full bg-[#4a1525] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-//                 <FiMusic
-//                   className="text-white"
-//                   size={20}
-//                 />
-//               </div>
-
-//               <span className="text-[11px] font-medium text-gray-700 mt-1.5">
-//                 Add Song
-//               </span>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Likes */}
-//         <div className="flex-1 overflow-y-auto p-5 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
-
-//           <div className="flex justify-between items-center mb-4">
-//             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
-//               People who liked you
-//             </h2>
-
-//             <span className="text-xs font-semibold text-[#4a1525] bg-[#4a1525]/10 px-2 py-0.5 rounded-md">
-//               Recent
-//             </span>
-//           </div>
-
-//           {/* Loading */}
-//           {loading && (
-//             <div className="text-center py-10">
-//               <p className="text-sm text-gray-500">
-//                 Loading likes...
-//               </p>
-//             </div>
-//           )}
-
-//           {/* Empty */}
-//           {!loading && likes.length === 0 && (
-//             <div className="text-center py-10">
-//               <FiHeart
-//                 className="mx-auto text-[#4a1525]/30"
-//                 size={40}
-//               />
-
-//               <p className="text-sm text-gray-500 mt-3">
-//                 No one has liked you yet.
-//               </p>
-//             </div>
-//           )}
-
-//           {/* Backend profiles */}
-//           {!loading && likes.length > 0 && (
-//             <div className="space-y-3">
-//               {likes.map((like) => {
-//                 const profile = like.from;
-
-//                 const image =
-//                   profile?.images?.[0] ||
-//                   "/default-avatar.png";
-
-//                 return (
-//                   <div
-//                     key={String(like.likeId)}
-//                     className="bg-white p-3.5 rounded-2xl border border-[#eae5de] shadow-sm flex items-center justify-between hover:border-[#4a1525]/30 transition-all cursor-pointer group"
-//                   >
-//                     <div className="flex items-center gap-3.5">
-
-//                       {/* Profile image */}
-//                       <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border border-[#eae5de]">
-//                         <Image
-//                           src={image}
-//                           alt={profile?.username || "Profile"}
-//                           fill
-//                           className="object-cover group-hover:scale-105 transition-transform duration-300"
-//                         />
-
-//                         <div className="absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow">
-//                           <FiHeart
-//                             className="text-[#4a1525] fill-[#4a1525]"
-//                             size={10}
-//                           />
-//                         </div>
-//                       </div>
-
-//                       {/* Profile information */}
-//                       <div>
-//                         <h3 className="text-base font-bold text-gray-900 leading-tight">
-//                           {profile?.username || "Unknown"}
-//                         </h3>
-
-//                         {like.comment ? (
-//                           <p className="text-xs text-gray-600 mt-0.5 line-clamp-1">
-//                             {like.comment}
-//                           </p>
-//                         ) : (
-//                           <p className="text-xs text-gray-600 mt-0.5 line-clamp-1">
-//                             Liked your {like.targetType || "profile"}
-//                           </p>
-//                         )}
-//                       </div>
-//                     </div>
-
-//                     {/* Message */}
-//                     <div className="w-10 h-10 rounded-full bg-[#f7f3ed] flex items-center justify-center text-[#4a1525] group-hover:bg-[#4a1525] group-hover:text-white transition-colors">
-//                       <FiMessageCircle size={18} />
-//                     </div>
-//                   </div>
-//                 );
-//               })}
-//             </div>
-//           )}
-//         </div>
-
-//         {/* Navbar */}
-//         <div className="inset-0 z-50 mt-3">
-//           <Navbar />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
-// // import React, { useEffect } from "react";
-// // import Image from "next/image";
-// // import { FiPlus, FiMusic, FiHeart, FiMessageCircle, FiChevronRight } from "react-icons/fi";
-// // import Background from "@/components/matchingpage/backgroundblur"
-// // import Navbar from '@/components/Navbar'
-
-// // export default function RaasMitraLikesView() {
-// //   const likesData = [
-// //     {
-// //       id: 1,
-// //       name: "Ananya",
-// //       age: 24,
-// //       image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-// //       text: "Liked your photo: 'Chai on a rainy balcony...'",
-// //       time: "2h ago",
-// //     },
-// //     {
-// //       id: 2,
-// //       name: "Priya",
-// //       age: 23,
-// //       image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
-// //       text: "Liked your prompt response about history.",
-// //       time: "5h ago",
-// //     },
-// //     {
-// //       id: 3,
-// //       name: "Meera",
-// //       age: 25,
-// //       image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
-// //       text: "Liked your song: 'Kehna Hi Kya - Bombay Theme'",
-// //       time: "1d ago",
-// //     },
-// //     {
-// //       id: 4,
-// //       name: "Rhea",
-// //       age: 22,
-// //       image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80",
-// //       text: "Liked your photo at the museum.",
-// //       time: "2d ago",
-// //     }
-// //   ];
-
-// //   const getLikedProfiles=async()=>{
-// //     const response = await fetch("/api/getLikedprof",{method:"POST"});
-// //     const data = await response.json();
-// //     console.log(data.message);
-// //   }
-
-// //   useEffect(()=>{
-// //     getLikedProfiles();
-// //   },[])
-
-// //   return (
-// //     <div className=" flex  flex-col  justify-center items-center min-h-screen">
-// //         <div className="fixed min-h-screen inset-0 z-10">
-// //         <Background/>
-// //         </div>
-// //       {/* Mobile Frame Container */}
-// //       <div className="w-full max-w-[412px] pb-2 inset-0 z-50 min-h-screen sm:h-[100vh] sm:rounded-[40px] bg-[#fdfbf7] flex flex-col overflow-hidden shadow-2xl relative">
-        
-// //         {/* Top Header / App Title */}
-// //         <div className="px-5 pt-5 pb-2 flex justify-between items-center bg-[#fdfbf7]">
-          
-// //           <div className="flex items-center flex-row-reverse w-full gap-2 rounded-full">
-// //             <div className=" bg-[#4a1525]/10 flex rounded-2xl px-3 py-1.5">
-// //             <FiHeart className="text-[#4a1525]  fill-[#4a1525]" size={16} />
-// //             <span className="text-xs ml-auto  font-bold text-[#4a1525]">14 Likes</span>
-// //             </div>
-// //           </div>
-// //         </div>
-
-// //         {/* Top 1/4 Section: Stories and Songs Upload / Shortcuts */}
-// //         <div className="h-[24%] min-h-[150px] px-5  border-b border-[#eae5de] flex flex-col justify-center bg-[#fdfbf7]">
-// //           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-// //             Share Your Vibe
-// //           </p>
-// //           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-            
-// //             {/* Add Story Button */}
-// //             <div className="flex flex-col items-center flex-shrink-0 cursor-pointer group">
-// //               <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#4a1525]/40 flex items-center justify-center bg-white group-hover:border-[#4a1525] transition-colors">
-// //                 <FiPlus className="text-[#4a1525]" size={22} />
-// //               </div>
-// //               <span className="text-[11px] font-medium text-gray-700 mt-1.5">Add Story</span>
-// //             </div>
-
-// //             {/* Add Song Button */}
-// //             <div className="flex flex-col items-center flex-shrink-0 cursor-pointer group">
-// //               <div className="w-14 h-14 rounded-full bg-[#4a1525] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-// //                 <FiMusic className="text-white" size={20} />
-// //               </div>
-// //               <span className="text-[11px] font-medium text-gray-700 mt-1.5">Add Song</span>
-// //             </div>
-
-// //             {/* Active Story Preview Mock */}
-// //             <div className="flex flex-col items-center flex-shrink-0 cursor-pointer">
-// //               <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-tr from-amber-400 to-[#4a1525]">
-// //                 <div className="w-full h-full rounded-full overflow-hidden relative border-2 border-white">
-// //                   <Image 
-// //                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" 
-// //                     alt="Your Story" 
-// //                     fill 
-// //                     className="object-cover"
-// //                   />
-// //                 </div>
-// //               </div>
-// //               <span className="text-[11px] font-medium text-gray-700 mt-1.5">Your Vibe</span>
-// //             </div>
-
-// //           </div>
-// //         </div>
-
-// //         {/* Bottom Section: Scrollable List of People Who Sent You Likes */}
-// //         <div className="flex-1 overflow-y-auto p-5 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#4a1525]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
-// //           <div className="flex justify-between items-center mb-4">
-// //             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
-// //               People who liked you
-// //             </h2>
-// //             <span className="text-xs font-semibold text-[#4a1525] bg-[#4a1525]/10 px-2 py-0.5 rounded-md">
-// //               Recent
-// //             </span>
-// //           </div>
-
-// //           <div className="space-y-3">
-// //             {likesData.map((person) => (
-// //               <div 
-// //                 key={person.id} 
-// //                 className="bg-white p-3.5 rounded-2xl border border-[#eae5de] shadow-sm flex items-center justify-between hover:border-[#4a1525]/30 transition-all cursor-pointer group"
-// //               >
-// //                 <div className="flex items-center gap-3.5">
-// //                   <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border border-[#eae5de]">
-// //                     <Image 
-// //                       src={person.image} 
-// //                       alt={person.name} 
-// //                       fill 
-// //                       className="object-cover group-hover:scale-105 transition-transform duration-300"
-// //                     />
-// //                     <div className="absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow">
-// //                       <FiHeart className="text-[#4a1525] fill-[#4a1525]" size={10} />
-// //                     </div>
-// //                   </div>
-
-// //                   <div>
-// //                     <h3 className="text-base font-bold text-gray-900 leading-tight">
-// //                       {person.name}, <span className="font-normal text-gray-500">{person.age}</span>
-// //                     </h3>
-// //                     <p className="text-xs text-gray-600 mt-0.5 line-clamp-1">
-// //                       {person.text}
-// //                     </p>
-// //                     <span className="text-[10px] text-gray-400 mt-1 block">
-// //                       {person.time}
-// //                     </span>
-// //                   </div>
-// //                 </div>
-
-// //                 <div className="w-10 h-10 rounded-full bg-[#f7f3ed] flex items-center justify-center text-[#4a1525] group-hover:bg-[#4a1525] group-hover:text-white transition-colors">
-// //                   <FiMessageCircle size={18} />
-// //                 </div>
-// //               </div>
-// //             ))}
-// //           </div>
-
-// //         </div>
-// //         <div className="inset-0 z-50 mt-3">
-// //       <Navbar/>
-// //       </div>
-
-// //       </div>
-      
-// //     </div>
-// //   );
-// // }
