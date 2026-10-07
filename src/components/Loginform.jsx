@@ -1,168 +1,347 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import Googlelogin from "@/components/googlelogin"
 import {
   ArrowRight,
-  Eye,
-  EyeOff,
   LockKeyhole,
   Mail,
+  Phone,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
-
+import Googlelogin from "@/components/googlelogin";
 import { useAuth } from "@/lib/gettoken";
-import { Amiri_Quran } from "next/font/google";
-// import { useAuthGuard } from "@/lib/authorisedroute";
 
 export default function LoginForm() {
-
-  // const [error,setError] = useState()
-
-  // useAuthGuard();
-  const {user} = useAuth();
-
   const router = useRouter();
-    
-    const formData = useRef({
-        enrollmentNo:"",
-        email:"",
-        password:"",
-     })
+  const { user } = useAuth();
 
-     const [showPassword, setShowPassword] = useState('');
-     const [error,setError] = useState('');
-    
-  const [isDisabled,setisDisabled] = useState(false);
-  const [email, setEmail] = useState("");
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [showMobileField, setShowMobileField] = useState(false);
+  // =========================
+  // FORM STATES
+  // =========================
+
+  const [identifier, setIdentifier] = useState("");
+  const [number, setnumber] = useState("");
+  const [otpInput, setOtpInput] = useState("");
+
+  // 1 = enter email/number
+  // 2 = enter OTP
+  const [step, setStep] = useState(1);
+
+  // =========================
+  // UI STATES
+  // =========================
+
   const [loading, setLoading] = useState(false);
   const [loadinglog, setLoadinglog] = useState(false);
-  const [message, setMessage] = useState("");
 
-    const [identifier, setIdentifier] = useState("");
-      const [number , setnumber] = useState("");// Captures email or phone input string
-  const [otpInput, setOtpInput] = useState("");      // Captures numerical input code string
-  const [trackingToken, setTrackingToken] = useState(null); // Saved behind the scenes
-  const [step, setStep] = useState(1);               // 1 = Request, 2 = Verify Code
- 
+  const [isDisabled, setisDisabled] = useState(false);
+
+  const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // 🚀 SUBMIT HANDLER 1: Requests Email/Mobile routing access link
-  const handlesubmit= async (e) => {
+  // =========================
+  // AUTH
+  // =========================
+
+  useEffect(() => {
+    if (user) {
+      // Keep your existing behavior here if required.
+      // Example:
+      // router.push("/testroute");
+    }
+  }, [user]);
+
+  // =========================
+  // EMAIL VALIDATION
+  // =========================
+
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  // =========================
+  // MOBILE VALIDATION
+  // =========================
+
+  const isValidMobile = (mobile) => {
+    return /^[6-9]\d{9}$/.test(mobile);
+  };
+
+  // =========================
+  // SEND OTP
+  // =========================
+
+  const handlesubmit = async (e) => {
     e.preventDefault();
-    setLoadinglog(true);
-    setisDisabled(true);
+
     setError("");
     setSuccessMsg("");
-    console.log(identifier) 
+
+    const cleanEmail = identifier.trim().toLowerCase();
+    const cleanNumber = number.replace(/\D/g, "");
+
+    // =========================
+    // VALIDATION
+    // =========================
+
+    if (!cleanEmail) {
+      setError("Please enter your email address.");
+      return;
+    }
+
+    if (!isValidEmail(cleanEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!cleanNumber) {
+      setError("Please enter your mobile number.");
+      return;
+    }
+
+    if (!isValidMobile(cleanNumber)) {
+      setError(
+        "Please enter a valid 10-digit Indian mobile number."
+      );
+      return;
+    }
+
     try {
-      const res = await fetch("/api/auth/login", {
+      setLoadinglog(true);
+      setisDisabled(true);
+
+      const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({identifier, number}),
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        credentials: "include",
+
+        body: JSON.stringify({
+          identifier: cleanEmail,
+          number: cleanNumber,
+        }),
       });
 
-      const data = await res.json();
-              
-      console.log(data);
-      if (!res.ok) throw new Error(data.error || "Request failed");
+      let data;
 
-      setTrackingToken(data.trackingToken); // Cache tracking state context
-      setSuccessMsg(data.message);
-      setStep(2); // Jump view screen to OTP layout inputs
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error(
+          "Invalid server response. Please try again."
+        );
+      }
+
+      console.log("LOGIN RESPONSE:", data);
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message ||
+            data.error ||
+            "Unable to send OTP. Please try again."
+        );
+      }
+
+      // =========================
+      // OTP SENT
+      // =========================
+
+      setSuccessMsg(
+        data.message || "OTP sent successfully."
+      );
+
+      setOtpInput("");
+
+      setStep(2);
 
     } catch (err) {
-      setError(err.message);
+      console.error("LOGIN OTP ERROR:", err);
+
+      setError(
+        err?.message ||
+          "Unable to send OTP. Please check your internet connection and try again."
+      );
     } finally {
       setLoadinglog(false);
+
+      // Don't keep the button disabled for 7 seconds
       setTimeout(() => {
-              setisDisabled(false)
-            }, 7000);
+        setisDisabled(false);
+      }, 700);
     }
   };
 
-   const handleCheckOtp = async (e) => {
+  // =========================
+  // VERIFY OTP
+  // =========================
+
+  const handleCheckOtp = async (e) => {
     e.preventDefault();
-    setLoading(true);
+
     setError("");
     setSuccessMsg("");
-    setisDisabled(true);
+
+    const cleanOtp = otpInput.replace(/\D/g, "");
+    const cleanEmail = identifier.trim().toLowerCase();
+    const cleanNumber = number.replace(/\D/g, "");
+
+    // =========================
+    // VALIDATION
+    // =========================
+
+    if (!cleanOtp) {
+      setError("Please enter the OTP.");
+      return;
+    }
+
+    if (!/^\d{6}$/.test(cleanOtp)) {
+      setError("OTP must be exactly 6 digits.");
+      return;
+    }
+
     try {
-      const response = await fetch("/api/auth/verify-otp", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    email: identifier,
-    otp: otpInput,
-    number: number,
-  }),
-});
+      setLoading(true);
+      setisDisabled(true);
 
-const data = await response.json();
+      const response = await fetch(
+        "/api/auth/verify-otp",
+        {
+          method: "POST",
 
-console.log(data.token);
-     
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-      if (data.token.isLoggedIn) {
-        console.log("loggedintrue")
-        if (data.token.isProfileFullyUpdated) {
-      router.push("/testroute");
-      return;
+          credentials: "include",
+
+          body: JSON.stringify({
+            email: cleanEmail,
+            number: cleanNumber,
+            otp: cleanOtp,
+          }),
+        }
+      );
+
+      let data;
+
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error(
+          "Invalid server response. Please try again."
+        );
       }
-      if (data.token.isPhotoUploaded) {
-      router.push("/intrestpage");
-      return;
+
+      console.log("VERIFY RESPONSE:", data);
+
+      // =========================
+      // BACKEND ERROR
+      // =========================
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message ||
+            data.error ||
+            "Invalid or expired OTP."
+        );
       }
-      if (data.token.isFirstPhaseCompleted) {
-      router.push("/testimage");
-      return;
+
+      // =========================
+      // SUCCESS
+      // =========================
+
+      setSuccessMsg(
+        data.message ||
+          "OTP verified successfully. Redirecting..."
+      );
+
+      const token = data.token;
+
+      // =========================
+      // EXISTING USER ROUTING
+      // =========================
+
+      if (token?.isLoggedIn) {
+        if (token.isProfileFullyUpdated) {
+          router.push("/testroute");
+          return;
+        }
+
+        if (token.isPhotoUploaded) {
+          router.push("/intrestpage");
+          return;
+        }
+
+        if (token.isFirstPhaseCompleted) {
+          router.push("/testimage");
+          return;
+        }
       }
-      }
+
+      // =========================
+      // NEW / INCOMPLETE PROFILE
+      // =========================
+
       router.push("/completeProfile");
 
-       if (!res.ok) throw new Error(data.error || "Verification failed");
-
-      setSuccessMsg("Welcome! Redirecting securely...");
-     
-
     } catch (err) {
-      setError(err.message);
+      console.error(
+        "OTP VERIFICATION ERROR:",
+        err
+      );
+
+      setError(
+        err?.message ||
+          "Unable to verify OTP. Please try again."
+      );
     } finally {
       setLoading(false);
-   
-       setTimeout(() => {
-      setisDisabled(false)
-       }, 7000);
+
+      setTimeout(() => {
+        setisDisabled(false);
+      }, 700);
     }
   };
-  // Main submission function to contact the backend route
 
+  // =========================
+  // CHANGE NUMBER / EMAIL
+  // =========================
 
-   useEffect(()=>{
-   
-   },[]);
+  const handleChangeDetails = () => {
+    setStep(1);
+
+    setOtpInput("");
+
+    setError("");
+
+    setSuccessMsg("");
+  };
+
+  // =========================
+  // RENDER
+  // =========================
 
   return (
     <div className="w-full max-w-md">
 
-      {/* BRAND ICON */}
-      <div className="mb-7 text-center">
+      {/* ========================= */}
+      {/* BRAND HEADER */}
+      {/* ========================= */}
 
-        
+      <div className="mb-6 text-center">
 
         <div className="flex items-center justify-center gap-2">
 
           <h1 className="font-serif text-3xl font-bold text-[#741337]">
-           Login with Email
+            Login with Email
           </h1>
 
           <Sparkles
@@ -179,204 +358,380 @@ console.log(data.token);
       </div>
 
 
+      {/* ========================= */}
       {/* CARD */}
-      <div className="rounded-[2rem] border border-[#741337]/10 bg-white p-6 shadow-xl shadow-[#741337]/5 sm:p-8">
+      {/* ========================= */}
 
-        <form
-         onSubmit={handlesubmit}
-          className="space-y-5"
-        >
+      <div className="w-full rounded-[1.5rem] border border-[#741337]/10 bg-white p-5 shadow-xl shadow-[#741337]/5 sm:p-6">
 
-          {/* ERROR */}
-         
-          {/* EnrollmentNo */}
-       
+        {/* ========================= */}
+        {/* ERROR MESSAGE */}
+        {/* ========================= */}
 
-
-          {/* EMAIL */}
-          <div>
-            <label
-              htmlFor="login-email"
-              className="mb-2 block text-sm font-medium text-[#24151a]"
-            >
-              Email
-            </label>
-
-            <div className="relative">
-
-              <Mail
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
-              />
-
-              <input
-                id="login-email"
-                name="email"
-              onChange={(e) => {setIdentifier(e.target.value)}}
-               
-                placeholder="you@college.ac.in"
-                autoComplete="email"
-                className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
-              />
-
-            </div>
-
-          </div>
-
-
-          {/* PASSWORD */}
-         
-         <div>
-            <label
-              htmlFor="login-email"
-              className="mb-2 block text-sm font-medium text-[#24151a]"
-            >
-              Number
-            </label>
-
-            <div className="relative">
-
-              <Mail
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
-              />
-
-              <input
-                id="login-number"
-                name="number"
-                inputMode="numeric" // Displays the numeric keypad layout on mobile devices
-                value={number}
-                maxLength={10}
-              onChange={(e,value) => {setnumber(e.target.value)
-              }}
-               
-                placeholder="9234*****1"
-                autoComplete="number"
-                className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
-              />
-
-            </div>
-
-          </div>
-
-
-          {/* REMEMBER ME */}
-          <label className="flex cursor-pointer items-center gap-3 text-xs text-[#24151a]/60">
-
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-[#741337]/20 accent-[#741337]"
-            />
-
-            Keep me signed in
-
-          </label>
-
-
-          {/* LOGIN BUTTON */}
-          <button
-            type="submit"
-            disabled={isDisabled}
-            
-            className="group flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#741337] font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        {error && (
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3"
           >
 
-           
-             
-          
-              <>
-                {loadinglog?"loading...":"Login to RaasMitra"}
+            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+              !
+            </div>
 
-                <ArrowRight
-                  size={18}
-                  className="transition group-hover:translate-x-1"
-                />
-              </>
-        
+            <div className="min-w-0 flex-1">
 
-          </button>
+              <p className="text-sm font-semibold text-red-700">
+                Something went wrong
+              </p>
 
-        </form>
-        <form onSubmit={handleCheckOtp}>
-           <div>
-
-            <div className="mt-5 mb-2 flex items-center justify-between">
-
-              <label
-                htmlFor="login-password"
-                className="text-sm font-medium text-[#24151a]"
-              >
-               OTP
-              </label>
-
-              <Link
-                href="#"
-                className="text-xs font-semibold text-[#741337] hover:text-[#ed7137]"
-              >
-                
-              </Link>
+              <p className="mt-0.5 text-xs leading-relaxed text-red-600">
+                {error}
+              </p>
 
             </div>
 
-            <div className="relative">
+            <button
+              type="button"
+              onClick={() => setError("")}
+              className="text-lg leading-none text-red-400 transition hover:text-red-600"
+              aria-label="Close error"
+            >
+              ×
+            </button>
 
-              <LockKeyhole
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
-              />
+          </div>
+        )}
+
+
+        {/* ========================= */}
+        {/* SUCCESS MESSAGE */}
+        {/* ========================= */}
+
+        {successMsg && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3"
+          >
+
+            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">
+              ✓
+            </div>
+
+            <div>
+
+              <p className="text-sm font-semibold text-green-700">
+                Success
+              </p>
+
+              <p className="mt-0.5 text-xs leading-relaxed text-green-600">
+                {successMsg}
+              </p>
+
+            </div>
+
+          </div>
+        )}
+
+
+        {/* ========================= */}
+        {/* STEP 1 */}
+        {/* ========================= */}
+
+        {step === 1 && (
+          <form
+            onSubmit={handlesubmit}
+            className="space-y-4"
+          >
+
+            {/* EMAIL */}
+
+            <div>
+
+              <label
+                htmlFor="login-email"
+                className="mb-1.5 block text-sm font-medium text-[#24151a]"
+              >
+                Email
+              </label>
+
+              <div className="relative">
+
+                <Mail
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
+                />
+
+                <input
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  value={identifier}
+                  onChange={(e) => {
+                    setIdentifier(e.target.value);
+
+                    setError("");
+                    setSuccessMsg("");
+                  }}
+                  placeholder="you@college.ac.in"
+                  autoComplete="email"
+                  className={`h-12 w-full rounded-xl border bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 ${
+                    error
+                      ? "border-red-300 focus:border-red-400 focus:ring-4 focus:ring-red-400/10"
+                      : "border-[#741337]/10 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+                  }`}
+                />
+
+              </div>
+
+            </div>
+
+
+            {/* MOBILE NUMBER */}
+
+            <div>
+
+              <label
+                htmlFor="login-number"
+                className="mb-1.5 block text-sm font-medium text-[#24151a]"
+              >
+                Mobile Number
+              </label>
+
+              <div className="relative">
+
+                <Phone
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
+                />
+
+                <input
+                  id="login-number"
+                  name="number"
+                  type="tel"
+                  inputMode="numeric"
+                  value={number}
+                  maxLength={10}
+                  onChange={(e) => {
+                    const value =
+                      e.target.value.replace(
+                        /\D/g,
+                        ""
+                      );
+
+                    setnumber(value);
+
+                    setError("");
+                    setSuccessMsg("");
+                  }}
+                  placeholder="9876543210"
+                  autoComplete="tel"
+                  className="h-12 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+                />
+
+              </div>
+
+              <p className="mt-1.5 text-[11px] text-[#24151a]/45">
+                Enter your registered mobile number.
+              </p>
+
+            </div>
+
+
+            {/* REMEMBER ME */}
+
+            <label className="flex cursor-pointer items-center gap-3 pt-0.5 text-xs text-[#24151a]/60">
 
               <input
-                id="login-password"
-                name="password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
-                
-              onChange={(e)=>{
-                    setOtpInput(e.target.value)
-                }}
-                placeholder="Enter your password"
-                autoComplete="current-password"
-                className="h-13 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-12 text-sm text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+                type="checkbox"
+                className="h-4 w-4 rounded border-[#741337]/20 accent-[#741337]"
               />
+
+              Keep me signed in
+
+            </label>
+
+
+            {/* SEND OTP */}
+
+            <button
+              type="submit"
+              disabled={
+                isDisabled ||
+                loadinglog ||
+                !identifier.trim() ||
+                number.length !== 10
+              }
+              className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#741337] font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+
+              {loadinglog ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+
+                  Sending OTP...
+                </>
+              ) : (
+                <>
+                  Login to RaasMitra
+
+                  <ArrowRight
+                    size={17}
+                    className="transition group-hover:translate-x-1"
+                  />
+                </>
+              )}
+
+            </button>
+
+          </form>
+        )}
+
+
+        {/* ========================= */}
+        {/* STEP 2 - OTP */}
+        {/* ========================= */}
+
+        {step === 2 && (
+          <form onSubmit={handleCheckOtp}>
+
+            <div className="text-center">
+
+              <p className="text-sm text-[#24151a]/55">
+                We sent a verification code to
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-[#741337]">
+                {identifier}
+              </p>
+
+              <p className="text-sm font-semibold text-[#741337]">
+                +91 {number}
+              </p>
 
               <button
                 type="button"
-                onClick={() =>
-                  setShowPassword((prev) => !prev)
-                }
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[#24151a]/40 transition hover:bg-[#fff0df] hover:text-[#741337]"
+                onClick={handleChangeDetails}
+                className="mt-2 text-xs font-semibold text-[#ed7137] hover:underline"
               >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                Change email / number
               </button>
 
             </div>
 
-          </div>
-          <div>
-           <button
-           disabled={isDisabled}
-           
-            type="submit"
-            className="group mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#741337] font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-          >{loading?"Loading...":"Submit"}</button></div>
-        </form>
-         <div className="w-full pt-3 flex justify-center">
-                     <Googlelogin/>
-                            </div>
+
+            {/* OTP */}
+
+            <div className="mt-5">
+
+              <label
+                htmlFor="login-otp"
+                className="mb-1.5 block text-sm font-medium text-[#24151a]"
+              >
+                Enter OTP
+              </label>
+
+              <div className="relative">
+
+                <LockKeyhole
+                  size={17}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#24151a]/35"
+                />
+
+                <input
+                  id="login-otp"
+                  name="otp"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otpInput}
+                  onChange={(e) => {
+                    const value =
+                      e.target.value.replace(
+                        /\D/g,
+                        ""
+                      );
+
+                    setOtpInput(value);
+
+                    setError("");
+                  }}
+                  placeholder="Enter 6-digit OTP"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  className="h-12 w-full rounded-xl border border-[#741337]/10 bg-[#fffaf2] pl-11 pr-4 text-center text-lg font-semibold tracking-[0.35em] text-[#24151a] outline-none transition placeholder:text-[#24151a]/30 focus:border-[#ed7137] focus:ring-4 focus:ring-[#ed7137]/10"
+                />
+
+              </div>
+
+            </div>
 
 
-        {/* VERIFIED MESSAGE */}
-        <div className="mt-6 flex items-start gap-3 rounded-xl bg-[#fffaf2] p-4">
+            {/* VERIFY BUTTON */}
+
+            <button
+              disabled={
+                isDisabled ||
+                loading ||
+                otpInput.length !== 6
+              }
+              type="submit"
+              className="group mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#741337] font-medium text-white shadow-lg shadow-[#741337]/15 transition hover:bg-[#5d0e2b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  Verify OTP
+
+                  <ArrowRight
+                    size={17}
+                    className="transition group-hover:translate-x-1"
+                  />
+                </>
+              )}
+
+            </button>
+
+
+            {/* RESEND */}
+
+            <button
+              type="button"
+              disabled={loadinglog || loading}
+              onClick={handlesubmit}
+              className="mt-4 w-full text-center text-xs font-semibold text-[#741337] transition hover:text-[#ed7137] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Resend OTP
+            </button>
+
+          </form>
+        )}
+
+
+        {/* ========================= */}
+        {/* GOOGLE */}
+        {/* ========================= */}
+
+        <div className="flex w-full justify-center pt-4">
+          {/* <Googlelogin /> */}
+        </div>
+
+
+        {/* ========================= */}
+        {/* TRUST MESSAGE */}
+        {/* ========================= */}
+
+        {/* <div className="mt-4 flex items-start gap-3 rounded-xl bg-[#fffaf2] p-3.5">
 
           <ShieldCheck
-            size={18}
+            size={17}
             className="mt-0.5 shrink-0 text-[#ed7137]"
           />
 
@@ -385,11 +740,24 @@ console.log(data.token);
             a genuine student community.
           </p>
 
-        </div>
+        </div> */}
 
 
+        {/* ========================= */}
         {/* REGISTER */}
-       
+        {/* ========================= */}
+
+        <div className="mt-5 text-center">
+
+          
+          <Link
+            href="/register"
+            className="mt-1 inline-block text-sm font-semibold text-[#741337] transition hover:text-[#ed7137]"
+          >
+            
+          </Link>
+
+        </div>
 
       </div>
 

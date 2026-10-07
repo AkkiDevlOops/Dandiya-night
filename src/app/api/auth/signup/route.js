@@ -1,140 +1,131 @@
-// app/api/auth/signup/route.js
-import { NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
-import mongoose from 'mongoose';
-import User from '@/models/user'
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import connectDB from "@/lib/db";
+import { userlog } from "@/models/Registration";
+
 
 export async function POST(request) {
   try {
-    // 1. Connect to MongoDB
     await connectDB();
 
-    // 2. Parse registration data from the frontend request
     const data = await request.json();
-    const { enrollmentNo, password ,email} = data.current; 
-    console.log(enrollmentNo);
-    console.log(email);
-    console.log(password);
-    
-   
-    if (!enrollmentNo) {
+
+    let { number } = data;
+
+    // =========================
+    // VALIDATE NUMBER
+    // =========================
+
+    if (!number) {
       return NextResponse.json(
-        { error: 'Please provide both enrollment' },
+        {
+          success: false,
+          message: "Mobile number is required.",
+        },
         { status: 400 }
       );
     }
 
-    if (!password) {
+    // Remove spaces, +91, -, etc.
+    number = String(number).replace(/\D/g, "");
+
+    // If frontend sends 10 digits
+    if (number.length === 10) {
+      number = `+91${number}`;
+    }
+
+    // Indian number validation
+    if (!/^\+91[6-9]\d{9}$/.test(number)) {
       return NextResponse.json(
-        { error: 'Please provide password' },
+        {
+          success: false,
+          message: "Please enter a valid Indian mobile number.",
+        },
         { status: 400 }
       );
     }
 
-    if (password.length < 2) {
-      return NextResponse.json(
-        { error: 'Password must be at least 6 characters long' },
-        { status: 400 }
-      );
-    }
+    // =========================
+    // CHECK EXISTING USER
+    // =========================
 
- 
-
-    // // 3. Verify if the user already exists in the database
-    const existingUser = await User.findOne({ enrollmentNo: enrollmentNo });
-    if (!existingUser) {
-      return NextResponse.json(
-        { error: 'Cant find your enrollment in data, try signing with google or contact team' },
-        { status: 400 })
-    }
-
-    // const dbpassword = existingUser.password;
-
-    //  if(existingUser.password){
-    //   const compare = await bcrypt.compare(password,dbpassword);
-    //   if(!compare){
-    //     return NextResponse.json(
-    //     { error: 'Password not correct' },
-    //     { status: 400 }
-    //   );
-    //   }
-    //  }
-
-   
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const updatedUser = await User.findByIdAndUpdate(
-  existingUser._id, 
-  { email: email,
-    password: hashedPassword }, // 👈 Added a comma here
-  { 
-    new: true,           
-    runValidators: true  
-  }
-);
-
-  
-
-    console.log(updatedUser)
-    
-
-   
-    
-   if(existingUser){
-    // 6. Generate the JWT Token for immediate login session
-    const token = jwt.sign(
-      {signIn : true }, // Data payload encoded inside token
-      process.env.JWT_SECRET,                        // Secret encryption key from .env.local
-      { expiresIn: '11d' }                            // Session duration (7 days)
-    );
-
-    const userSessionData = {
-      id: existingUser._id,
-      auth: true,
-      enrollmentNo : existingUser.enrollmentNo,
-      name:existingUser.name,
-      token:token
-    }
-
-      const response = NextResponse.json(
-      { 
-        message: 'Account created and logged in successfully!', 
-        user: { name: existingUser.name } ,
-        
-      },
-      { status: 201 }
-    );
-
-
-    // 8. Securely set the JWT inside an HttpOnly Cookie  
-      response.cookies.set({
-      name: 'auth_token',
-      value: JSON.stringify(userSessionData),
-      httpOnly: true,                         // Prevents front-end JavaScript scripts from stealing token data
-      secure: process.env.NODE_ENV === 'production', // Requires HTTPS encryption in production environments
-      sameSite: 'strict',                     // Cross-Site Request Forgery (CSRF) mitigation protection
-      maxAge: 60 * 60 * 24 * 11,               // 7 days defined in seconds
-      path: '/',                              // Cookie accessible across entire domain routing paths
+    const existingUser = await userlog.findOne({
+      mobileNumber: number,
     });
 
-    return response;
-    
-}
-    // 7. Initialize the JSON response payload
-  
-   return NextResponse.json(
-        { error: 'Cant find your enrollment in data, try signing with google or contact team' },
-        { status: 400 })
+    // =========================
+    // GENERATE OTP
+    // =========================
 
-    
+    const otp = crypto
+      .randomInt(100000, 1000000)
+      .toString();
 
-  } catch (error) {
-    console.error('Signup Error:', error);
+    const otpExpiresAt = new Date(
+      Date.now() + 5 * 60 * 1000
+    );
+
+    // =========================
+    // EXISTING USER
+    // =========================
+
+    if (existingUser) {
+      existingUser.tokenDetails = {
+        ...(existingUser.tokenDetails || {}),
+        tempOtp: otp,
+        otpExpiresAt: otpExpiresAt,
+        updatedAt: new Date(),
+      };
+
+      existingUser.markModified("tokenDetails");
+
+      await existingUser.save();
+    }
+
+    // =========================
+    // NEW USER
+    // =========================
+
+    else {
+      const newUser = new userlog({
+        mobileNumber: number,
+
+        tokenDetails: {
+          tempOtp: otp,
+          otpExpiresAt: otpExpiresAt,
+
+          isFirstPhaseCompleted: false,
+          isPhotoUploaded: false,
+          isProfileFullyUpdated: false,
+          isLoggedIn: false,
+        },
+      });
+
+      await newUser.save();
+    }
+
+    // =========================
+    // SEND OTP
+    // =========================
+
+    await sendOtpSMS(number, otp);
+
     return NextResponse.json(
-      { error: 'An internal server error occurred' },
+      {
+        success: true,
+        message: "OTP sent successfully.",
+        mobileNumber: `${number.slice(0, 3)}******${number.slice(-2)}`,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("SIGNUP OTP ERROR:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to send OTP. Please try again.",
+      },
       { status: 500 }
     );
   }

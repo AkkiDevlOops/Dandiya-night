@@ -73,7 +73,6 @@ export async function POST(request) {
     const existingUser = await userlog.findOne({
       $or: [
         { email: normalizedEmail },
-        { mobileNumber: number },
       ],
     });
 
@@ -100,7 +99,7 @@ export async function POST(request) {
       const newUser = new userlog({
         email: normalizedEmail,
 
-        mobileNumber: number,
+        
 
         tokenDetails: {
           currentToken: sessionToken,

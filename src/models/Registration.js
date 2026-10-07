@@ -24,12 +24,7 @@ const UserSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
-  mobileNumber: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
+  
   
   // 🔑 EMBED DIRECTLY: Pass the raw TokenSchema object here
   // DO NOT use mongoose.model('Token', TokenSchema) inside this path!

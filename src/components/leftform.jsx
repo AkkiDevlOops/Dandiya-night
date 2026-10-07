@@ -5,7 +5,7 @@ import { useState } from "react";
 
 
 export default function LoginPage() {
-    const [login,islogin] = useState(true);
+    const [login,islogin] = useState(false);
   return (
     <>
     <div className="h-50">
@@ -81,7 +81,7 @@ export default function LoginPage() {
             onClick={()=>{islogin(true)}}
             className="mt-1 inline-block text-sm font-semibold text-[#741337] transition hover:text-[#ed7137]"
           >
-            Login with email
+            
           </a>
 
         </div>

@@ -55,14 +55,13 @@ const FrontPage = () => {
                 href="/"
                 className="text-sm font-medium text-white transition hover:text-[#f5c982]"
               >
-                Home
+               
               </Link>
 
               <Link
                 href="/LoginRegister"
                 className="text-sm font-medium text-white transition hover:text-[#f5c982]"
               >
-                Login
               </Link>
 
               <Link
@@ -97,6 +96,19 @@ const FrontPage = () => {
           <div className="mx-auto flex h-full w-full max-w-[1400px] items-center px-5 pb-28 sm:px-8 sm:pb-24 lg:px-12 lg:pb-20">
 
             <div className="max-w-[680px]">
+              {/* <div className="mt-6 sm:mt-8">
+                <Link
+                  href="/LoginRegister"
+                  className="group inline-flex items-center  gap-3 rounded-full bg-[#f3bd78] px-7 py-3.5 text-sm font-bold text-[#20171a] shadow-xl transition hover:scale-[1.02] hover:bg-[#ffd08f] sm:px-8 sm:py-4"
+                >
+                  Get Started
+
+                  <ArrowRight
+                    size={18}
+                    className="transition-transform duration-200 group-hover:translate-x-1"
+                  />
+                </Link>
+              </div> */}
 
               {/* Badge */}
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/95 px-3.5 py-1.5 text-xs font-bold text-[#171419] sm:mb-5 sm:text-sm">
@@ -132,42 +144,30 @@ const FrontPage = () => {
               </p>
 
               {/* CTA */}
-              <div className="mt-6 sm:mt-8">
-                <Link
-                  href="/LoginRegister"
-                  className="group inline-flex items-center  gap-3 rounded-full bg-[#f3bd78] px-7 py-3.5 text-sm font-bold text-[#20171a] shadow-xl transition hover:scale-[1.02] hover:bg-[#ffd08f] sm:px-8 sm:py-4"
-                >
-                  Get Started
-
-                  <ArrowRight
-                    size={18}
-                    className="transition-transform duration-200 group-hover:translate-x-1"
-                  />
-                </Link>
-              </div>
+              
 
             </div>
           </div>
         </section>
 
         {/* ================= TAGLINE ================= */}
-        <div className="absolute bottom-[108px] left-5 z-20 rotate-[-5deg] font-serif text-lg italic leading-5 text-white/75 sm:bottom-[108px] sm:left-8 sm:text-xl lg:left-12">
+        {/* <div className="absolute left-50 z-20 rotate-[-5deg] font-serif text-lg italic leading-5 text-white/75 sm:bottom-[108px] sm:left-8 sm:text-xl lg:left-12">
           Good
           <br />
           People.
           <br />
           Great Garba!
           <span className="ml-1">♡</span>
-        </div>
+        </div> */}
 
         {/* ================= FOOTER STATS ================= */}
         <footer className="absolute bottom-0 left-0 z-20 w-full">
           <div className="mx-auto max-w-[1400px] px-5 pb-3 sm:px-8 lg:px-12">
 
-            <div className="grid grid-cols-2 border-t border-white/25 pt-2 sm:pt-3 md:grid-cols-4">
+            <div className="grid grid-cols-3 border-t border-white/25 pt-2 sm:pt-3 md:grid-cols-4">
 
-              {/* 100+ Students */}
-              <div className="flex items-center gap-2 border-white/20 px-2 py-2 md:border-r">
+              {/* 100+ Students */} 
+               <div className="flex items-center gap-2 border-white/20 px-2 py-2 md:border-r">
                 <Users
                   size={18}
                   className="shrink-0 text-[#f5d39d]"
@@ -175,7 +175,7 @@ const FrontPage = () => {
 
                 <div>
                   <p className="text-[11px] font-bold sm:text-sm">
-                    100+ Students
+                     Students
                   </p>
                   <p className="text-[9px] text-white/60 sm:text-[11px]">
                     College community
@@ -184,7 +184,7 @@ const FrontPage = () => {
               </div>
 
               {/* Verified */}
-              <div className="flex items-center gap-2 border-white/20 px-2 py-2 md:border-r md:pl-5">
+              <div className="flex items-center col-span-1 gap-2 border-white/20 px-2 py-2 md:border-r md:pl-5">
                 <ShieldCheck
                   size={18}
                   className="shrink-0 text-[#f5d39d]"
@@ -201,7 +201,7 @@ const FrontPage = () => {
               </div>
 
               {/* Safe */}
-              <div className="flex items-center gap-2 border-white/20 px-2 py-2 md:border-r md:pl-5">
+              <div className="flex items-center col-span-1 gap-2 border-white/20 px-2 py-2 md:border-r md:pl-5">
                 <ShieldCheck
                   size={18}
                   className="shrink-0 text-[#f5d39d]"
@@ -218,7 +218,7 @@ const FrontPage = () => {
               </div>
 
               {/* Garba Focused */}
-              <div className="flex items-center gap-2 px-2 py-2 md:pl-5">
+              <div className="flex col-span-1 items-center gap-2 px-2 py-2 md:pl-5">
                 <HeartHandshake
                   size={18}
                   className="shrink-0 text-[#f5d39d]"
