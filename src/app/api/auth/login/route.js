@@ -15,9 +15,9 @@ export async function POST(request) {
     const data = await request.json();
 
     const email = data.identifier;
-    const number = data.number;
+   
 
-    console.log("LOGIN:", number, email);
+    console.log("LOGIN:", email);
 
     // ============================================
     // 2. VALIDATE EMAIL

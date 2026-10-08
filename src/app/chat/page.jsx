@@ -26,7 +26,18 @@ import {
 
   Send,
 
+ 
+
+
 } from "lucide-react";
+
+import {
+  
+ FiMoreHorizontal,
+FiSlash,
+FiFlag,
+  
+} from "react-icons/fi";
 
 
 
@@ -137,6 +148,10 @@ export default function Chat() {
 const [loadingProfile, setLoadingProfile] = useState(false);
 
 const [profilePhotoIndex, setProfilePhotoIndex] = useState(0);
+
+const [showProfileMenu, setShowProfileMenu] = useState(false);
+const [showProfileReport, setShowProfileReport] = useState(false);
+const [blockingUser, setBlockingUser] = useState(false);
 
   // Mobile: swipe between Chat and Profile
   const [mobileView, setMobileView] = useState("chat");
@@ -2015,6 +2030,99 @@ const previousProfilePhoto = () => {
     }
   };
 
+  const blockChatUser = async () => {
+  if (!profileData?._id || blockingUser) return;
+
+  const confirmed = window.confirm(
+    `Block ${profileData.username}? You won't see them again.`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    setBlockingUser(true);
+
+    const response = await fetch(
+      "/api/discoverFunctions/blocked",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          profileId: profileData._id,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.message || "Could not block this user."
+      );
+    }
+
+    setShowProfileMenu(false);
+
+    // Go back to chat/matches list
+    // Use whatever navigation function you already have
+    setProfileData(null);
+
+  } catch (error) {
+    console.error("BLOCK CHAT USER ERROR:", error);
+    alert(error.message || "Could not block this user.");
+  } finally {
+    setBlockingUser(false);
+  }
+};
+
+const reportChatUser = async (reason) => {
+  if (!profileData?._id || blockingUser) return;
+
+  try {
+    setBlockingUser(true);
+
+    const response = await fetch(
+      "/api/discoverFunctions/report",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          profileId: profileData._id,
+          reason,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.message || "Could not report this user."
+      );
+    }
+
+    setShowProfileReport(false);
+    setShowProfileMenu(false);
+
+    setProfileData(null);
+
+    alert("Thank you. This profile has been reported.");
+  } catch (error) {
+    console.error("REPORT CHAT USER ERROR:", error);
+    alert(
+      error.message || "Could not report this user."
+    );
+  } finally {
+    setBlockingUser(false);
+  }
+};
+
   // ============================================================
   // UI
   // ============================================================
@@ -2375,7 +2483,7 @@ const previousProfilePhoto = () => {
                   ) : profileData ? (
                     <div className="flex-1 min-h-0 overflow-y-auto">
                       {/* PROFILE HEADER */}
-                      <div className="sticky top-0 z-20 bg-[#fffdf9]/95 backdrop-blur px-4 pt-4 pb-3 border-b border-[#eadfd3]">
+                     <div className="sticky top-0 z-20 relative bg-[#fffdf9]/95 backdrop-blur px-4 pt-4 pb-3 border-b border-[#eadfd3]">
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[#a09389]">
@@ -2388,8 +2496,119 @@ const previousProfilePhoto = () => {
                           <div className="px-2.5 py-1.5 rounded-full bg-[#f5e8e9] text-[#4a1525] text-[11px] font-semibold flex-shrink-0">
                             Matched
                           </div>
+
+                 <button
+    type="button"
+    onClick={() =>
+      setShowProfileMenu((prev) => !prev)
+    }
+    className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition"
+  >
+    <FiMoreHorizontal size={22} />
+  </button>
+
                         </div>
                       </div>
+
+                      {/* PROFILE ACTION MENU */}
+
+{showProfileMenu && (
+  <div className="absolute right-4 top-16 z-50 w-56 bg-white rounded-2xl shadow-xl border border-[#eadfd3] p-2">
+
+    {/* BLOCK */}
+    <button
+      type="button"
+      onClick={blockChatUser}
+      disabled={blockingUser}
+      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#faf1e8] text-left disabled:opacity-50"
+    >
+      <FiSlash
+        size={19}
+        className="text-[#4a403c]"
+      />
+
+      <div>
+        <p className="font-semibold text-[#302725]">
+          Block
+        </p>
+
+        <p className="text-xs text-[#8c7d74]">
+          You won't see them again
+        </p>
+      </div>
+    </button>
+
+    {/* REPORT */}
+    <button
+      type="button"
+      onClick={() => {
+        setShowProfileMenu(false);
+        setShowProfileReport(true);
+      }}
+      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-left"
+    >
+      <FiFlag
+        size={19}
+        className="text-red-500"
+      />
+
+      <div>
+        <p className="font-semibold text-red-600">
+          Report
+        </p>
+
+        <p className="text-xs text-[#8c7d74]">
+          Report this profile
+        </p>
+      </div>
+    </button>
+
+  </div>
+)}
+
+{showProfileReport && (
+  <div className="fixed inset-0 z-[100] bg-black/40 flex items-end justify-center">
+
+    <div className="bg-white w-full max-w-md rounded-t-3xl p-6">
+
+      <h2 className="text-xl font-bold text-[#302725]">
+        Report {profileData?.username}
+      </h2>
+
+      <p className="text-sm text-gray-500 mt-2 mb-5">
+        Why are you reporting this profile?
+      </p>
+
+      {[
+        "Fake profile",
+        "Inappropriate content",
+        "Harassment",
+        "Spam",
+        "Something else",
+      ].map((reason) => (
+        <button
+          key={reason}
+          type="button"
+          onClick={() => reportChatUser(reason)}
+          disabled={blockingUser}
+          className="w-full text-left px-4 py-4 border-b border-gray-100 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {reason}
+        </button>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => setShowProfileReport(false)}
+        className="w-full mt-4 py-3 rounded-full bg-gray-100 font-semibold"
+      >
+        Cancel
+      </button>
+
+    </div>
+
+  </div>
+)}
 
                       {/* PROFILE CONTENT */}
                       <div className="px-4 pb-6">

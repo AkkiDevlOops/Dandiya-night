@@ -61,6 +61,20 @@ export default function RaasMitraProfile() {
 
   const currentProfile = profiles[currentIndex];
 
+  
+
+  useEffect(()=>{
+
+    window.scrollTo({
+
+      top:0,
+      behavior:"instant",
+
+
+    });
+
+  },[currentProfile?._id]);
+
   // =====================================================
   // CURRENT PHOTOS
   // =====================================================
@@ -986,7 +1000,7 @@ setPhotoIndex(0);
 
               </div>
 
-              <button
+              {/* <button
                 onClick={() =>
                   setShowMenu(
                     (value) => !value
@@ -995,7 +1009,7 @@ setPhotoIndex(0);
                 className="shrink-0 w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
               >
                 <FiMoreHorizontal />
-              </button>
+              </button> */}
 
             </div>
 
@@ -1418,7 +1432,7 @@ setPhotoIndex(0);
                 PROFILE LIKE / SKIP
             ============================================= */}
 
-            <div className="flex justify-center gap-5 px-5 py-8">
+            <div className="flex justify-center scroll-auto gap-5 px-5 py-8">
 
               {/* UNDO */}
 
