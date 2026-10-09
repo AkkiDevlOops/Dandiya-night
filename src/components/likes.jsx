@@ -65,28 +65,43 @@ const openChat = async (match) => {
   }
 };
 
-const getLikedProfiles = async () => {
+
+const unmatchUser = async (targetProfileId) => {
+  if (!targetProfileId) {
+    console.error("Target profile ID is missing.");
+    return;
+  }
+
+  // Ask before permanently removing the pair's records.
+  const confirmed = window.confirm(
+    "Are you sure you want to unmatch this user? This will remove your match and related like records."
+  );
+
+  if (!confirmed) return;
+
   try {
     setLoading(true);
 
-    const response = await fetch("/api/getLikedprof", {
-      method: "GET",
+    const response = await fetch("/api/discoverFunctions/Unmatch", {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       cache: "no-store",
+      body: JSON.stringify({
+        targetProfileId,
+      }),
     });
 
-    // Read as text first so an empty/non-JSON response doesn't crash with
-    // "Unexpected end of JSON input".
     const text = await response.text();
 
-    console.log("GET LIKES STATUS:", response.status);
-    console.log("GET LIKES RESPONSE:", text);
+    console.log("UNMATCH STATUS:", response.status);
+    console.log("UNMATCH RESPONSE:", text);
 
     if (!text) {
       throw new Error(
-        `Empty response from /api/discoverFunctions/likes (HTTP ${response.status})`
+        `Empty response from unmatch API (HTTP ${response.status})`
       );
     }
 
@@ -94,31 +109,110 @@ const getLikedProfiles = async () => {
 
     try {
       data = JSON.parse(text);
-    } catch (parseError) {
-      console.error("INVALID JSON FROM GET LIKES:", text);
+    } catch {
       throw new Error("Server returned invalid JSON.");
     }
 
     if (!response.ok || !data.success) {
-      throw new Error(data.message || "Failed to get likes.");
+      throw new Error(data.message || "Failed to unmatch user.");
     }
 
-    const receivedLikes = data.likes || [];
+    // Remove this user's like from the current page immediately.
+    setLikes((previousLikes) =>
+      previousLikes.filter((like) => {
+        const profileId =
+          like.profileId?._id ??
+          like.profileId ??
+          like._id;
 
-    setLikes(receivedLikes);
+        return String(profileId) !== String(targetProfileId);
+      })
+    );
 
-    // Open popup automatically if at least one like exists
-    if (receivedLikes.length > 0) {
-      setSelectedLike(receivedLikes[0]);
-      setShowPopup(true);
-    }
+    // Close the popup if it is showing this user.
+    setSelectedLike((previousLike) => {
+      if (!previousLike) return previousLike;
+
+      const profileId =
+        previousLike.profileId?._id ??
+        previousLike.profileId ??
+        previousLike._id;
+
+      if (String(profileId) === String(targetProfileId)) {
+        setShowPopup(false);
+        return null;
+      }
+
+      return previousLike;
+    });
+
+    console.log("UNMATCH SUCCESS:", data.message);
+
+    // Refresh from the backend to ensure the UI reflects the database.
+    await getLikedProfiles();
   } catch (error) {
-    console.error("GET LIKES ERROR:", error);
-    setLikes([]);
+    console.error("UNMATCH ERROR:", error);
+    window.alert(error.message || "Unable to unmatch user.");
   } finally {
     setLoading(false);
   }
 };
+
+
+  const getLikedProfiles = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/getLikedprof", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
+      // Read as text first so an empty/non-JSON response doesn't crash with
+      // "Unexpected end of JSON input".
+      const text = await response.text();
+
+      console.log("GET LIKES STATUS:", response.status);
+      console.log("GET LIKES RESPONSE:", text);
+
+      if (!text) {
+        throw new Error(
+          `Empty response from /api/discoverFunctions/likes (HTTP ${response.status})`
+        );
+      }
+
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error("INVALID JSON FROM GET LIKES:", text);
+        throw new Error("Server returned invalid JSON.");
+      }
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to get likes.");
+      }
+
+      const receivedLikes = data.likes || [];
+
+      setLikes(receivedLikes);
+
+      // Open popup automatically if at least one like exists
+      if (receivedLikes.length > 0) {
+        setSelectedLike(receivedLikes[0]);
+        setShowPopup(true);
+      }
+    } catch (error) {
+      console.error("GET LIKES ERROR:", error);
+      setLikes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 const matchWithUser = async () => {
   if (!selectedLike || matching) {
@@ -463,7 +557,7 @@ const previousPreviewPhoto = () => {
 
               <div className="absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow">
                 <FiHeart
-                  className="text-[#4a1525] fill-[#4a1525]"
+                  className="text-[#4a1525] fill-[#4a1525] "
                   size={10}
                 />
               </div>
@@ -499,6 +593,17 @@ const previousPreviewPhoto = () => {
 >
   <FiMessageCircle size={18} />
 </button> */}
+
+<button
+  onClick={(e) => {
+    e.stopPropagation();
+    unmatchUser(match.profileId?._id ?? match.profileId)
+    
+  }}
+  className="w-auto p-2 h-10 rounded-full border-blue-600 bg-[#f7f1ec] flex items-center justify-center text-[#4a1525] hover:bg-[#4a1525] hover:text-white transition-all"
+>
+    {loading ? "Unmatching..." : "Unmatch"}
+</button>
 
 <button
   onClick={(e) => {
